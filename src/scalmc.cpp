@@ -507,7 +507,7 @@ int ScalMC::solve()
 {
     //set seed
     if (vm.count("seed") == 0) {
-        cerr << "ERROR: You must provide a seed value with the '-s X' option" << endl;
+        cerr << "ERROR: You must provide a seed value with the '-s NUM' option" << endl;
         exit(-1);
     }
     unsigned int seed = vm["seed"].as<unsigned int>();
