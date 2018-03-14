@@ -98,6 +98,7 @@ void ScalMC::add_scalmc_options()
 {
     scalmc_options.add_options()
     ("help,h", "Prints help")
+    ("seed,s", po::value< int >(), "Seed")
     ("pivotAC", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
     ("mode", po::value(&searchMode)->default_value(searchMode)
@@ -505,8 +506,11 @@ void ScalMC::readInStandardInput(SATSolver* solver2)
 int ScalMC::solve()
 {
     //set seed
-    assert(vm.count("random"));
-    unsigned int seed = vm["random"].as<unsigned int>();
+    if (vm.count("seed") == 0) {
+        cerr << "ERROR: You must provide a seed value with the '-s X' option" << endl;
+        exit(-1);
+    }
+    unsigned int seed = vm["seed"].as<unsigned int>();
     randomEngine.seed(seed);
 
     openLogFile();
