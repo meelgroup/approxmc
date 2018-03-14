@@ -69,7 +69,7 @@ public:
     int solve();
     void add_supported_options();
 
-    po::options_description scalmc_options;
+    po::options_description scalmc_options = po::options_description("ScalMC options");
     po::options_description help_options;
     po::variables_map vm;
     po::positional_options_description p;
@@ -115,7 +115,7 @@ private:
     std::mt19937 randomEngine;
     SATSolver* solver;
     vector<uint32_t> independent_vars;
-    int verb = 2;
+    unsigned verb = 2;
 
     int argc;
     char** argv;

@@ -115,7 +115,7 @@ void ScalMC::add_scalmc_options()
          "Try to ask the solver to unset some independent variables, thereby"
          "finding more than one solution at a time")
     ("input", po::value< vector<string> >(), "file(s) to read")
-    ("verb,v", po::value<int>(&verb)->default_value(verb), "verbosity")
+    ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
     ;
 
     help_options.add(scalmc_options);
@@ -140,6 +140,7 @@ void ScalMC::add_supported_options()
             cout << help_options << endl;
             std::exit(0);
         }
+        po::notify(vm);
     } catch (boost::exception_detail::clone_impl<
         boost::exception_detail::error_info_injector<po::unknown_option> >& c
     ) {
@@ -292,7 +293,7 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
             }
         }
         solver->add_xor_clause(vars, rhs);
-        if (vm["verbosity"].as<int>() >= 3) {
+        if (verb >= 3) {
             print_xor(vars, rhs);
         }
     }
@@ -317,6 +318,9 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
         double this_iter_timeout = loopTimeout-(cpuTime()-start_time);
         solver->set_timeout_all_calls(this_iter_timeout);
         ret = solver->solve(&new_assumps);
+        if (verb >= 3) {
+            cout << "Found one" << endl;
+        }
         if (ret != l_True)
             break;
 
@@ -510,18 +514,22 @@ int ScalMC::solve()
         cerr << "ERROR: You must provide a seed value with the '-s NUM' option" << endl;
         exit(-1);
     }
-    unsigned int seed = vm["seed"].as<unsigned int>();
+    unsigned int seed = vm["seed"].as<int>();
     randomEngine.seed(seed);
 
     openLogFile();
     startTime = cpuTimeTotal();
 
-    solver = new SATSolver(&must_interrupt);
+    //solver = new SATSolver(&must_interrupt);
+    solver = new SATSolver();
     solverToInterrupt = solver;
 
-    solver->set_allow_otf_gauss();
     /*conf.reconfigure_at = 0;
     conf.reconfigure_val = 15;*/
+    solver->set_allow_otf_gauss();
+    if (verb > 2) {
+        solver->set_verbosity(verb-2);
+    }
     CMSat::GaussConf gconf;
     gconf.max_matrix_rows = 3000;
     gconf.decision_until = 3000;
