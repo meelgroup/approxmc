@@ -359,10 +359,10 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
     solver->add_clause(cl_that_removes);
 
     //Timeout
-    if (ret == l_Undef) {
-        must_interrupt.store(false, std::memory_order_relaxed);
-        return -1;
-    }
+//     if (ret == l_Undef) {
+//         must_interrupt.store(false, std::memory_order_relaxed);
+//         return -1;
+//     }
     return solutions;
 }
 

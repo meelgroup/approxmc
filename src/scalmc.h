@@ -61,7 +61,7 @@ public:
         , argc(_argc)
         , argv(_argv)
     {
-        must_interrupt.store(false, std::memory_order_relaxed);
+        //must_interrupt.store(false, std::memory_order_relaxed);
         solver = new SATSolver;
 {
 }
@@ -102,7 +102,7 @@ private:
     double startTime;
     std::map< std::string, std::vector<uint32_t>> globalSolutionMap;
     bool openLogFile();
-    std::atomic<bool> must_interrupt;
+    //std::atomic<bool> must_interrupt;
     void call_after_parse();
 
     uint32_t start_iter = 0;
