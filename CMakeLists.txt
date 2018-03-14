@@ -390,6 +390,24 @@ else()
     MESSAGE(STATUS "Not on Linux, not creating manpage")
 endif()
 
+# -----------------------------------------------------------------------------
+# Look for ZLIB (For reading zipped CNFs)
+# -----------------------------------------------------------------------------
+option(NOZLIB "Don't use zlib" OFF)
+
+# cannot currently compile static zlib under Windows
+if (NOT NOZLIB AND NOT (STATICCOMPILE AND WIN32))
+    find_package(ZLIB)
+    IF (ZLIB_FOUND)
+        MESSAGE(STATUS "OK, Found ZLIB!")
+        include_directories(${ZLIB_INCLUDE_DIR})
+        link_directories(${ZLIB_LIB_DIR})
+        add_definitions( -DUSE_ZLIB )
+    ELSE (ZLIB_FOUND)
+        MESSAGE(STATUS "WARNING: Did not find ZLIB, gzipped file support will be disabled")
+    ENDIF (ZLIB_FOUND)
+endif()
+
 #query definitions
 get_directory_property( DirDefs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS )
 set(COMPILE_DEFINES)

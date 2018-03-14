@@ -47,8 +47,17 @@ add_executable(scalmc
     signalcode.cpp
     scalmc.cpp
 )
-target_link_libraries(scalmc
+
+set(scalmc_exec_link_libs
     ${Boost_LIBRARIES}
+)
+
+IF (ZLIB_FOUND)
+    SET(scalmc_exec_link_libs ${scalmc_exec_link_libs} ${ZLIB_LIBRARY})
+ENDIF()
+
+target_link_libraries(scalmc
+    ${scalmc_exec_link_libs}
 )
 
 if (STATICCOMPILE)
