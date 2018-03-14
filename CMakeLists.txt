@@ -476,7 +476,7 @@ if (ENABLE_TESTING)
     #use valgrind
     message(STATUS "Testing is enabled")
     set(UNIT_TEST_EXE_SUFFIX "Tests" CACHE STRING "Suffix for Unit test executable")
-    add_subdirectory(tests)
+    #add_subdirectory(tests)
 
 else()
     message(WARNING "Testing is disabled")
