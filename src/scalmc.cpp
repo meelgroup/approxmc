@@ -56,6 +56,7 @@
 #include "cryptominisat5/cryptominisat.h"
 #include "cryptominisat5/dimacsparser.h"
 #include "cryptominisat5/streambuffer.h"
+#include "cryptominisat5/solvertypesmini.h"
 #include "signalcode.h"
 
 using std::cout;
@@ -516,12 +517,14 @@ int ScalMC::solve()
 
     solver->set_allow_otf_gauss();
     /*conf.reconfigure_at = 0;
-    conf.reconfigure_val = 15;
-    conf.gaussconf.max_matrix_rows = 3000;
-    conf.gaussconf.decision_until = 3000;
-    conf.gaussconf.max_num_matrixes = 1;
-    conf.gaussconf.min_matrix_rows = 5;
-    conf.gaussconf.autodisable = false;*/
+    conf.reconfigure_val = 15;*/
+    CMSat::GaussConf gconf;
+    gconf.max_matrix_rows = 3000;
+    gconf.decision_until = 3000;
+    gconf.max_num_matrixes = 1;
+    gconf.min_matrix_rows = 5;
+    gconf.autodisable = false;
+    solver->set_gauss_config(gconf);
 
     if (unset_vars) {
         solver->set_greedy_undef();
