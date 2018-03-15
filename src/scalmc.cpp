@@ -555,6 +555,9 @@ int ScalMC::solve()
         readInStandardInput(solver);
     }
 
+    //TODO this somehow messes up things.. but why? This is a bug in CMS.
+    //solver->simplify();
+
     if (start_iter > independent_vars.size()) {
         cout << "ERROR: Manually-specified start_iter"
              "is larger than the size of the independent set.\n" << endl;
