@@ -302,7 +302,8 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
 
 int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assumps)
 {
-    cout << "BoundedSATCount looking for " << maxSolutions << " solutions" << endl;
+    cout << "BoundedSATCount looking for " << maxSolutions << " solutions"
+    << " T:" << std::setprecision(2) << std::fixed << (cpuTime()-myTime) << endl;
 
     //Set up things for adding clauses that can later be removed
     solver->new_var();
@@ -509,6 +510,7 @@ void ScalMC::readInStandardInput(SATSolver* solver2)
 
 int ScalMC::solve()
 {
+    myTime = cpuTime();
     //set seed
     if (vm.count("seed") == 0) {
         cerr << "ERROR: You must provide a seed value with the '-s NUM' option" << endl;
@@ -652,6 +654,7 @@ bool ScalMC::ScalApproxMC(SATCount& count)
     uint64_t mPrev = 0;
 
     double myTime = cpuTimeTotal();
+    cout << "ScalApproxMC: Starting up, initial measurement" << endl;
     if (hashCount == 0) {
         int64_t currentNumSolutions = BoundedSATCount(pivot+1,assumps);
         cusp_logf << "ApproxMC:"<< searchMode<<":"<<"0:0:"
@@ -661,6 +664,7 @@ bool ScalMC::ScalApproxMC(SATCount& count)
 
         //Din't find at least pivot+1
         if (currentNumSolutions <= pivot) {
+            cout << "Did not find at least pivot+1 (" << pivot << ") we found only " << currentNumSolutions << ", exiting ScalApproxMC" << endl;
             count.cellSolCount = currentNumSolutions;
             count.hashCount = 0;
             return true;

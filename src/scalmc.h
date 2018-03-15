@@ -116,6 +116,7 @@ private:
     SATSolver* solver;
     vector<uint32_t> independent_vars;
     unsigned verb = 2;
+    double myTime; //runTime
 
     int argc;
     char** argv;
