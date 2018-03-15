@@ -538,6 +538,7 @@ int ScalMC::solve()
     gconf.max_num_matrixes = 1;
     gconf.min_matrix_rows = 5;
     gconf.autodisable = false;
+    gconf.only_nth_gauss_save = 10;
     solver->set_gauss_config(gconf);
 
     if (unset_vars) {
