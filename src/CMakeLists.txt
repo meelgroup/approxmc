@@ -55,11 +55,16 @@ IF (ZLIB_FOUND)
     SET(scalmc_exec_link_libs ${scalmc_exec_link_libs} ${ZLIB_LIBRARY})
 ENDIF()
 
+target_link_libraries(scalmc
+    ${scalmc_exec_link_libs}
+)
+
 if (STATICCOMPILE)
     SET_TARGET_PROPERTIES(scalmc PROPERTIES LINK_SEARCH_START_STATIC 1)
-    SET(scalmc_exec_link_libs ${scalmc_exec_link_libs} ${CRYPTOMINISAT5_STATIC_LIBRARIES})
+    SET(cms_libs ${CRYPTOMINISAT5_STATIC_LIBRARIES})
+    message(STATUS "bimm: ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
 else()
-    SET(scalmc_exec_link_libs ${scalmc_exec_link_libs} ${CRYPTOMINISAT5_LIBRARIES})
+    SET(cms_libs ${CRYPTOMINISAT5_LIBRARIES})
 endif()
 set_target_properties(scalmc PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
@@ -69,7 +74,7 @@ if (STATICCOMPILE)
 endif()
 
 target_link_libraries(scalmc
-    ${scalmc_exec_link_libs}
+    ${cms_libs}
 )
 
 install(TARGETS scalmc
