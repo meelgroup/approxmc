@@ -300,8 +300,9 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
 
 int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assumps)
 {
-    cout << "BoundedSATCount looking for " << maxSolutions << " solutions"
-    << " T:" << std::setprecision(2) << std::fixed << (cpuTime()-myTime) << endl;
+    cout << "[" << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime) << "]"
+    << " BoundedSATCount looking for " << maxSolutions << " solutions"
+    << endl;
 
     //Set up things for adding clauses that can later be removed
     solver->new_var();
@@ -433,7 +434,7 @@ void ScalMC::readInStandardInput(SATSolver* solver2)
 
 int ScalMC::solve()
 {
-    myTime = cpuTime();
+    total_runtime = cpuTime();
     //set seed
     if (vm.count("seed") == 0) {
         cerr << "ERROR: You must provide a seed value with the '-s NUM' option" << endl;
