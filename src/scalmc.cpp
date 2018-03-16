@@ -321,11 +321,15 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
         }
 
         ret = solver->solve(&new_assumps);
+        if (verb >=2 ) {
+            cout << "Ret within boundedSATCount is: " << ret << endl;
+        }
+        if (ret != l_True) {
+            break;
+        }
         if (verb >= 3) {
             cout << "Found one" << endl;
         }
-        if (ret != l_True)
-            break;
 
         size_t num_undef = 0;
         if (solutions < maxSolutions) {
