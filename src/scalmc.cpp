@@ -393,7 +393,6 @@ void ScalMC::readInAFile(SATSolver* solver2, const string& filename)
     }
 
     independent_vars.swap(parser.independent_vars);
-    call_after_parse();
 
     #ifndef USE_ZLIB
         fclose(in);
@@ -471,8 +470,8 @@ int ScalMC::solve()
         solver->set_greedy_undef();
     }
     printVersionInfo();
-    vector<string> inp = vm["input"].as<vector<string> >();
-    if (inp.size() >= 1) {
+    if (vm.count("input") != 0) {
+        vector<string> inp = vm["input"].as<vector<string> >();
         if (inp.size() > 1) {
             cout << "ERROR: can only parse in one file" << endl;
         }
@@ -480,6 +479,9 @@ int ScalMC::solve()
     } else {
         readInStandardInput(solver);
     }
+    call_after_parse();
+    lbool ret = solver->solve();
+    cout << "Ret is: " << ret << endl;
 
     //TODO this somehow messes up things.. but why? This is a bug in CMS.
     //solver->simplify();
