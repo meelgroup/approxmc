@@ -43,7 +43,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
 
 add_executable(scalmc
-    #main.cpp
     signalcode.cpp
     scalmc.cpp
 )
