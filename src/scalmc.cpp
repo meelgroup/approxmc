@@ -546,6 +546,12 @@ void ScalMC::call_after_parse()
         for (size_t i = 0; i < solver->nVars(); i++) {
             independent_vars.push_back(i);
         }
+    } else {
+        cout << "Independent vars: ";
+        for (auto v: independent_vars) {
+            cout << v+1 << ", ";
+        }
+        cout << endl;
     }
     solver->set_independent_vars(&independent_vars);
 }
