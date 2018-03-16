@@ -487,8 +487,6 @@ int ScalMC::solve()
         readInStandardInput(solver);
     }
     call_after_parse();
-    lbool ret = solver->solve();
-    cout << "Ret is: " << ret << endl;
 
     //TODO this somehow messes up things.. but why? This is a bug in CMS.
     //solver->simplify();
