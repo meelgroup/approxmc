@@ -55,12 +55,11 @@ IF (ZLIB_FOUND)
     SET(scalmc_exec_link_libs ${scalmc_exec_link_libs} ${ZLIB_LIBRARY})
 ENDIF()
 
-target_link_libraries(scalmc
-    ${scalmc_exec_link_libs}
-)
-
 if (STATICCOMPILE)
     SET_TARGET_PROPERTIES(scalmc PROPERTIES LINK_SEARCH_START_STATIC 1)
+    SET(scalmc_exec_link_libs ${scalmc_exec_link_libs} ${CRYPTOMINISAT5_STATIC_LIBRARIES})
+else()
+    SET(scalmc_exec_link_libs ${scalmc_exec_link_libs} ${CRYPTOMINISAT5_LIBRARIES})
 endif()
 set_target_properties(scalmc PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
@@ -68,12 +67,17 @@ set_target_properties(scalmc PROPERTIES
 if (STATICCOMPILE)
     SET_TARGET_PROPERTIES(scalmc PROPERTIES LINK_SEARCH_END_STATIC 1)
 endif()
+
 target_link_libraries(scalmc
-    ${CRYPTOMINISAT5_LIBRARIES}
+    ${scalmc_exec_link_libs}
 )
+
 install(TARGETS scalmc
     EXPORT ${SCALMC_EXPORT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 SET(CPACK_PACKAGE_EXECUTABLES "scalmc")
+
+# to compile statically:
+# /usr/lib/ccache/bin/c++   -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic    -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -static    CMakeFiles/scalmc.dir/signalcode.cpp.o CMakeFiles/scalmc.dir/scalmc.cpp.o  -o ../scalmc /usr/lib/libboost_program_options.a /usr/lib/libz.a /usr/local/lib/libcryptominisat5.a /usr/local/lib/libm4ri.a -pthread
 
