@@ -438,7 +438,7 @@ endmacro()
 
 find_package(cryptominisat5 CONFIG)
 if (cryptominisat5_FOUND)
-    message(STATUS "Found CryptoMiniSat 5.x and C++11, allowing --cryptominisat5 option")
+    message(STATUS "Found CryptoMiniSat 5.x")
     message(STATUS "CryptoMiniSat5 dynamic lib: ${CRYPTOMINISAT5_LIBRARIES}")
     message(STATUS "CryptoMiniSat5 static lib:  ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
     message(STATUS "CryptoMiniSat5 static lib deps: ${CRYPTOMINISAT5_STATIC_LIBRARIES_DEPS}")
@@ -452,7 +452,7 @@ endif()
 # -----------------------------------------------------------------------------
 set(SCALMC_EXPORT_NAME "scalmcTargets")
 
-add_subdirectory(src cmsat5-src)
+add_subdirectory(src scalmc-src)
 
 # -----------------------------------------------------------------------------
 # Add uninstall target for makefiles
