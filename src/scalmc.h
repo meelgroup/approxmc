@@ -113,7 +113,7 @@ private:
     std::mt19937 randomEngine;
     SATSolver* solver;
     vector<uint32_t> independent_vars;
-    unsigned verb = 2;
+    unsigned verb = 1;
     double total_runtime; //runTime
 
     int argc;

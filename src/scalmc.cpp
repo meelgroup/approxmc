@@ -338,6 +338,9 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
                     num_undef++;
                 }
             }
+            if (verb >= 2) {
+                cout << "Adding banning clause: " << lits << endl;
+            }
             solver->add_clause(lits);
         }
         if (num_undef) {
@@ -507,7 +510,7 @@ int ScalMC::solve()
         return correctReturnValue(l_False);
     }
 
-    if (verb) {
+    if (verb > 2) {
         solver->print_stats();
     }
 
