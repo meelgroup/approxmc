@@ -77,7 +77,6 @@ public:
 private:
     void add_scalmc_options();
     bool ScalApproxMC(SATCount& count);
-    bool ApproxMC(SATCount& count);
     bool AddHash(uint32_t num_xor_cls, vector<Lit>& assumps);
     void SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);
 
@@ -108,7 +107,6 @@ private:
     uint32_t start_iter = 0;
     uint32_t pivot = 52;
     uint32_t tApproxMC = 17;
-    uint32_t searchMode = 1;
     double   loopTimeout = 2500;
     int      unset_vars = 0;
     std::ofstream cusp_logf;

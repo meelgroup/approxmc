@@ -101,8 +101,6 @@ void ScalMC::add_scalmc_options()
     ("seed,s", po::value< int >(), "Seed")
     ("pivotAC", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
-    ("mode", po::value(&searchMode)->default_value(searchMode)
-        ,"Seach mode. ApproxMX = 0, ScalMC = 1")
     ("tApproxMC", po::value(&tApproxMC)->default_value(tApproxMC)
         , "Number of measurements")
     ("start", po::value(&start_iter)->default_value(start_iter),
@@ -367,81 +365,6 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
     return solutions;
 }
 
-bool ScalMC::ApproxMC(SATCount& count)
-{
-    count.clear();
-    int64_t currentNumSolutions = 0;
-    vector<uint64_t> numHashList;
-    vector<int64_t> numCountList;
-    vector<Lit> assumps;
-    for (uint32_t j = 0; j < tApproxMC; j++) {
-        uint64_t hashCount;
-        uint32_t repeatTry = 0;
-        for (hashCount = 0; hashCount < solver->nVars(); hashCount++) {
-            cout << "-> Hash Count " << hashCount << endl;
-            double myTime = cpuTimeTotal();
-            currentNumSolutions = BoundedSATCount(pivot + 1, assumps);
-
-            //cout << currentNumSolutions << ", " << pivot << endl;
-            cusp_logf << "ApproxMC:" << searchMode << ":"
-                      << j << ":" << hashCount << ":"
-                      << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
-                      << (int)(currentNumSolutions == (pivot + 1)) << ":"
-                      << currentNumSolutions << endl;
-            //Timeout!
-            if (currentNumSolutions < 0) {
-                //Remove all hashes
-                assumps.clear();
-
-                if (repeatTry < 2) {    /* Retry up to twice more */
-                    assert(hashCount > 0);
-                    AddHash(hashCount, assumps); //add new set of hashes
-                    solver->simplify(&assumps);
-                    hashCount --;
-                    repeatTry += 1;
-                    cout << "Timeout, try again -- " << repeatTry << endl;
-                } else {
-                    //this set of hashes does not work, go up
-                    AddHash(hashCount + 1, assumps);
-                    solver->simplify(&assumps);
-                    cout << "Timeout, moving up" << endl;
-                }
-                continue;
-            }
-
-            if (currentNumSolutions < pivot + 1) {
-                //less than pivot solutions
-                break;
-            }
-
-            //Found all solutions needed
-            AddHash(1, assumps);
-        }
-        assumps.clear();
-        numHashList.push_back(hashCount);
-        numCountList.push_back(currentNumSolutions);
-        solver->simplify(&assumps);
-    }
-    if (numHashList.size() == 0) {
-        //UNSAT
-        return true;
-    }
-
-    auto minHash = findMin(numHashList);
-    auto hash_it = numHashList.begin();
-    auto cnt_it = numCountList.begin();
-    for (; hash_it != numHashList.end() && cnt_it != numCountList.end()
-            ; hash_it++, cnt_it++
-        ) {
-        *cnt_it *= pow(2, (*hash_it) - minHash);
-    }
-    int medSolCount = findMedian(numCountList);
-
-    count.cellSolCount = medSolCount;
-    count.hashCount = minHash;
-    return true;
-}
-
 void ScalMC::readInAFile(SATSolver* solver2, const string& filename)
 {
     solver2->add_sql_tag("filename", filename);
@@ -567,12 +490,7 @@ int ScalMC::solve()
     SATCount solCount;
     cout << "Using start iteration " << start_iter << endl;
 
-    bool finished = false;
-    if (searchMode == 0) {
-        finished = ApproxMC(solCount);
-    } else {
-        finished = ScalApproxMC(solCount);
-    }
+    bool finished = ScalApproxMC(solCount);
     cout << "ApproxMC finished in " << (cpuTimeTotal() - startTime) << " s" << endl;
     if (!finished) {
         cout << " (TIMED OUT)" << endl;
@@ -661,7 +579,7 @@ bool ScalMC::ScalApproxMC(SATCount& count)
     cout << "ScalApproxMC: Starting up, initial measurement" << endl;
     if (hashCount == 0) {
         int64_t currentNumSolutions = BoundedSATCount(pivot+1,assumps);
-        cusp_logf << "ApproxMC:"<< searchMode<<":"<<"0:0:"
+        cusp_logf << "ApproxMC:"<<"0:0:"
                   << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                   << (int)(currentNumSolutions == (pivot + 1)) << ":"
                   << currentNumSolutions << endl;
@@ -695,7 +613,7 @@ bool ScalMC::ScalApproxMC(SATCount& count)
             int64_t currentNumSolutions = BoundedSATCount(pivot + 1, assumps);
 
             //cout << currentNumSolutions << ", " << pivot << endl;
-            cusp_logf << "ApproxMC:" << searchMode<<":"
+            cusp_logf << "ApproxMC:"
                       << j << ":" << hashCount << ":"
                       << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                       << (int)(currentNumSolutions == (pivot + 1)) << ":"
