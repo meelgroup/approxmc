@@ -314,9 +314,12 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
     uint64_t solutions = 0;
     lbool ret;
     while (solutions < maxSolutions) {
-        //solver->set_max_confl(10*1000*1000);
-        double this_iter_timeout = loopTimeout-(cpuTime()-start_time);
-        solver->set_timeout_all_calls(this_iter_timeout);
+        //don't do timeout when measuring initially, that's not OK
+        if (!assumps.empty()) {
+            double this_iter_timeout = loopTimeout-(cpuTime()-start_time);
+            solver->set_timeout_all_calls(this_iter_timeout);
+        }
+
         ret = solver->solve(&new_assumps);
         if (verb >= 3) {
             cout << "Found one" << endl;
@@ -359,10 +362,9 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
     solver->add_clause(cl_that_removes);
 
     //Timeout
-//     if (ret == l_Undef) {
-//         must_interrupt.store(false, std::memory_order_relaxed);
-//         return -1;
-//     }
+    if (ret == l_Undef) {
+        return -1;
+    }
     return solutions;
 }
 
