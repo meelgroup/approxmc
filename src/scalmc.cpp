@@ -543,7 +543,6 @@ void ScalMC::call_after_parse()
     solver->set_independent_vars(&independent_vars);
 }
 
-//For ScalApproxMC only
 void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps)
 {
     if (clausNum < assumps.size()) {
@@ -566,7 +565,6 @@ void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector
     }
 }
 
-//For ScalApproxMC only
 bool ScalMC::ScalApproxMC(SATCount& count)
 {
     count.clear();
