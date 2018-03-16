@@ -305,9 +305,9 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
     << endl;
 
     //Set up things for adding clauses that can later be removed
+    vector<Lit> new_assumps(assumps);
     solver->new_var();
     uint32_t act_var = solver->nVars()-1;
-    vector<Lit> new_assumps(assumps);
     new_assumps.push_back(Lit(act_var, true));
 
     double start_time = cpuTime();
