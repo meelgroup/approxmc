@@ -63,9 +63,8 @@ public:
     {
         //must_interrupt.store(false, std::memory_order_relaxed);
         solver = new SATSolver;
-{
-}
     }
+
     int solve();
     void add_supported_options();
 
