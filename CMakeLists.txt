@@ -488,10 +488,6 @@ endif()
 # -----------------------------------------------------------------------------
 set(SCALMC_TARGETS_FILENAME "scalmcTargets.cmake")
 set(SCALMC_CONFIG_FILENAME "scalmcConfig.cmake")
-set(SCALMC_STATIC_DEPS
-    ${SQLITE3_LIBRARIES}
-    ${M4RI_LIBRARIES}
-)
 
 # Export targets
 set(MY_TARGETS scalmc)
