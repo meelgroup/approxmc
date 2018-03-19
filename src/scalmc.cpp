@@ -101,7 +101,7 @@ void ScalMC::add_scalmc_options()
     ("seed,s", po::value< int >(), "Seed")
     ("pivotAC", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
-    ("tApproxMC", po::value(&tApproxMC)->default_value(tApproxMC)
+    ("tScalMC", po::value(&tScalMC)->default_value(tScalMC)
         , "Number of measurements")
     ("start", po::value(&start_iter)->default_value(start_iter),
          "")
@@ -500,8 +500,8 @@ int ScalMC::solve()
     SATCount solCount;
     cout << "Using start iteration " << start_iter << endl;
 
-    bool finished = ScalApproxMC(solCount);
-    cout << "ApproxMC finished in " << (cpuTimeTotal() - startTime) << " s" << endl;
+    bool finished = count(solCount);
+    cout << "ScalMC finished in " << (cpuTimeTotal() - startTime) << " s" << endl;
     if (!finished) {
         cout << " (TIMED OUT)" << endl;
         return 0;
@@ -578,7 +578,7 @@ void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector
     }
 }
 
-bool ScalMC::ScalApproxMC(SATCount& count)
+bool ScalMC::count(SATCount& count)
 {
     count.clear();
     vector<uint64_t> numHashList;
@@ -590,17 +590,17 @@ bool ScalMC::ScalApproxMC(SATCount& count)
     uint64_t mPrev = 0;
 
     double myTime = cpuTimeTotal();
-    cout << "ScalApproxMC: Starting up, initial measurement" << endl;
+    cout << "ScalMC: Starting up, initial measurement" << endl;
     if (hashCount == 0) {
         int64_t currentNumSolutions = BoundedSATCount(pivot+1,assumps);
-        cusp_logf << "ApproxMC:"<<"0:0:"
+        cusp_logf << "ScalMC:"<<"0:0:"
                   << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                   << (int)(currentNumSolutions == (pivot + 1)) << ":"
                   << currentNumSolutions << endl;
 
         //Din't find at least pivot+1
         if (currentNumSolutions <= pivot) {
-            cout << "Did not find at least pivot+1 (" << pivot << ") we found only " << currentNumSolutions << ", exiting ScalApproxMC" << endl;
+            cout << "Did not find at least pivot+1 (" << pivot << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
             count.cellSolCount = currentNumSolutions;
             count.hashCount = 0;
             return true;
@@ -608,7 +608,7 @@ bool ScalMC::ScalApproxMC(SATCount& count)
         hashCount++;
     }
 
-    for (uint32_t j = 0; j < tApproxMC; j++) {
+    for (uint32_t j = 0; j < tScalMC; j++) {
         map<uint64_t,int64_t> countRecord;
         map<uint64_t,uint32_t> succRecord;
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
@@ -627,7 +627,7 @@ bool ScalMC::ScalApproxMC(SATCount& count)
             int64_t currentNumSolutions = BoundedSATCount(pivot + 1, assumps);
 
             //cout << currentNumSolutions << ", " << pivot << endl;
-            cusp_logf << "ApproxMC:"
+            cusp_logf << "ScalMC:"
                       << j << ":" << hashCount << ":"
                       << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                       << (int)(currentNumSolutions == (pivot + 1)) << ":"

@@ -57,7 +57,7 @@ struct SATCount {
 class ScalMC {
 public:
     ScalMC(int _argc, char** _argv):
-        scalmc_options("ApproxMC options")
+        scalmc_options("ScalMC options")
         , argc(_argc)
         , argv(_argv)
     {
@@ -75,8 +75,9 @@ public:
     po::positional_options_description p;
 
 private:
+    bool count(SATCount& count);
     void add_scalmc_options();
-    bool ScalApproxMC(SATCount& count);
+    bool ScalScalMC(SATCount& count);
     bool AddHash(uint32_t num_xor_cls, vector<Lit>& assumps);
     void SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);
 
@@ -106,7 +107,7 @@ private:
 
     uint32_t start_iter = 0;
     uint32_t pivot = 52;
-    uint32_t tApproxMC = 17;
+    uint32_t tScalMC = 17;
     double   loopTimeout = 2500;
     int      unset_vars = 0;
     std::ofstream cusp_logf;
