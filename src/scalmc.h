@@ -106,7 +106,7 @@ private:
 
     uint32_t start_iter = 0;
     uint32_t pivot = 52;
-    uint32_t tScalMC = 17;
+    uint32_t tScalMC = 21;
     double   loopTimeout = 2500;
     int      unset_vars = 0;
     std::ofstream cusp_logf;
