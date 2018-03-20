@@ -107,7 +107,7 @@ void ScalMC::add_scalmc_options()
          "")
     ("looptout", po::value(&loopTimeout)->default_value(loopTimeout)
         , "Timeout for one measurement, consisting of finding pivotAC solutions")
-    ("cuspLogFile", po::value(&cuspLogFile)->default_value(cuspLogFile),
+    ("log", po::value(&logfile),
          "Log of SCALMC iterations")
     ("unset", po::value(&unset_vars)->default_value(unset_vars),
          "Try to ask the solver to unset some independent variables, thereby"
@@ -234,9 +234,9 @@ void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 
 bool ScalMC::openLogFile()
 {
-    cusp_logf.open(cuspLogFile.c_str());
+    cusp_logf.open(logfile.c_str());
     if (!cusp_logf.is_open()) {
-        cout << "Cannot open ScalMC log file '" << cuspLogFile
+        cout << "Cannot open ScalMC log file '" << logfile
              << "' for writing." << endl;
         exit(1);
     }
@@ -450,6 +450,16 @@ int ScalMC::solve()
     }
     unsigned int seed = vm["seed"].as<int>();
     randomEngine.seed(seed);
+
+    if (vm.count("log") == 0) {
+        if (vm.count("input") != 0) {
+            logfile = vm["input"].as<vector<string> >()[0] + ".log";
+            cout << "Logfile name not given, assumed to be " << logfile << endl;
+        } else {
+            std::cerr << "ERROR: You must provide the logfile name" << endl;
+            exit(-1);
+        }
+    }
 
     openLogFile();
     startTime = cpuTimeTotal();

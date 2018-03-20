@@ -96,7 +96,7 @@ private:
     void readInStandardInput(SATSolver* solver2);
 
     //config
-    std::string cuspLogFile = "cusp_log.txt";
+    std::string logfile;
 
     double startTime;
     std::map< std::string, std::vector<uint32_t>> globalSolutionMap;
