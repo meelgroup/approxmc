@@ -765,6 +765,41 @@ bool ScalMC::count(SATCount& count)
     return true;
 }
 
+/*void ScalMC::check_confidence()
+{
+    std::ifstream probmapfile;
+    probmapfile.open("./ProbMapFile_36.txt");
+    if (probmapfile.is_open()){
+     while (getline(probmapfile, line)) {
+       pch = strtok(strdup(line.c_str()), ":");
+       val = std::atoi(pch);
+       pch = strtok(NULL, ":");
+       if (std::atof(pch) > (1 - conf.delta))
+	        break;
+     }
+   }
+   probmapfile.close();
+   if (val == 0) {
+     std::cerr << "Probmapfile failed, delta is " << conf.delta << std::endl;
+     exit(-1);
+   }
+   conf.tApproxMC = val;
+   std::cout<<"t ApproxMC:"<<conf.tApproxMC<<std::endl;
+     confidence = (float *) malloc(sizeof(float)*(2+conf.tApproxMC));
+   if(confidence == NULL){
+     printf("Out of memory, could not allocate confidence list\n");
+     exit(-1);
+   }
+
+   // user gives: delta, epsilon
+   // experiments to run: delta = 0.1 (t=21)
+   //                     epsilon = 0.8 (71 maybe?)
+
+   // confidece = 1-delta
+   // 1+epsilon = desired distance from the ground truth
+   conf.pivot = = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+}*/
+
 ///////////
 // Useful helper functions
 ///////////
