@@ -489,6 +489,7 @@ int ScalMC::solve()
 
     //behaviour
     if (what_to_break == 3) {
+        conf.restartType = CMSat::Restart::glue;
         conf.reconfigure_val = 0;
     }
 
