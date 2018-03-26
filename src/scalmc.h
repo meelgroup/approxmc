@@ -36,6 +36,7 @@
 #include <map>
 #include <cstdint>
 #include <cryptominisat5/cryptominisat.h>
+#include <cryptominisat5/solverconf.h>
 
 using std::string;
 using std::vector;
@@ -74,6 +75,7 @@ public:
     po::positional_options_description p;
 
 private:
+    SolverConf conf;
     bool count(SATCount& count);
     void add_scalmc_options();
     bool ScalScalMC(SATCount& count);
@@ -115,6 +117,7 @@ private:
     vector<uint32_t> independent_vars;
     unsigned verb = 1;
     double total_runtime; //runTime
+    int what_to_break = 0;
 
     int argc;
     char** argv;

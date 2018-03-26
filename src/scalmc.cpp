@@ -109,6 +109,8 @@ void ScalMC::add_scalmc_options()
         , "Timeout for one measurement, consisting of finding pivotAC solutions")
     ("log", po::value(&logfile),
          "Log of SCALMC iterations")
+    ("break", po::value(&what_to_break)->default_value(what_to_break),
+         "What thing to break in CMS")
     ("unset", po::value(&unset_vars)->default_value(unset_vars),
          "Try to ask the solver to unset some independent variables, thereby"
          "finding more than one solution at a time")
@@ -465,22 +467,44 @@ int ScalMC::solve()
     startTime = cpuTimeTotal();
 
     //solver = new SATSolver(&must_interrupt);
-    solver = new SATSolver();
+    CMSat::GaussConf gconf;
+    gconf.only_nth_gauss_save = 10;
+    conf.reconfigure_at = 0;
+    conf.reconfigure_val = 15;
+    conf.gaussconf.max_num_matrixes = 10;
+    conf.gaussconf.autodisable = false;
+
+
+    //Things that were changed
+    if (what_to_break == 1) {
+        conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
+        gconf.only_nth_gauss_save = 2;
+        conf.mess_up_polarity = true;
+    }
+
+    //simplification
+    if (what_to_break == 2) {
+        conf.simplify_at_every_startup = true;
+    }
+
+    //behaviour
+    if (what_to_break == 3) {
+        conf.reconfigure_val = 0;
+    }
+
+
+    solver = new SATSolver((void*)&conf);
     solverToInterrupt = solver;
 
-    /*conf.reconfigure_at = 0;
-    conf.reconfigure_val = 15;*/
-    solver->set_allow_otf_gauss();
     if (verb > 2) {
         solver->set_verbosity(verb-2);
     }
-    CMSat::GaussConf gconf;
     gconf.max_matrix_rows = 3000;
     gconf.decision_until = 3000;
     gconf.max_num_matrixes = 1;
     gconf.min_matrix_rows = 5;
     gconf.autodisable = false;
-    gconf.only_nth_gauss_save = 10;
+
     solver->set_gauss_config(gconf);
 
     if (unset_vars) {
