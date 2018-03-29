@@ -475,22 +475,78 @@ int ScalMC::solve()
     conf.gaussconf.autodisable = false;
 
 
-    //Things that were changed
-    if (what_to_break == 1) {
+    //Everthing broken except startup&exit times
+    if (what_to_break == 10) {
         conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
         gconf.only_nth_gauss_save = 2;
         conf.mess_up_polarity = true;
-    }
-
-    //simplification
-    if (what_to_break == 2) {
         conf.simplify_at_every_startup = true;
-    }
-
-    //behaviour
-    if (what_to_break == 3) {
         conf.restartType = CMSat::Restart::glue;
         conf.reconfigure_val = 0;
+        conf.burst_search_len = 1000;
+        conf.burst_broken = true;
+    }
+
+    //simplification is NOT broken here
+    if (what_to_break == 11) {
+        conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
+        gconf.only_nth_gauss_save = 2;
+        conf.mess_up_polarity = true;
+        //conf.simplify_at_every_startup = true;
+        conf.restartType = CMSat::Restart::glue;
+        conf.reconfigure_val = 0;
+        conf.burst_search_len = 1000;
+        conf.burst_broken = true;
+    }
+
+    //Restart is not broken here
+    if (what_to_break == 12) {
+        conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
+        gconf.only_nth_gauss_save = 2;
+        conf.mess_up_polarity = true;
+        conf.simplify_at_every_startup = true;
+        //conf.restartType = CMSat::Restart::glue;
+        //conf.reconfigure_val = 0;
+        conf.burst_search_len = 1000;
+        conf.burst_broken = true;
+    }
+
+    //polarity is not broken here
+    if (what_to_break == 13) {
+        //conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
+        gconf.only_nth_gauss_save = 2;
+        //conf.mess_up_polarity = true;
+        conf.simplify_at_every_startup = true;
+        conf.restartType = CMSat::Restart::glue;
+        conf.reconfigure_val = 0;
+        conf.burst_search_len = 1000;
+        conf.burst_broken = true;
+    }
+
+    //Gaussian it NOT broken
+    if (what_to_break == 14) {
+        conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
+        //gconf.only_nth_gauss_save = 2;
+        conf.mess_up_polarity = true;
+        conf.simplify_at_every_startup = true;
+        conf.restartType = CMSat::Restart::glue;
+        conf.reconfigure_val = 0;
+        conf.burst_search_len = 1000;
+        conf.burst_broken = true;
+    }
+
+    //nothing broken, checking gauss
+    if (what_to_break == 14) {
+        gconf.only_nth_gauss_save = 2;
+    }
+    if (what_to_break == 15) {
+        gconf.only_nth_gauss_save = 4;
+    }
+    if (what_to_break == 16) {
+        gconf.only_nth_gauss_save = 8;
+    }
+    if (what_to_break == 17) {
+        gconf.only_nth_gauss_save = 16;
     }
 
 
