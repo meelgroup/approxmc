@@ -684,7 +684,9 @@ bool ScalMC::count(SATCount& count)
     cout << "ScalMC: Starting up, initial measurement" << endl;
     if (hashCount == 0) {
         int64_t currentNumSolutions = BoundedSATCount(pivot+1,assumps);
-        cusp_logf << "ScalMC:"<<"0:0:"
+        cusp_logf << "ScalMC:"
+                  << "breakmode-" << what_to_break << ":"
+                  <<"0:0:"
                   << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                   << (int)(currentNumSolutions == (pivot + 1)) << ":"
                   << currentNumSolutions << endl;
@@ -719,6 +721,7 @@ bool ScalMC::count(SATCount& count)
 
             //cout << currentNumSolutions << ", " << pivot << endl;
             cusp_logf << "ScalMC:"
+                      << "breakmode-" << what_to_break << ":"
                       << j << ":" << hashCount << ":"
                       << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                       << (int)(currentNumSolutions == (pivot + 1)) << ":"
