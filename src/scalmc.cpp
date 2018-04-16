@@ -493,7 +493,7 @@ int ScalMC::solve()
 
     //Burst broken with polarity
     if (what_to_break == 22) {
-        conf.burst_search_len = 1000;
+        conf.burst_search_len = 300;
         conf.burst_broken = true;
         conf.mess_up_polarity = true;
         conf.reconfigure_val = 115;
