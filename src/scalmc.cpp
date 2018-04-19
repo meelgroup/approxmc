@@ -473,25 +473,38 @@ int ScalMC::solve()
     conf.reconfigure_val = 15;
     conf.gaussconf.max_num_matrixes = 10;
     conf.gaussconf.autodisable = false;
+    conf.burst_search_len = 0;
+    conf.global_multiplier_multiplier_max = 1;
+    conf.global_timeout_multiplier_multiplier = 0.5;
+    conf.global_timeout_multiplier = 0.5;
+    conf.doIntreeProbe = false;
+    conf.varElimRatioPerIter = 0.2;
 
 
-    //Everthing broken except startup&exit times
+    //Everthing broken except startup&exit times ->
     if (what_to_break == 20) {
         gconf.only_nth_gauss_save = 2;
         conf.mess_up_polarity = true;
         conf.simplify_at_every_startup = true;
         conf.restartType = CMSat::Restart::glue;
         conf.reconfigure_val = 0;
-        conf.burst_search_len = 1000;
+        conf.burst_search_len = 300;
         conf.burst_broken = true;
     }
 
-    //Simplify broken
+    //Simplify broken --> 745 solutions
     if (what_to_break == 21) {
         conf.simplify_at_every_startup = true;
     }
 
-    //Burst broken with polarity
+    //Simplify broken + polarity mess-up
+    if (what_to_break == 24) {
+        conf.simplify_at_every_startup = true;
+        conf.reconfigure_val = 115;
+        conf.mess_up_polarity = true;
+    }
+
+    //Burst broken with polarity auto --> rerun
     if (what_to_break == 22) {
         conf.burst_search_len = 300;
         conf.burst_broken = true;
