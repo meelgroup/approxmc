@@ -499,14 +499,21 @@ int ScalMC::solve()
         conf.reconfigure_val = 115;
     }
 
-    //Heuristics broken
+    //Heuristics broken -> 922 solutions
     if (what_to_break == 23) {
         conf.restartType = CMSat::Restart::glue;
         conf.reconfigure_val = 0;
         conf.maple = 0;
     }
 
-
+    /*conf.glue_put_lev0_if_below_or_eq = 5;
+    conf.glue_put_lev1_if_below_or_eq = 7;
+    conf.do_simplify_problem = 1;
+    conf.doVarElim = 1;
+    conf.reconfigure_val = 0;
+    conf.reconfigure_at = 0;
+    conf.maple = 1;
+    conf.min_bva_gain = 512;*/
     solver = new SATSolver((void*)&conf);
     solverToInterrupt = solver;
 
@@ -664,7 +671,8 @@ bool ScalMC::count(SATCount& count)
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
 
         uint32_t repeatTry = 0;
-        uint64_t numExplored = 1;
+        uint64_t numExplored = 0;
+        //shashCount = 40;
         uint64_t lowerFib = 0, upperFib = independent_vars.size();
 
         while (numExplored < independent_vars.size()) {
