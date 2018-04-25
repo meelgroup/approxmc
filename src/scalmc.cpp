@@ -116,6 +116,7 @@ void ScalMC::add_scalmc_options()
          "finding more than one solution at a time")
     ("input", po::value< vector<string> >(), "file(s) to read")
     ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
+    ("vcl", po::value(&verb_scalmc_cls)->default_value(verb_scalmc_cls), "banning clause, xor clause printing")
     ;
 
     help_options.add(scalmc_options);
@@ -293,7 +294,7 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
             }
         }
         solver->add_xor_clause(vars, rhs);
-        if (verb >= 3) {
+        if (verb_scalmc_cls) {
             print_xor(vars, rhs);
         }
     }
@@ -344,7 +345,7 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
                     num_undef++;
                 }
             }
-            if (verb >= 2) {
+            if (verb_scalmc_cls) {
                 cout << "Adding banning clause: " << lits << endl;
             }
             solver->add_clause(lits);
