@@ -403,6 +403,9 @@ void ScalMC::readInAFile(SATSolver* solver2, const string& filename)
     }
 
     independent_vars.swap(parser.independent_vars);
+    if (!independent_vars.empty()) {
+        solver2->set_independent_vars(&independent_vars);
+    }
 
     #ifndef USE_ZLIB
         fclose(in);
