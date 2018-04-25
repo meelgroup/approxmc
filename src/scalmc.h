@@ -116,6 +116,7 @@ private:
     SATSolver* solver;
     vector<uint32_t> independent_vars;
     unsigned verb = 1;
+    unsigned verb_scalmc_cls = 0;
     double total_runtime; //runTime
     int what_to_break = 0;
 

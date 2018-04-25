@@ -472,7 +472,6 @@ int ScalMC::solve()
 
     //solver = new SATSolver(&must_interrupt);
     CMSat::GaussConf gconf;
-    gconf.only_nth_gauss_save = 10;
     conf.reconfigure_at = 0;
     conf.reconfigure_val = 15;
     conf.gaussconf.max_num_matrixes = 10;
@@ -483,11 +482,11 @@ int ScalMC::solve()
     conf.global_timeout_multiplier = 0.5;
     conf.doIntreeProbe = false;
     conf.varElimRatioPerIter = 0.2;
+    conf.simplify_at_startup = 1;
 
 
     //Everthing broken except startup&exit times ->
     if (what_to_break == 20) {
-        gconf.only_nth_gauss_save = 2;
         conf.mess_up_polarity = true;
         conf.simplify_at_every_startup = true;
         conf.restartType = CMSat::Restart::glue;
@@ -537,13 +536,7 @@ int ScalMC::solve()
     if (verb > 2) {
         solver->set_verbosity(verb-2);
     }
-    gconf.max_matrix_rows = 3000;
-    gconf.decision_until = 3000;
-    gconf.max_num_matrixes = 1;
-    gconf.min_matrix_rows = 5;
-    gconf.autodisable = false;
-
-    solver->set_gauss_config(gconf);
+    solver->set_allow_otf_gauss();
 
     if (unset_vars) {
         solver->set_greedy_undef();
