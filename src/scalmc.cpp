@@ -561,7 +561,6 @@ int ScalMC::solve()
     if (unset_vars) {
         solver->set_greedy_undef();
     }
-    printVersionInfo();
     if (vm.count("input") != 0) {
         vector<string> inp = vm["input"].as<vector<string> >();
         if (inp.size() > 1) {
