@@ -57,6 +57,7 @@
 #include "cryptominisat5/dimacsparser.h"
 #include "cryptominisat5/streambuffer.h"
 #include "cryptominisat5/solvertypesmini.h"
+#include "GitSHA1.h"
 #include "signalcode.h"
 
 using std::cout;
@@ -94,10 +95,22 @@ string ScalMC::GenerateRandomBits(uint32_t size)
     return randomBits;
 }
 
+void printVersionInfo()
+{
+    cout << "c ScalMC SHA revision " << ::get_version_sha1() << endl;
+    cout << "c ScalMC compilation env " << ::get_compilation_env() << endl;
+    #ifdef __GNUC__
+    cout << "c compiled with gcc version " << __VERSION__ << endl;
+    #else
+    cout << "c compiled with non-gcc compiler" << endl;
+    #endif
+}
+
 void ScalMC::add_scalmc_options()
 {
     scalmc_options.add_options()
     ("help,h", "Prints help")
+    ("version", "Print version info")
     ("seed,s", po::value< int >(), "Seed")
     ("pivotAC", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
@@ -141,6 +154,12 @@ void ScalMC::add_supported_options()
             cout << help_options << endl;
             std::exit(0);
         }
+
+        if (vm.count("version")) {
+            ::printVersionInfo();
+            std::exit(0);
+        }
+
         po::notify(vm);
     } catch (boost::exception_detail::clone_impl<
         boost::exception_detail::error_info_injector<po::unknown_option> >& c
@@ -466,6 +485,7 @@ int ScalMC::solve()
             exit(-1);
         }
     }
+    ::printVersionInfo();
 
     openLogFile();
     startTime = cpuTimeTotal();
