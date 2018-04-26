@@ -95,7 +95,7 @@ string ScalMC::GenerateRandomBits(uint32_t size)
     return randomBits;
 }
 
-void printVersionInfo()
+void printVersionInfoScalMC()
 {
     cout << "c ScalMC SHA revision " << ::get_version_sha1() << endl;
     cout << "c ScalMC compilation env " << ::get_compilation_env() << endl;
@@ -156,7 +156,7 @@ void ScalMC::add_supported_options()
         }
 
         if (vm.count("version")) {
-            ::printVersionInfo();
+            printVersionInfo();
             std::exit(0);
         }
 
@@ -485,7 +485,7 @@ int ScalMC::solve()
             exit(-1);
         }
     }
-    ::printVersionInfo();
+    printVersionInfo();
 
     openLogFile();
     startTime = cpuTimeTotal();
@@ -861,6 +861,7 @@ bool ScalMC::count(SATCount& count)
 
 void ScalMC::printVersionInfo() const
 {
+    ::printVersionInfoScalMC();
     cout << "c CryptoMiniSat version " << solver->get_version() << endl;
     cout << "c CryptoMiniSat SHA revision " << solver->get_version_sha1() << endl;
     cout << "c CryptoMiniSat compilation env " << solver->get_compilation_env() << endl;
