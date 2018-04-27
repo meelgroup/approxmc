@@ -113,6 +113,7 @@ private:
     int      unset_vars = 0;
     std::ofstream cusp_logf;
     std::mt19937 randomEngine;
+    int learn_type = 0;
     SATSolver* solver;
     vector<uint32_t> independent_vars;
     unsigned verb = 1;
