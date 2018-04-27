@@ -324,7 +324,8 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
 
 int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assumps, const uint32_t hashCount)
 {
-    cout << "[scalmc] [ " << std::setw(8) << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime) << " ]"
+    cout << "[scalmc] "
+    "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime) << " ]"
     << " BoundedSATCount looking for " << std::setw(4) << maxSolutions << " solutions"
     << " -- hashes active: " << hashCount << endl;
 
@@ -346,15 +347,16 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
 
         ret = solver->solve(&new_assumps);
         if (verb >=2 ) {
-            cout << "[scalmc] Ret within boundedSATCount is: " << ret
+            cout << "[scalmc] Ret in boundedSATCount is: " << std::setw(7) << ret;
+            if (ret == l_True) {
+                cout << " solution no. " << std::setw(3) << solutions;
+            }
+            cout << " T: "
+            << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime)
             << " -- hashes active: " << hashCount << endl;
         }
         if (ret != l_True) {
             break;
-        }
-        if (verb >= 3) {
-            cout << "[scalmc] Found one, solution no. " << std::setw(3) << solutions
-            << " -- hashes active: " << hashCount << endl;
         }
 
         size_t num_undef = 0;
