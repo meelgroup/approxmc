@@ -120,6 +120,7 @@ private:
     unsigned verb_scalmc_cls = 0;
     double total_runtime; //runTime
     int what_to_break = 0;
+    int dosimp = 1;
 
     int argc;
     char** argv;

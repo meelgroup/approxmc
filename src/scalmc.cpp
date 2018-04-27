@@ -126,6 +126,8 @@ void ScalMC::add_scalmc_options()
          "Log of SCALMC iterations")
     ("break", po::value(&what_to_break)->default_value(what_to_break),
          "What thing to break in CMS")
+    ("simp", po::value(&dosimp)->default_value(dosimp),
+         "Perform simplifications in CMS")
     ("unset", po::value(&unset_vars)->default_value(unset_vars),
          "Try to ask the solver to unset some independent variables, thereby"
          "finding more than one solution at a time")
@@ -549,6 +551,8 @@ int ScalMC::solve()
         conf.reconfigure_val = 0;
         conf.maple = 0;
     }
+
+    conf.do_simplify_problem = dosimp;
 
     switch(learn_type)
     {
