@@ -340,6 +340,7 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
     double start_time = cpuTime();
     uint64_t solutions = 0;
     lbool ret;
+    double last_found_time = cpuTime();
     while (solutions < maxSolutions) {
         //don't do timeout when measuring initially, that's not OK
         if (!assumps.empty()) {
@@ -349,13 +350,17 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
 
         ret = solver->solve(&new_assumps);
         if (verb >=2 ) {
-            cout << "[scalmc] Ret in boundedSATCount is: " << std::setw(7) << ret;
+            cout << "[scalmc] boundedSATCount ret: " << std::setw(7) << ret;
             if (ret == l_True) {
-                cout << " solution no. " << std::setw(3) << solutions;
+                cout << " sol no. " << std::setw(3) << solutions;
             }
             cout << " T: "
             << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime)
-            << " -- hashes active: " << hashCount << endl;
+            << " -- hashes act: " << hashCount
+            << " -- T since last: "
+            << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTime()-last_found_time)
+            << endl;
+            last_found_time = cpuTime();
         }
         if (ret != l_True) {
             break;
@@ -755,12 +760,12 @@ bool ScalMC::count(SATCount& count)
         uint64_t lowerFib = 0, upperFib = independent_vars.size();
 
         while (numExplored < independent_vars.size()) {
-            cout << "[scalmc] Num Explored: " << std::setw(4) << numExplored
+            cout << "[scalmc] Explored: " << std::setw(4) << numExplored
                  << " ind set size: " << std::setw(6) << independent_vars.size() << endl;
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
-            cout << "[scalmc] Number of XOR -- hashes active: " << std::setw(6) << hashCount << endl;
+            cout << "[scalmc] hashes active: " << std::setw(6) << hashCount << endl;
             int64_t currentNumSolutions = BoundedSATCount(pivot + 1, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << pivot << endl;
