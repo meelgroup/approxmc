@@ -85,7 +85,7 @@ private:
     void printVersionInfo() const;
     int correctReturnValue(const lbool ret) const;
 
-    int64_t BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assumps);
+    int64_t BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assumps, const uint32_t hashCount);
     lbool BoundedSAT(
         uint32_t maxSolutions, uint32_t minSolutions
         , vector<Lit>& assumptions

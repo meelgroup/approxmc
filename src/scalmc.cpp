@@ -246,7 +246,7 @@ void ScalMC::add_supported_options()
 
 void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
-    cout << "Added XOR ";
+    cout << "[scalmc] Added XOR ";
     for (size_t i = 0; i < vars.size(); i++) {
         cout << vars[i]+1;
         if (i < vars.size()-1) {
@@ -260,7 +260,7 @@ bool ScalMC::openLogFile()
 {
     cusp_logf.open(logfile.c_str());
     if (!cusp_logf.is_open()) {
-        cout << "Cannot open ScalMC log file '" << logfile
+        cout << "[scalmc] Cannot open ScalMC log file '" << logfile
              << "' for writing." << endl;
         exit(1);
     }
@@ -322,11 +322,11 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
     return true;
 }
 
-int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assumps)
+int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assumps, const uint32_t hashCount)
 {
-    cout << "[" << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime) << "]"
+    cout << "[scalmc] [" << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime) << "]"
     << " BoundedSATCount looking for " << maxSolutions << " solutions"
-    << endl;
+    << " hashes active: " << hashCount << endl;
 
     //Set up things for adding clauses that can later be removed
     vector<Lit> new_assumps(assumps);
@@ -346,13 +346,15 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
 
         ret = solver->solve(&new_assumps);
         if (verb >=2 ) {
-            cout << "Ret within boundedSATCount is: " << ret << endl;
+            cout << "[scalmc] Ret within boundedSATCount is: " << ret
+            << " hashes active: " << hashCount << endl;
         }
         if (ret != l_True) {
             break;
         }
         if (verb >= 3) {
-            cout << "Found one" << endl;
+            cout << "[scalmc] Found one, solution no. " << solutions
+            << " hashes active: " << hashCount << endl;
         }
 
         size_t num_undef = 0;
@@ -367,12 +369,13 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
                 }
             }
             if (verb_scalmc_cls) {
-                cout << "Adding banning clause: " << lits << endl;
+                cout << "[scalmc] Adding banning clause: " << lits << endl;
             }
             solver->add_clause(lits);
         }
         if (num_undef) {
-            cout << "WOW Num undef:" << num_undef << endl;
+            cout << "[scalmc] WOW Num undef:" << num_undef
+            << " hashes active: " << hashCount << endl;
         }
 
         //Try not to be crazy, 2**30 solutions is enough
@@ -380,7 +383,8 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
             solutions += 1U << num_undef;
         } else {
             solutions += 1U << 30;
-            cout << "WARNING, in this cut there are > 2**30 solutions indicated by the solver!" << endl;
+            cout << "[scalmc] WARNING, in this cut there are > 2**30 solutions indicated by the solver!"
+            << " hashes active: " << hashCount << endl;
         }
     }
     if (solutions > maxSolutions) {
@@ -481,9 +485,9 @@ int ScalMC::solve()
     if (vm.count("log") == 0) {
         if (vm.count("input") != 0) {
             logfile = vm["input"].as<vector<string> >()[0] + ".log";
-            cout << "Logfile name not given, assumed to be " << logfile << endl;
+            cout << "[scalmc] Logfile name not given, assumed to be " << logfile << endl;
         } else {
-            std::cerr << "ERROR: You must provide the logfile name" << endl;
+            std::cerr << "[scalmc] ERROR: You must provide the logfile name" << endl;
             exit(-1);
         }
     }
@@ -602,7 +606,7 @@ int ScalMC::solve()
     if (vm.count("input") != 0) {
         vector<string> inp = vm["input"].as<vector<string> >();
         if (inp.size() > 1) {
-            cout << "ERROR: can only parse in one file" << endl;
+            cout << "[scalmc] ERROR: can only parse in one file" << endl;
         }
         readInAFile(solver, inp[0].c_str());
     } else {
@@ -614,23 +618,24 @@ int ScalMC::solve()
     //solver->simplify();
 
     if (start_iter > independent_vars.size()) {
-        cout << "ERROR: Manually-specified start_iter"
+        cout << "[scalmc] ERROR: Manually-specified start_iter"
              "is larger than the size of the independent set.\n" << endl;
         return -1;
     }
 
     SATCount solCount;
-    cout << "Using start iteration " << start_iter << endl;
+    cout << "[scalmc] Using start iteration " << start_iter << endl;
 
     bool finished = count(solCount);
-    cout << "ScalMC finished in " << (cpuTimeTotal() - startTime) << " s" << endl;
+    cout << "[scalmc] FINISHED ScalMC T: " << (cpuTimeTotal() - startTime) << " s" << endl;
     if (!finished) {
-        cout << " (TIMED OUT)" << endl;
+        cout << "[scalmc] TIMED OUT time was: " << (cpuTimeTotal() - startTime) << endl;
         return 0;
     }
 
     if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-        cout << "The input formula is unsatisfiable." << endl;
+        cout << "[scalmc] Formula was UNSAT " << endl;
+        cout << "[scalmc] Number of solutions is: " << 0 << endl;
         return correctReturnValue(l_False);
     }
 
@@ -638,8 +643,9 @@ int ScalMC::solve()
         solver->print_stats();
     }
 
-    cout << "Number of solutions is: " << solCount.cellSolCount
-         << " x 2^" << solCount.hashCount << endl;
+    cout << "[scalmc] Number of solutions is: "
+    << solCount.cellSolCount
+     << " x 2^" << solCount.hashCount << endl;
 
     return correctReturnValue(l_True);
 }
@@ -669,7 +675,7 @@ void ScalMC::call_after_parse()
             independent_vars.push_back(i);
         }
     } else {
-        cout << "Independent vars: ";
+        cout << "[scalmc] Independent vars: ";
         for (auto v: independent_vars) {
             cout << v+1 << ", ";
         }
@@ -712,9 +718,9 @@ bool ScalMC::count(SATCount& count)
     uint64_t mPrev = 0;
 
     double myTime = cpuTimeTotal();
-    cout << "ScalMC: Starting up, initial measurement" << endl;
+    cout << "[scalmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
-        int64_t currentNumSolutions = BoundedSATCount(pivot+1,assumps);
+        int64_t currentNumSolutions = BoundedSATCount(pivot+1,assumps, count.hashCount);
         cusp_logf << "ScalMC:"
                   << "breakmode-" << what_to_break << ":"
                   <<"0:0:"
@@ -724,7 +730,7 @@ bool ScalMC::count(SATCount& count)
 
         //Din't find at least pivot+1
         if (currentNumSolutions <= pivot) {
-            cout << "Did not find at least pivot+1 (" << pivot << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
+            cout << "[scalmc] Did not find at least pivot+1 (" << pivot << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
             count.cellSolCount = currentNumSolutions;
             count.hashCount = 0;
             return true;
@@ -743,13 +749,13 @@ bool ScalMC::count(SATCount& count)
         uint64_t lowerFib = 0, upperFib = independent_vars.size();
 
         while (numExplored < independent_vars.size()) {
-            cout << "Num Explored: " << numExplored
+            cout << "[scalmc] Num Explored: " << numExplored
                  << " ind set size: " << independent_vars.size() << endl;
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
-            cout << "Number of XOR hashes active: " << hashCount << endl;
-            int64_t currentNumSolutions = BoundedSATCount(pivot + 1, assumps);
+            cout << "[scalmc] Number of XOR hashes active: " << hashCount << endl;
+            int64_t currentNumSolutions = BoundedSATCount(pivot + 1, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << pivot << endl;
             cusp_logf << "ScalMC:"
@@ -770,12 +776,12 @@ bool ScalMC::count(SATCount& count)
                     solver->simplify(&assumps);
                     hashCount --;
                     repeatTry += 1;
-                    cout << "Timeout, try again -- " << repeatTry << endl;
+                    cout << "[scalmc] Timeout, try again -- " << repeatTry << endl;
                 } else {
                     //this set of hashes does not work, go up
                     SetHash(hashCount + 1, hashVars, assumps);
                     solver->simplify(&assumps);
-                    cout << "Timeout, moving up" << endl;
+                    cout << "[scalmc] Timeout, moving up" << endl;
                 }
                 hashCount = swapVar;
                 continue;
