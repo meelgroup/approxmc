@@ -109,7 +109,7 @@ private:
     uint32_t start_iter = 0;
     uint32_t pivot = 72; //precision
     uint32_t tScalMC = 9; //confidence of 0.81
-    double   loopTimeout = 2500;
+    double   loopTimeout = 100ULL*1000ULL*30ULL; // about a year
     int      unset_vars = 0;
     std::ofstream cusp_logf;
     std::mt19937 randomEngine;
