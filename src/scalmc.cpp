@@ -558,6 +558,24 @@ int ScalMC::solve()
 
     switch(learn_type)
     {
+        case 4: {
+            conf.every_lev1_reduce = 6000; // kept for a while then moved to lev2
+            conf.every_lev2_reduce = 8000; // cleared regularly
+            conf.must_touch_lev1_within = 15000;
+            conf.glue_put_lev0_if_below_or_eq = 2; // never removed
+            conf.glue_put_lev1_if_below_or_eq = 4; // kept for a while then moved to lev2
+            break;
+        }
+
+        case 3: {
+            conf.every_lev1_reduce = 8000; // kept for a while then moved to lev2
+            conf.every_lev2_reduce = 10000; // cleared regularly
+            conf.must_touch_lev1_within = 20000;
+            conf.glue_put_lev0_if_below_or_eq = 2; // never removed
+            conf.glue_put_lev1_if_below_or_eq = 5; // kept for a while then moved to lev2
+            break;
+        }
+
         case 0: {
             cout << "[scalmc] learn type normal" << endl;
             conf.every_lev1_reduce = 10000; // kept for a while then moved to lev2
