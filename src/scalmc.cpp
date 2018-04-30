@@ -609,15 +609,6 @@ int ScalMC::solve()
         }
     }
 
-
-    /*conf.glue_put_lev0_if_below_or_eq = 5;
-    conf.glue_put_lev1_if_below_or_eq = 7;
-    conf.do_simplify_problem = 1;
-    conf.doVarElim = 1;
-    conf.reconfigure_val = 0;
-    conf.reconfigure_at = 0;
-    conf.maple = 1;
-    conf.min_bva_gain = 512;*/
     solver = new SATSolver((void*)&conf);
     solverToInterrupt = solver;
 
