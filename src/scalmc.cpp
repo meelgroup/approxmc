@@ -126,6 +126,8 @@ void ScalMC::add_scalmc_options()
          "Log of SCALMC iterations")
     ("break", po::value(&what_to_break)->default_value(what_to_break),
          "What thing to break in CMS")
+    ("maple", po::value(&maple)->default_value(maple),
+         "Should Maple be enabled")
     ("simp", po::value(&dosimp)->default_value(dosimp),
          "Perform simplifications in CMS")
     ("unset", po::value(&unset_vars)->default_value(unset_vars),
@@ -555,6 +557,9 @@ int ScalMC::solve()
     }
 
     conf.do_simplify_problem = dosimp;
+    if (maple) {
+        conf.maple = 1;
+    }
 
     switch(learn_type)
     {
