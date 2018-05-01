@@ -511,9 +511,8 @@ int ScalMC::solve()
     conf.gaussconf.max_num_matrixes = 10;
     conf.gaussconf.autodisable = false;
     conf.burst_search_len = 0;
-    conf.global_multiplier_multiplier_max = 1;
-    conf.global_timeout_multiplier_multiplier = 0.5;
-    conf.global_timeout_multiplier = 0.5;
+    conf.global_multiplier_multiplier_max = 3;
+    conf.global_timeout_multiplier_multiplier = 1.5;
     conf.doIntreeProbe = false;
     conf.varElimRatioPerIter = 0.2;
     conf.simplify_at_startup = 1;
