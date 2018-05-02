@@ -111,6 +111,8 @@ void ScalMC::add_scalmc_options()
     scalmc_options.add_options()
     ("help,h", "Prints help")
     ("version", "Print version info")
+    ("scalmc", po::value(&scalmc)->default_value(scalmc)
+        , "scalmc = 1, scalgen = 0")
     ("seed,s", po::value< int >(), "Seed")
     ("pivotAC", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
@@ -130,12 +132,23 @@ void ScalMC::add_scalmc_options()
          "Should Maple be enabled")
     ("simp", po::value(&dosimp)->default_value(dosimp),
          "Perform simplifications in CMS")
-    ("unset", po::value(&unset_vars)->default_value(unset_vars),
-         "Try to ask the solver to unset some independent variables, thereby"
-         "finding more than one solution at a time")
     ("input", po::value< vector<string> >(), "file(s) to read")
     ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
     ("vcl", po::value(&verb_scalmc_cls)->default_value(verb_scalmc_cls), "banning clause, xor clause printing")
+    ("samples", po::value(&samples)->default_value(samples)
+        , "Number of random samples to generate")
+    ("kappa", po::value(&kappa)->default_value(kappa)
+        , "Uniformity parameter (see TACAS-15 paper)")
+    ("multisample", po::value(&multisample)->default_value(multisample)
+        , "Return multiple samples from each call")
+    ("sampleFile", po::value(&sampleFilename)
+        , "Write samples to this file")
+    ("totalTimeout", po::value(&totalTimeout)->default_value(totalTimeout)
+        , "Timeout for generating all samples")
+    ("startIterationUG", po::value(&startIterationUG)->default_value(startIterationUG)
+        , "If positive, use instead of startIteration computed by ScalMC")
+    ("callsPerSolver", po::value(&callsPerSolver)->default_value(callsPerSolver)
+        , "Number of UniGen calls to make in a single solver, or 0 to use a heuristic")
     ;
 
     help_options.add(scalmc_options);
@@ -326,14 +339,21 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
     return true;
 }
 
-int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assumps, const uint32_t hashCount)
-{
+int64_t ScalMC::BoundedSATCount(
+        uint32_t maxSolutions,
+        uint32_t minSolutions,
+        const vector<Lit>& assumps,
+        const uint32_t hashCount,
+        std::map<std::string, uint32_t>* solutionMap
+) {
     cout << "[scalmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime) << " ]"
     << " BoundedSATCount looking for " << std::setw(4) << maxSolutions << " solutions"
     << " -- hashes active: " << hashCount << endl;
 
     //Set up things for adding clauses that can later be removed
+    std::vector<vector<lbool>> modelsSet;
+    vector<lbool> model;
     vector<Lit> new_assumps(assumps);
     solver->new_var();
     uint32_t act_var = solver->nVars()-1;
@@ -367,8 +387,9 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
         if (ret != l_True) {
             break;
         }
+        model = solver->get_model();
+        modelsSet.push_back(model);
 
-        size_t num_undef = 0;
         if (solutions < maxSolutions) {
             vector<Lit> lits;
             lits.push_back(Lit(act_var, false));
@@ -376,7 +397,7 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
                 if (solver->get_model()[var] != l_Undef) {
                     lits.push_back(Lit(var, solver->get_model()[var] == l_True));
                 } else {
-                    num_undef++;
+                    assert(false);
                 }
             }
             if (verb_scalmc_cls) {
@@ -384,22 +405,40 @@ int64_t ScalMC::BoundedSATCount(uint32_t maxSolutions, const vector<Lit>& assump
             }
             solver->add_clause(lits);
         }
-        if (num_undef) {
-            cout << "[scalmc] WOW Num undef:" << num_undef
-            << " -- hashes active: " << hashCount << endl;
-        }
-
-        //Try not to be crazy, 2**30 solutions is enough
-        if (num_undef <= 30) {
-            solutions += 1U << num_undef;
-        } else {
-            solutions += 1U << 30;
-            cout << "[scalmc] WARNING, in this cut there are > 2**30 solutions indicated by the solver!"
-            << " -- hashes active: " << hashCount << endl;
-        }
+        solutions++;
     }
-    if (solutions > maxSolutions) {
-        solutions = maxSolutions;
+
+    //we have all solutions now, if not l_False
+    if (solutions < maxSolutions && solutions >= minSolutions && solutionMap) {
+        assert(minSolutions > 0);
+        std::vector<int> modelIndices;
+        for (uint32_t i = 0; i < modelsSet.size(); i++) {
+            modelIndices.push_back(i);
+        }
+        std::shuffle(modelIndices.begin(), modelIndices.end(), randomEngine);
+        uint32_t var;
+        uint32_t numSolutionsToReturn = SolutionsToReturn(solutions);
+        for (uint32_t i = 0; i < numSolutionsToReturn; i++) {
+            model = modelsSet.at(modelIndices.at(i));
+            string solution ("v ");
+            for (uint32_t j = 0; j < independent_vars.size(); j++) {
+                var = independent_vars[j];
+                if (model[var] != l_Undef) {
+                    if (model[var] != l_True) {
+                        solution += "-";
+                    }
+                    solution += std::to_string(var + 1);
+                    solution += " ";
+                }
+            }
+            solution += "0";
+
+            std::map<string, uint32_t>::iterator it = solutionMap->find(solution);
+            if (it == solutionMap->end()) {
+                (*solutionMap)[solution] = 0;
+            }
+            (*solutionMap)[solution] += 1;
+        }
     }
 
     //Remove clauses added
@@ -562,24 +601,6 @@ int ScalMC::solve()
 
     switch(learn_type)
     {
-        case 4: {
-            conf.every_lev1_reduce = 6000; // kept for a while then moved to lev2
-            conf.every_lev2_reduce = 8000; // cleared regularly
-            conf.must_touch_lev1_within = 15000;
-            conf.glue_put_lev0_if_below_or_eq = 2; // never removed
-            conf.glue_put_lev1_if_below_or_eq = 4; // kept for a while then moved to lev2
-            break;
-        }
-
-        case 3: {
-            conf.every_lev1_reduce = 8000; // kept for a while then moved to lev2
-            conf.every_lev2_reduce = 10000; // cleared regularly
-            conf.must_touch_lev1_within = 20000;
-            conf.glue_put_lev0_if_below_or_eq = 2; // never removed
-            conf.glue_put_lev1_if_below_or_eq = 5; // kept for a while then moved to lev2
-            break;
-        }
-
         case 0: {
             cout << "[scalmc] learn type normal" << endl;
             conf.every_lev1_reduce = 10000; // kept for a while then moved to lev2
@@ -587,24 +608,6 @@ int ScalMC::solve()
             conf.must_touch_lev1_within = 30000;
             conf.glue_put_lev0_if_below_or_eq = 3; // never removed
             conf.glue_put_lev1_if_below_or_eq = 6; // kept for a while then moved to lev2
-            break;
-        }
-
-        case 1: {
-            conf.every_lev1_reduce = 15000; // kept for a while then moved to lev2
-            conf.every_lev2_reduce = 25000; // cleared regularly
-            conf.must_touch_lev1_within = 40000;
-            conf.glue_put_lev0_if_below_or_eq = 5; // never removed
-            conf.glue_put_lev1_if_below_or_eq = 10; // kept for a while then moved to lev2
-            break;
-        }
-
-        case 2: {
-            conf.every_lev1_reduce = 25000; // kept for a while then moved to lev2
-            conf.every_lev2_reduce = 45000; // cleared regularly
-            conf.must_touch_lev1_within = 50000;
-            conf.glue_put_lev0_if_below_or_eq = 6; // never removed
-            conf.glue_put_lev1_if_below_or_eq = 12; // kept for a while then moved to lev2
             break;
         }
         default: {
@@ -621,9 +624,6 @@ int ScalMC::solve()
     }
     solver->set_allow_otf_gauss();
 
-    if (unset_vars) {
-        solver->set_greedy_undef();
-    }
     if (vm.count("input") != 0) {
         vector<string> inp = vm["input"].as<vector<string> >();
         if (inp.size() > 1) {
@@ -644,29 +644,160 @@ int ScalMC::solve()
         return -1;
     }
 
-    SATCount solCount;
-    cout << "[scalmc] Using start iteration " << start_iter << endl;
+    if (scalmc) {
+        cout << "[scalmc] Using start iteration " << start_iter << endl;
 
-    bool finished = count(solCount);
-    cout << "[scalmc] FINISHED ScalMC T: " << (cpuTimeTotal() - startTime) << " s" << endl;
-    if (!finished) {
-        cout << "[scalmc] TIMED OUT time was: " << (cpuTimeTotal() - startTime) << endl;
-        return 0;
+        SATCount solCount;
+        bool finished = count(solCount);
+        assert(finished);
+
+        cout << "[scalmc] FINISHED ScalMC T: " << (cpuTimeTotal() - startTime) << " s" << endl;
+        if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
+            cout << "[scalmc] Formula was UNSAT " << endl;
+        }
+
+        if (verb > 2) {
+            solver->print_stats();
+        }
+
+        cout << "[scalmc] Number of solutions is: "
+        << solCount.cellSolCount
+         << " x 2^" << solCount.hashCount << endl;
+    } else {
+        if (samples > 0)    /* Running UniGen */
+        {
+            if (startIterationUG > independent_vars.size()) {
+                cout << "ERROR: Manually-specified startIteration for UniGen"
+                     "is larger than the size of the independent set.\n" << endl;
+                return -1;
+            }
+
+            /* Compute pivot via formula from TACAS-15 paper */
+            pivotUniGen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
+        }
+        else
+        {
+            cout << "ERROR: samples not set.\n" << endl;
+            return -1;
+        }
+
+        if (samples == 0 || startIterationUG == 0) {
+            if (samples > 0)
+            {
+                cout << "Using ApproxMC to compute startIteration for UniGen" << endl;
+                if (!vm["pivotAC"].defaulted() || !vm["tScalMC"].defaulted())
+                {
+                    cout << "WARNING: manually-specified pivotAC and/or tScalMC may"
+                         << " not be large enough to guarantee correctness of UniGen." << endl
+                         << "Omit those arguments to use safe default values." << endl;
+                }
+                else
+                {
+                    /* Fill in here the best parameters for ApproxMC achieving
+                     * epsilon=0.8 and delta=0.177 as required by UniGen2 */
+                    pivot = 73;
+                    tScalMC = 11;
+                }
+            }
+            else if(vm["tScalMC"].defaulted())
+            {
+                /* Compute tApproxMC */
+                double delta = 0.2;
+                double confidence = 1.0 - delta;
+                int bestIteration = iterationConfidences.size() - 1;
+                int worstIteration = 0;
+                int currentIteration = (worstIteration + bestIteration) / 2;
+                if (iterationConfidences[bestIteration] >= confidence)
+                {
+                    while (currentIteration != worstIteration)
+                    {
+                        if (iterationConfidences[currentIteration] >= confidence)
+                        {
+                            bestIteration = currentIteration;
+                            currentIteration = (worstIteration + currentIteration) / 2;
+                        }
+                        else
+                        {
+                            worstIteration = currentIteration;
+                            currentIteration = (currentIteration + bestIteration) / 2;
+                        }
+                    }
+                    tScalMC = (2 * bestIteration) + 1;
+                }
+                else
+                    tScalMC = ceil(17 * log2(3.0 / delta));
+            }
+
+            SATCount solCount;
+            cout << "ScalGen starting from iteration " << startIterationUG << endl;
+
+            bool finished = false;
+            finished = count(solCount);
+
+            cout << "ScalMC finished in " << (cpuTimeTotal() - startTime) << " s" << endl;
+            assert(finished);
+
+            if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
+                cout << "The input formula is unsatisfiable." << endl;
+                return correctReturnValue(l_False);
+            }
+
+            if (conf.verbosity) {
+                solver->print_stats();
+            }
+
+            if (samples == 0)
+            {
+                cout << "Number of solutions is: " << solCount.cellSolCount
+                     << " x 2^" << solCount.hashCount << endl;
+
+                return correctReturnValue(l_True);
+            }
+            else
+            {
+                double si = round(solCount.hashCount + log2(solCount.cellSolCount)
+                    + log2(1.8) - log2(pivotUniGen)) - 2;
+                if (si > 0)
+                    startIterationUG = si;
+                else
+                    startIterationUG = 0;   /* Indicate ideal sampling case */
+            }
+        }
+        else
+        {
+            cout << "Using manually-specified startIteration for UniGen" << endl;
+        }
+        /* Run ScalGen */
+        generate_samples();
+
+        /* Output samples */
+        std::ostream* os;
+        if (vm.count("sampleFile"))
+        {
+            std::ofstream* sampleFile = new std::ofstream;
+            sampleFile->open(sampleFilename.c_str());
+            if (!(*sampleFile)) {
+                cout
+                << "ERROR: Couldn't open file '"
+                << sampleFilename
+                << "' for writing!"
+                << endl;
+                std::exit(-1);
+            }
+            os = sampleFile;
+        }
+        else
+            os = &cout;
+
+        for (map< std::string, std::vector<uint32_t>>:: iterator
+            it = globalSolutionMap.begin();
+            it != globalSolutionMap.end(); it++)
+        {
+            std::vector<uint32_t> counts = it->second;
+            // TODO this will need to be changed once multithreading is implemented
+            *os << it->first.c_str() << " :" << counts[0] << endl;
+        }
     }
-
-    if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-        cout << "[scalmc] Formula was UNSAT " << endl;
-        cout << "[scalmc] Number of solutions is: " << 0 << endl;
-        return correctReturnValue(l_False);
-    }
-
-    if (verb > 2) {
-        solver->print_stats();
-    }
-
-    cout << "[scalmc] Number of solutions is: "
-    << solCount.cellSolCount
-     << " x 2^" << solCount.hashCount << endl;
 
     return correctReturnValue(l_True);
 }
@@ -740,7 +871,7 @@ bool ScalMC::count(SATCount& count)
     double myTime = cpuTimeTotal();
     cout << "[scalmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
-        int64_t currentNumSolutions = BoundedSATCount(pivot+1,assumps, count.hashCount);
+        int64_t currentNumSolutions = BoundedSATCount(pivot+1, 0, assumps, count.hashCount);
         cusp_logf << "ScalMC:"
                   << "breakmode-" << what_to_break << ":"
                   <<"0:0:"
@@ -775,7 +906,7 @@ bool ScalMC::count(SATCount& count)
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
             cout << "[scalmc] hashes active: " << std::setw(6) << hashCount << endl;
-            int64_t currentNumSolutions = BoundedSATCount(pivot + 1, assumps, hashCount);
+            int64_t currentNumSolutions = BoundedSATCount(pivot + 1, 0, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << pivot << endl;
             cusp_logf << "ScalMC:"
@@ -950,4 +1081,223 @@ int ScalMC::correctReturnValue(const lbool ret) const
     }
 
     return retval;
+}
+
+
+/////////////// scalgen ////////////////
+/* Number of solutions to return from one invocation of ScalGen. */
+uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
+{
+    if (startIterationUG == 0)   // TODO improve hack for ideal sampling case?
+        return numSolutions;
+    else if (multisample)
+        return loThresh;
+    else
+        return 1;
+}
+
+void ScalMC::generate_samples()
+{
+    hiThresh = ceil(1 + (1.4142136 * (1 + kappa) * pivotUniGen));
+    loThresh = floor(pivotUniGen / (1.4142136 * (1 + kappa)));
+    uint32_t samplesPerCall = SolutionsToReturn(samples);
+    uint32_t callsNeeded = (samples + samplesPerCall - 1) / samplesPerCall;
+    cout << "loThresh " << loThresh
+    << ", hiThresh " << hiThresh
+    << ", startIteration " << startIterationUG << endl;
+
+    printf("Outputting %d solutions from each UniGen2 call\n", samplesPerCall);
+    uint32_t numCallsInOneLoop = 0;
+    if (callsPerSolver == 0) {
+        // TODO: does this heuristic still work okay?
+        uint32_t si = startIterationUG > 0 ? startIterationUG : 1;
+        numCallsInOneLoop = std::min(solver->nVars() / (si * 14), callsNeeded);
+        if (numCallsInOneLoop == 0) {
+            numCallsInOneLoop = 1;
+        }
+    } else {
+        numCallsInOneLoop = callsPerSolver;
+        cout << "Using manually-specified callsPerSolver" << endl;
+    }
+
+    uint32_t numCallLoops = callsNeeded / numCallsInOneLoop;
+    uint32_t remainingCalls = callsNeeded % numCallsInOneLoop;
+
+    cout << "Making " << numCallLoops << " loops."
+         << " calls per loop: " << numCallsInOneLoop
+         << " remaining: " << remainingCalls << endl;
+    bool timedOut = false;
+    uint32_t sampleCounter = 0;
+    std::map<string, uint32_t> threadSolutionMap;
+    double allThreadsTime = 0;
+    uint32_t allThreadsSampleCount = 0;
+    double threadStartTime = cpuTimeTotal();
+    uint32_t lastSuccessfulHashOffset = 0;
+
+    if (startIterationUG > 0)
+    {
+        ///Perform extra UniGen calls that don't fit into the loops
+        if (remainingCalls > 0) {
+            sampleCounter = ScalGenCall(
+                                remainingCalls, sampleCounter
+                                , threadSolutionMap
+                                , &lastSuccessfulHashOffset, threadStartTime);
+        }
+
+        // Perform main UniGen call loops
+        for (uint32_t i = 0; i < numCallLoops; i++) {
+            if (!timedOut) {
+                sampleCounter = ScalGenCall(
+                                    numCallsInOneLoop, sampleCounter, threadSolutionMap
+                                    , &lastSuccessfulHashOffset, threadStartTime
+                                );
+
+                if (totalTimeout > 0 && (cpuTimeTotal() - threadStartTime) > totalTimeout) {
+                    timedOut = true;
+                }
+            }
+        }
+    }
+    else
+    {
+        /* Ideal sampling case; enumerate all solutions */
+        vector<Lit> assumps;
+        uint32_t count = 0;
+        BoundedSATCount(std::numeric_limits<uint32_t>::max(), 0, assumps, 0, &threadSolutionMap);
+
+        std::uniform_int_distribution<unsigned> uid {0, count-1};
+        for (uint32_t i = 0; i < samples; ++i)
+        {
+            map<string, uint32_t>::iterator it = threadSolutionMap.begin();
+            for (uint32_t j = uid(randomEngine); j > 0; --j)    // TODO improve hack
+                ++it;
+            it->second += 1;
+        }
+    }
+
+    for (map<string, uint32_t>::iterator itt = threadSolutionMap.begin()
+            ; itt != threadSolutionMap.end()
+            ; itt++
+        ) {
+        string solution = itt->first;
+        map<string, std::vector<uint32_t>>::iterator itg = globalSolutionMap.find(solution);
+        if (itg == globalSolutionMap.end()) {
+            globalSolutionMap[solution] = std::vector<uint32_t>(1, 0);
+        }
+        globalSolutionMap[solution][0] += itt->second;
+        allThreadsSampleCount += itt->second;
+    }
+
+    double timeTaken = cpuTimeTotal() - threadStartTime;
+    allThreadsTime += timeTaken;
+    cout
+    << "Total time for UniGen2: " << timeTaken << " s"
+    << (timedOut ? " (TIMED OUT)" : "")
+    << endl;
+
+    // TODO put this back once multithreading is implemented
+    //cout << "Total time for all UniGen2 calls: " << allThreadsTime << " s" << endl;
+    cout << "Samples generated: " << allThreadsSampleCount << endl;
+}
+
+uint32_t ScalMC::ScalGen(
+    uint32_t loc_samples
+    , uint32_t sampleCounter
+    , std::map<string, uint32_t>& solutionMap
+    , uint32_t* lastSuccessfulHashOffset
+    , double timeReference
+)
+{
+    lbool ret = l_False;
+    uint32_t i, solutionCount, currentHashCount, currentHashOffset, hashOffsets[3];
+    vector<Lit> assumps;
+    double elapsedTime = 0;
+    int repeatTry = 0;
+    for (i = 0; i < loc_samples; i++) {
+        map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
+        sampleCounter ++;
+        ret = l_False;
+
+        hashOffsets[0] = *lastSuccessfulHashOffset;   // Start at last successful hash offset
+        if (hashOffsets[0] == 0) { // Starting at q-2; go to q-1 then q
+            hashOffsets[1] = 1;
+            hashOffsets[2] = 2;
+        } else if (hashOffsets[0] == 2) { // Starting at q; go to q-1 then q-2
+            hashOffsets[1] = 1;
+            hashOffsets[2] = 0;
+        }
+        repeatTry = 0;
+        for (uint32_t j = 0; j < 3; j++) {
+            currentHashOffset = hashOffsets[j];
+            currentHashCount = currentHashOffset + startIterationUG;
+            SetHash(currentHashCount, hashVars, assumps);
+
+            const uint64_t no_sols = BoundedSATCount(hiThresh, loThresh, assumps, currentHashCount, &solutionMap);
+            if (no_sols < hiThresh && no_sols >= loThresh) {
+                ret = l_True;
+            } else {
+                ret = l_False;
+            }
+
+            cusp_logf << "UniGen2:"
+            << sampleCounter << ":" << currentHashCount << ":"
+            << std::fixed << std::setprecision(2) << (cpuTimeTotal() - timeReference) << ":"
+            << (int)(ret == l_False ? 1 : (ret == l_True ? 0 : 2)) << ":"
+            << solutionCount << endl;
+
+            // Number of solutions in correct range
+            if (ret == l_True) {
+                *lastSuccessfulHashOffset = currentHashOffset;
+                break;
+            } else { // Number of solutions too small or too large
+                if ((j == 0) && (currentHashOffset == 1)) { // At q-1, and need to pick next hash count
+                    if (solutionCount < loThresh) {
+                        // Go to q-2; next will be q
+                        hashOffsets[1] = 0;
+                        hashOffsets[2] = 2;
+                    } else {
+                        // Go to q; next will be q-2
+                        hashOffsets[1] = 2;
+                        hashOffsets[2] = 0;
+                    }
+                }
+            }
+        }
+        if (ret != l_True) {
+            i --;
+        }
+        assumps.clear();
+        solver->simplify(&assumps);
+        if (totalTimeout > 0 && elapsedTime > totalTimeout) {
+            break;
+        }
+    }
+    return sampleCounter;
+}
+
+int ScalMC::ScalGenCall(
+    uint32_t loc_samples
+    , uint32_t sampleCounter
+    , std::map<string, uint32_t>& solutionMap
+    , uint32_t* lastSuccessfulHashOffset
+    , double timeReference
+)
+{
+    //delete solver;
+    //solver = new SATSolver(&conf, &must_interrupt);
+    //solverToInterrupt = solver;
+
+    /* Heuristic: running solver once before adding any hashes
+     * tends to help performance (need to do this for UniGen since
+     * we aren't necessarily starting from hashCount zero) */
+    solver->solve();
+
+    sampleCounter = ScalGen(
+                        loc_samples
+                        , sampleCounter
+                        , solutionMap
+                        , lastSuccessfulHashOffset
+                        , timeReference
+                    );
+    return sampleCounter;
 }
