@@ -120,8 +120,6 @@ void ScalMC::add_scalmc_options()
         , "Number of measurements")
     ("start", po::value(&start_iter)->default_value(start_iter),
          "Start at this many XORs")
-    ("looptout", po::value(&loopTimeout)->default_value(loopTimeout)
-        , "Timeout for one measurement, consisting of finding pivotAC solutions")
     ("learntype", po::value(&learn_type)->default_value(learn_type)
         , "Different learning types. 0 == default. 1 == more, 2 == much more")
     ("log", po::value(&logfile),
@@ -143,8 +141,6 @@ void ScalMC::add_scalmc_options()
         , "Return multiple samples from each call")
     ("sampleFile", po::value(&sampleFilename)
         , "Write samples to this file")
-    ("totalTimeout", po::value(&totalTimeout)->default_value(totalTimeout)
-        , "Timeout for generating all samples")
     ("startIterationUG", po::value(&startIterationUG)->default_value(startIterationUG)
         , "If positive, use instead of startIteration computed by ScalMC")
     ("callsPerSolver", po::value(&callsPerSolver)->default_value(callsPerSolver)
@@ -364,12 +360,6 @@ int64_t ScalMC::BoundedSATCount(
     lbool ret;
     double last_found_time = cpuTime();
     while (solutions < maxSolutions) {
-        //don't do timeout when measuring initially, that's not OK
-        if (!assumps.empty()) {
-            double this_iter_timeout = loopTimeout-(cpuTime()-start_time);
-            solver->set_timeout_all_calls(this_iter_timeout);
-        }
-
         ret = solver->solve(&new_assumps);
         if (verb >=2 ) {
             cout << "[scalmc] boundedSATCount ret: " << std::setw(7) << ret;
@@ -446,10 +436,7 @@ int64_t ScalMC::BoundedSATCount(
     cl_that_removes.push_back(Lit(act_var, false));
     solver->add_clause(cl_that_removes);
 
-    //Timeout
-    if (ret == l_Undef) {
-        return -1;
-    }
+    assert(ret != l_Undef);
     return solutions;
 }
 
@@ -685,14 +672,11 @@ int ScalMC::solve()
             if (samples > 0)
             {
                 cout << "Using ApproxMC to compute startIteration for UniGen" << endl;
-                if (!vm["pivotAC"].defaulted() || !vm["tScalMC"].defaulted())
-                {
+                if (!vm["pivotAC"].defaulted() || !vm["tScalMC"].defaulted()) {
                     cout << "WARNING: manually-specified pivotAC and/or tScalMC may"
                          << " not be large enough to guarantee correctness of UniGen." << endl
                          << "Omit those arguments to use safe default values." << endl;
-                }
-                else
-                {
+                } else {
                     /* Fill in here the best parameters for ApproxMC achieving
                      * epsilon=0.8 and delta=0.177 as required by UniGen2 */
                     pivot = 73;
@@ -915,28 +899,6 @@ bool ScalMC::count(SATCount& count)
                       << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                       << (int)(currentNumSolutions == (pivot + 1)) << ":"
                       << currentNumSolutions << endl;
-            //Timeout!
-            if (currentNumSolutions < 0) {
-                //Remove all hashes
-                assumps.clear();
-                hashVars.clear();
-
-                if (repeatTry < 2) {    /* Retry up to twice more */
-                    assert(hashCount > 0);
-                    SetHash(hashCount,hashVars,assumps);
-                    solver->simplify(&assumps);
-                    hashCount --;
-                    repeatTry += 1;
-                    cout << "[scalmc] Timeout, try again -- " << repeatTry << endl;
-                } else {
-                    //this set of hashes does not work, go up
-                    SetHash(hashCount + 1, hashVars, assumps);
-                    solver->simplify(&assumps);
-                    cout << "[scalmc] Timeout, moving up" << endl;
-                }
-                hashCount = swapVar;
-                continue;
-            }
 
             if (currentNumSolutions < pivot + 1) {
                 numExplored = lowerFib+independent_vars.size()-hashCount;
@@ -1151,10 +1113,6 @@ void ScalMC::generate_samples()
                                     numCallsInOneLoop, sampleCounter, threadSolutionMap
                                     , &lastSuccessfulHashOffset, threadStartTime
                                 );
-
-                if (totalTimeout > 0 && (cpuTimeTotal() - threadStartTime) > totalTimeout) {
-                    timedOut = true;
-                }
             }
         }
     }
@@ -1268,9 +1226,6 @@ uint32_t ScalMC::ScalGen(
         }
         assumps.clear();
         solver->simplify(&assumps);
-        if (totalTimeout > 0 && elapsedTime > totalTimeout) {
-            break;
-        }
     }
     return sampleCounter;
 }

@@ -102,7 +102,6 @@ public:
     uint32_t samples = 0;
     uint32_t callsPerSolver = 0;
     uint32_t pivotUniGen; //TODO rename scalgen
-    double totalTimeout = 0; //TODO remove
     int scalmc = 1;
 
 private:
@@ -139,7 +138,6 @@ private:
     uint32_t start_iter = 0;
     uint32_t pivot = 72; //precision
     uint32_t tScalMC = 9; //confidence of 0.81
-    double   loopTimeout = 100ULL*1000ULL*30ULL; // about a year
     std::ofstream cusp_logf;
     std::mt19937 randomEngine;
     int learn_type = 0;
