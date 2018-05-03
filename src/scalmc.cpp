@@ -539,53 +539,55 @@ int ScalMC::solve()
     conf.burst_search_len = 0;
     conf.global_multiplier_multiplier_max = 3;
     conf.global_timeout_multiplier_multiplier = 1.5;
-    conf.doIntreeProbe = false;
     conf.varElimRatioPerIter = 0.2;
     conf.simplify_at_startup = 1;
 
-
-    //Everthing broken except startup&exit times ->
-    if (what_to_break == 20) {
-        conf.mess_up_polarity = true;
-        conf.simplify_at_every_startup = true;
-        conf.restartType = CMSat::Restart::glue;
-        conf.reconfigure_val = 0;
-        conf.burst_search_len = 300;
-        conf.burst_broken = true;
-    }
-
-    //Simplify broken --> 745 solutions
-    if (what_to_break == 21) {
-        conf.simplify_at_every_startup = true;
-    }
-
-    //Simplify broken + polarity mess-up
-    if (what_to_break == 24) {
-        conf.simplify_at_every_startup = true;
-        conf.reconfigure_val = 115;
-        conf.mess_up_polarity = true;
-    }
-
-    //Burst broken with polarity auto --> rerun
-    if (what_to_break == 22) {
-        conf.burst_search_len = 300;
-        conf.burst_broken = true;
-        conf.mess_up_polarity = true;
-        conf.reconfigure_val = 115;
-    }
-
-    //Heuristics broken -> 922 solutions
-    if (what_to_break == 23) {
-        conf.restartType = CMSat::Restart::glue;
-        conf.reconfigure_val = 0;
-        conf.maple = 0;
-    }
-
-    conf.do_simplify_problem = dosimp;
     if (maple) {
         conf.maple = 1;
     }
 
+    //simplify broken
+    if (what_to_break == 30) {
+        conf.simplify_at_every_startup = true;
+    }
+
+    //polarity mess-up + burst
+    if (what_to_break == 31) {
+        conf.burst_broken = true;
+        conf.burst_search_len = 1000;
+        conf.reconfigure_val = 115;
+        conf.mess_up_polarity = true;
+    }
+
+    //simplify broken + polarity mess-up + burst
+    if (what_to_break == 32) {
+        conf.burst_broken = true;
+        conf.burst_search_len = 1000;
+        conf.simplify_at_every_startup = true;
+        conf.reconfigure_val = 115;
+        conf.mess_up_polarity = true;
+    }
+
+    //glue-restart-only + nointree + nomaple
+    if (what_to_break == 33) {
+        conf.doIntreeProbe = false;
+        conf.restartType = CMSat::Restart::glue;
+        conf.maple = 0;
+    }
+
+    //simplify broken + polarity mess-up + burst + glue-restart-only + nointree + nomaple
+    if (what_to_break == 34) {
+        conf.mess_up_polarity = true;
+        conf.simplify_at_every_startup = true;
+        conf.restartType = CMSat::Restart::glue;
+        conf.reconfigure_val = 0;
+        conf.burst_search_len = 1000;
+        conf.burst_broken = true;
+        conf.maple = 0;
+        conf.doIntreeProbe = false;
+    }
+
+    conf.do_simplify_problem = dosimp;
     switch(learn_type)
     {
         case 0: {
