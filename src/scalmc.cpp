@@ -90,7 +90,7 @@ string ScalMC::GenerateRandomBits(const uint32_t size)
         randomBits += binary(uid(randomEngine), 32);
     }
     cout << "rnd:" << randomBits << endl;
-    assert(randomBits.size() == size);
+    assert(randomBits.size() >= size);
     return randomBits;
 }
 
