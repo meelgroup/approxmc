@@ -69,16 +69,10 @@ using std::map;
 
 string binary(unsigned x, uint32_t length)
 {
-    uint32_t logSize = (x == 0 ? 1 : log2(x) + 1);
     string s;
-    do {
-        s.push_back('0' + (x & 1));
-    } while (x >>= 1);
-
-    for (uint32_t i = logSize; i < length; i++) {
-        s.push_back('0');
+    for(uint32_t i = 0; i < length; i++) {
+        s.push_back('0' + ((x>>i) & 1));
     }
-    std::reverse(s.begin(), s.end());
 
     return s;
 }
@@ -86,12 +80,14 @@ string binary(unsigned x, uint32_t length)
 string ScalMC::GenerateRandomBits(uint32_t size)
 {
     string randomBits;
-    std::uniform_int_distribution<unsigned> uid {0, 2147483647U};
+    std::uniform_int_distribution<uint32_t> uid {0, 0xffffffffULL};
+
     uint32_t i = 0;
     while (i < size) {
-        i += 31;
+        i += 32;
         randomBits += binary(uid(randomEngine), 31);
     }
+    cout << "rnd:" << randomBits << endl;
     return randomBits;
 }
 
@@ -308,8 +304,10 @@ inline T findMin(vector<T>& numList)
 
 bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
 {
-    string randomBits = GenerateRandomBits((independent_vars.size() + 1) * num_xor_cls);
-    bool rhs = true;
+    const string randomBits =
+        GenerateRandomBits((independent_vars.size() + 1) * num_xor_cls);
+
+    bool rhs;
     vector<uint32_t> vars;
 
     for (uint32_t i = 0; i < num_xor_cls; i++) {
