@@ -74,6 +74,7 @@ string ScalMC::binary(const uint32_t x, const uint32_t length)
         s.push_back('0' + ((x>>i) & 1));
     }
     std::reverse(s.begin(), s.end());
+    assert(s.length() == length);
 
     return s;
 }
