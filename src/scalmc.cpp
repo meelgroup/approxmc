@@ -321,10 +321,10 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
 
         vars.clear();
         vars.push_back(act_var);
-        rhs = (randomBits[(independent_vars.size() + 1) * i] == '1');
+        rhs = (randomBits.at((independent_vars.size() + 1) * i) == '1');
 
         for (uint32_t j = 0; j < independent_vars.size(); j++) {
-            if (randomBits[(independent_vars.size() + 1) * i + j+1] == '1') {
+            if (randomBits.at((independent_vars.size() + 1) * i + j+1) == '1') {
                 vars.push_back(independent_vars[j]);
             }
         }
