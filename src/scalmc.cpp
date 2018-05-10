@@ -67,7 +67,7 @@ using boost::lexical_cast;
 using std::list;
 using std::map;
 
-string binary(unsigned x, uint32_t length)
+string binary(uint32_t x, uint32_t length)
 {
     string s;
     for(uint32_t i = 0; i < length; i++) {
