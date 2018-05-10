@@ -67,7 +67,7 @@ using boost::lexical_cast;
 using std::list;
 using std::map;
 
-string binary(uint32_t x, uint32_t length)
+string ScalMC::binary(const uint32_t x, const uint32_t length)
 {
     string s;
     for(uint32_t i = 0; i < length; i++) {
@@ -78,7 +78,7 @@ string binary(uint32_t x, uint32_t length)
     return s;
 }
 
-string ScalMC::GenerateRandomBits(uint32_t size)
+string ScalMC::GenerateRandomBits(const uint32_t size)
 {
     string randomBits;
     std::uniform_int_distribution<uint32_t> uid {0, 0xffffffffULL};

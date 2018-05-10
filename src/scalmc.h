@@ -76,7 +76,8 @@ public:
 
 
     uint32_t ScalGen();
-    string GenerateRandomBits(uint32_t size);
+    string GenerateRandomBits(const uint32_t size);
+    string binary(const uint32_t x, const uint32_t length);
     uint32_t SolutionsToReturn(uint32_t numSolutions);
     void generate_samples();
     uint32_t ScalGen(
