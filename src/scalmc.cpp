@@ -73,6 +73,7 @@ string binary(unsigned x, uint32_t length)
     for(uint32_t i = 0; i < length; i++) {
         s.push_back('0' + ((x>>i) & 1));
     }
+    std::reverse(s.begin(), s.end());
 
     return s;
 }
