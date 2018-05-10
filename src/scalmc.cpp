@@ -86,9 +86,10 @@ string ScalMC::GenerateRandomBits(const uint32_t size)
     uint32_t i = 0;
     while (i < size) {
         i += 32;
-        randomBits += binary(uid(randomEngine), 31);
+        randomBits += binary(uid(randomEngine), 32);
     }
     cout << "rnd:" << randomBits << endl;
+    assert(randomBits.size() == size);
     return randomBits;
 }
 
