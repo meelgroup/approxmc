@@ -110,6 +110,8 @@ void ScalMC::add_scalmc_options()
     scalmc_options.add_options()
     ("help,h", "Prints help")
     ("version", "Print version info")
+    ("input", po::value< vector<string> >(), "file(s) to read")
+    ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
     ("scalmc", po::value(&scalmc)->default_value(scalmc)
         , "scalmc = 1, scalgen = 0")
     ("seed,s", po::value< int >(), "Seed")
@@ -127,13 +129,16 @@ void ScalMC::add_scalmc_options()
          "What thing to break in CMS")
     ("maple", po::value(&maple)->default_value(maple),
          "Should Maple be enabled")
+    ("th", po::value(&num_threads)->default_value(num_threads),
+         "How many solving threads to use per solver call")
     ("simp", po::value(&dosimp)->default_value(dosimp),
          "Perform simplifications in CMS")
-    ("input", po::value< vector<string> >(), "file(s) to read")
-    ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
-    ("vcl", po::value(&verb_scalmc_cls)->default_value(verb_scalmc_cls), "banning clause, xor clause printing")
+    ("vcl", po::value(&verb_scalmc_cls)->default_value(verb_scalmc_cls)
+        ,"banning clause, xor clause printing")
     ("samples", po::value(&samples)->default_value(samples)
         , "Number of random samples to generate")
+    ("sparse", po::value(&sparse)->default_value(sparse)
+        , "Generate sparse XORs when possible")
     ("kappa", po::value(&kappa)->default_value(kappa)
         , "Uniformity parameter (see TACAS-15 paper)")
     ("multisample", po::value(&multisample)->default_value(multisample)
@@ -344,7 +349,9 @@ int64_t ScalMC::BoundedSATCount(
         std::map<std::string, uint32_t>* solutionMap
 ) {
     cout << "[scalmc] "
-    "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime) << " ]"
+    "[ " << std::setw(7) << std::setprecision(2) << std::fixed
+    << (cpuTimeTotal()-total_runtime)
+    << " ]"
     << " BoundedSATCount looking for " << std::setw(4) << maxSolutions << " solutions"
     << " -- hashes active: " << hashCount << endl;
 
@@ -356,10 +363,10 @@ int64_t ScalMC::BoundedSATCount(
     uint32_t act_var = solver->nVars()-1;
     new_assumps.push_back(Lit(act_var, true));
 
-    double start_time = cpuTime();
+    double start_time = cpuTimeTotal();
     uint64_t solutions = 0;
     lbool ret;
-    double last_found_time = cpuTime();
+    double last_found_time = cpuTimeTotal();
     while (solutions < maxSolutions) {
         ret = solver->solve(&new_assumps);
         if (verb >=2 ) {
@@ -368,12 +375,12 @@ int64_t ScalMC::BoundedSATCount(
                 cout << " sol no. " << std::setw(3) << solutions;
             }
             cout << " T: "
-            << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTime()-total_runtime)
+            << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-total_runtime)
             << " -- hashes act: " << hashCount
             << " -- T since last: "
-            << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTime()-last_found_time)
+            << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-last_found_time)
             << endl;
-            last_found_time = cpuTime();
+            last_found_time = cpuTimeTotal();
         }
         if (ret != l_True) {
             break;
@@ -508,7 +515,7 @@ void ScalMC::readInStandardInput(SATSolver* solver2)
 
 int ScalMC::solve()
 {
-    total_runtime = cpuTime();
+    total_runtime = cpuTimeTotal();
     //set seed
     if (vm.count("seed") == 0) {
         cerr << "ERROR: You must provide a seed value with the '-s NUM' option" << endl;
@@ -613,6 +620,10 @@ int ScalMC::solve()
         solver->set_verbosity(verb-2);
     }
     solver->set_allow_otf_gauss();
+
+    if (num_threads > 1) {
+        solver->set_num_threads(num_threads);
+    }
 
     if (vm.count("input") != 0) {
         vector<string> inp = vm["input"].as<vector<string> >();
@@ -807,9 +818,9 @@ void ScalMC::call_after_parse()
 {
     if (independent_vars.empty()) {
         cout
-        << "c WARNING! No independent vars were set using 'c ind var1 [var2 var3 ..] 0'"
+        << "[scalmc] WARNING! No independent vars were set using 'c ind var1 [var2 var3 ..] 0'"
         "notation in the CNF." << endl
-        << " c ScalMC may work substantially worse!" << endl;
+        << "[scalmc] we may work substantially worse!" << endl;
         for (size_t i = 0; i < solver->nVars(); i++) {
             independent_vars.push_back(i);
         }
