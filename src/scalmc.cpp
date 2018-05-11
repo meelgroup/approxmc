@@ -49,6 +49,7 @@
 #include <string.h>
 #include <list>
 #include <array>
+#include <cmath>
 #include <complex>
 
 #include "scalmc.h"
@@ -67,38 +68,33 @@ using boost::lexical_cast;
 using std::list;
 using std::map;
 
-string ScalMC::binary(const uint32_t x, const uint32_t length)
+bool ScalMC::gen_rhs()
 {
-    string s;
-    for(uint32_t i = 0; i < length; i++) {
-        s.push_back('0' + ((x>>i) & 1));
-    }
-    std::reverse(s.begin(), s.end());
-    assert(s.length() == length);
-
-    return s;
+    std::uniform_int_distribution<uint32_t> dist{0, 1};
+    bool rhs = dist(randomEngine);
+    //cout << "rnd rhs:" << (int)rhs << endl;
+    return rhs;
 }
 
-string ScalMC::GenerateRandomBits(const uint32_t size)
+string ScalMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes)
 {
     string randomBits;
-    std::uniform_int_distribution<uint32_t> uid {0, 0xffffffffULL};
-
-    if (sparse) {
-//         if (num_hashes > 132) {
-//             cout << "[scalmc] sparse hashing used" << endl;
-//             probability = 13.46*math.log(num_hashes)/num_hashes;
-//         }
+    std::uniform_int_distribution<uint32_t> dist{0, 1000};
+    uint32_t cutoff = 500;
+    if (sparse && num_hashes > 132) {
+        double probability = 13.46*std::log(num_hashes)/num_hashes;
+        assert(probability < 0.5);
+        cutoff = std::ceil(1000.0*probability);
+        cout << "[scalmc] sparse hashing used, cutoff: " << cutoff << endl;
     }
 
-
-    uint32_t i = 0;
-    while (i < size) {
-        i += 32;
-        randomBits += binary(uid(randomEngine), 32);
+    while (randomBits.size() < size) {
+        bool val = dist(randomEngine) < cutoff;
+        randomBits += '0' + val;
     }
-    cout << "rnd:" << randomBits << endl;
     assert(randomBits.size() >= size);
+
+    //cout << "rnd bits: " << randomBits << endl;
     return randomBits;
 }
 
@@ -318,10 +314,10 @@ inline T findMin(vector<T>& numList)
     return min;
 }
 
-bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
+bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
 {
     const string randomBits =
-        GenerateRandomBits((independent_vars.size() + 1) * num_xor_cls);
+        GenerateRandomBits(independent_vars.size() * num_xor_cls, total_num_hashes);
 
     bool rhs;
     vector<uint32_t> vars;
@@ -334,10 +330,10 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps)
 
         vars.clear();
         vars.push_back(act_var);
-        rhs = (randomBits.at((independent_vars.size() + 1) * i) == '1');
+        rhs = gen_rhs();
 
         for (uint32_t j = 0; j < independent_vars.size(); j++) {
-            if (randomBits.at((independent_vars.size() + 1) * i + j+1) == '1') {
+            if (randomBits.at(independent_vars.size() * i + j) == '1') {
                 vars.push_back(independent_vars[j]);
             }
         }
@@ -856,7 +852,7 @@ void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector
             }
         }
         if (clausNum > hashVars.size()) {
-            AddHash(clausNum-hashVars.size(),assumps);
+            AddHash(clausNum-hashVars.size(), assumps, clausNum);
             for (uint64_t i = hashVars.size(); i < clausNum; i++) {
                 hashVars[i] = assumps[i];
             }

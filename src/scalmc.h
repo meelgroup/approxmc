@@ -76,10 +76,11 @@ public:
 
 
     uint32_t ScalGen();
-    string GenerateRandomBits(const uint32_t size);
+    string GenerateRandomBits(const uint32_t size, const uint32_t numhashes);
     string binary(const uint32_t x, const uint32_t length);
     uint32_t SolutionsToReturn(uint32_t numSolutions);
     void generate_samples();
+    bool gen_rhs();
     uint32_t ScalGen(
         uint32_t samples
         , uint32_t sampleCounter
@@ -111,7 +112,7 @@ private:
     bool count(SATCount& count);
     void add_scalmc_options();
     bool ScalScalMC(SATCount& count);
-    bool AddHash(uint32_t num_xor_cls, vector<Lit>& assumps);
+    bool AddHash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes);
     void SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);
 
     void printVersionInfo() const;
