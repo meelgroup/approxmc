@@ -143,7 +143,7 @@ private:
     std::ofstream cusp_logf;
     std::mt19937 randomEngine;
     int learn_type = 0;
-    int maple = 1;
+    bool maple = 1;
     uint32_t num_threads = 1;
     SATSolver* solver;
     vector<uint32_t> independent_vars;
