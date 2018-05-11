@@ -84,6 +84,14 @@ string ScalMC::GenerateRandomBits(const uint32_t size)
     string randomBits;
     std::uniform_int_distribution<uint32_t> uid {0, 0xffffffffULL};
 
+    if (sparse) {
+//         if (num_hashes > 132) {
+//             cout << "[scalmc] sparse hashing used" << endl;
+//             probability = 13.46*math.log(num_hashes)/num_hashes;
+//         }
+    }
+
+
     uint32_t i = 0;
     while (i < size) {
         i += 32;

@@ -99,6 +99,7 @@ public:
     uint32_t multisample = 1;
     uint32_t loThresh;
     uint32_t hiThresh;
+    bool sparse = false;
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     uint32_t samples = 0;
     uint32_t callsPerSolver = 0;
