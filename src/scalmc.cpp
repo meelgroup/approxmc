@@ -540,8 +540,6 @@ int ScalMC::solve()
 
     //solver = new SATSolver(&must_interrupt);
     CMSat::GaussConf gconf;
-    conf.reconfigure_at = 0;
-    conf.reconfigure_val = 15;
     conf.gaussconf.max_num_matrixes = 10;
     conf.gaussconf.autodisable = false;
     conf.burst_search_len = 0;
@@ -564,6 +562,7 @@ int ScalMC::solve()
         conf.burst_broken = true;
         conf.burst_search_len = 1000;
         conf.reconfigure_val = 115;
+        conf.reconfigure_at = 0;
         conf.mess_up_polarity = true;
     }
 
@@ -573,6 +572,7 @@ int ScalMC::solve()
         conf.burst_search_len = 1000;
         conf.simplify_at_every_startup = true;
         conf.reconfigure_val = 115;
+        conf.reconfigure_at = 0;
         conf.mess_up_polarity = true;
     }
 
@@ -588,7 +588,8 @@ int ScalMC::solve()
         conf.mess_up_polarity = true;
         conf.simplify_at_every_startup = true;
         conf.restartType = CMSat::Restart::glue;
-        conf.reconfigure_val = 0;
+        conf.reconfigure_val = 15;
+        conf.reconfigure_at = 0;
         conf.burst_search_len = 1000;
         conf.burst_broken = true;
         conf.maple = 0;
