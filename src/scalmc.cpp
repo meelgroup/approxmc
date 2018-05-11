@@ -367,7 +367,6 @@ int64_t ScalMC::BoundedSATCount(
     uint32_t act_var = solver->nVars()-1;
     new_assumps.push_back(Lit(act_var, true));
 
-    double start_time = cpuTimeTotal();
     uint64_t solutions = 0;
     lbool ret;
     double last_found_time = cpuTimeTotal();
