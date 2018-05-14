@@ -550,6 +550,8 @@ int ScalMC::solve()
     conf.global_timeout_multiplier_multiplier = 1.5;
     conf.varElimRatioPerIter = 0.2;
     conf.simplify_at_startup = 1;
+    conf.reconfigure_val = 15;
+    conf.reconfigure_at = 0;
 
     if (maple) {
         conf.maple = 1;
