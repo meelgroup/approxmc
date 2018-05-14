@@ -125,8 +125,6 @@ void ScalMC::add_scalmc_options()
         , "Number of measurements")
     ("start", po::value(&start_iter)->default_value(start_iter),
          "Start at this many XORs")
-    ("learntype", po::value(&learn_type)->default_value(learn_type)
-        , "Different learning types. 0 == default. 1 == more, 2 == much more")
     ("log", po::value(&logfile),
          "Log of SCALMC iterations")
     ("break", po::value(&what_to_break)->default_value(what_to_break),
@@ -602,22 +600,6 @@ int ScalMC::solve()
     }
 
     conf.do_simplify_problem = dosimp;
-    switch(learn_type)
-    {
-        case 0: {
-            cout << "[scalmc] learn type normal" << endl;
-//             conf.every_lev1_reduce = 10000; // kept for a while then moved to lev2
-//             conf.every_lev2_reduce = 15000; // cleared regularly
-//             conf.must_touch_lev1_within = 30000;
-//             conf.glue_put_lev0_if_below_or_eq = 3; // never removed
-//             conf.glue_put_lev1_if_below_or_eq = 6; // kept for a while then moved to lev2
-            break;
-        }
-        default: {
-            cout << "[scalmc] ERROR: you must give a learnt type that's valid!" << endl;
-            exit(-1);
-        }
-    }
 
     solver = new SATSolver((void*)&conf);
     solverToInterrupt = solver;
