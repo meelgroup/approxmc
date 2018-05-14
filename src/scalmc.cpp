@@ -831,6 +831,7 @@ void ScalMC::call_after_parse()
             independent_vars.push_back(i);
         }
     }
+    cout << "[scalmc] Num independent vars: " << independent_vars.size() << endl;
     cout << "[scalmc] Independent vars: ";
     for (auto v: independent_vars) {
         cout << v+1 << ", ";
