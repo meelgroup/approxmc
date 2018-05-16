@@ -1170,7 +1170,6 @@ uint32_t ScalMC::ScalGen(
     lbool ret = l_False;
     uint32_t i, solutionCount, currentHashCount, currentHashOffset, hashOffsets[3];
     vector<Lit> assumps;
-    int repeatTry = 0;
     for (i = 0; i < loc_samples; i++) {
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
         sampleCounter ++;
@@ -1184,7 +1183,6 @@ uint32_t ScalMC::ScalGen(
             hashOffsets[1] = 1;
             hashOffsets[2] = 0;
         }
-        repeatTry = 0;
         for (uint32_t j = 0; j < 3; j++) {
             currentHashOffset = hashOffsets[j];
             currentHashCount = currentHashOffset + startIterationUG;
