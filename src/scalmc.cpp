@@ -881,9 +881,7 @@ bool ScalMC::count(SATCount& count)
         map<uint64_t,uint32_t> succRecord;
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
 
-        uint32_t repeatTry = 0;
         uint64_t numExplored = 0;
-        //shashCount = 40;
         uint64_t lowerFib = 0, upperFib = independent_vars.size();
 
         while (numExplored < independent_vars.size()) {
@@ -1172,7 +1170,6 @@ uint32_t ScalMC::ScalGen(
     lbool ret = l_False;
     uint32_t i, solutionCount, currentHashCount, currentHashOffset, hashOffsets[3];
     vector<Lit> assumps;
-    double elapsedTime = 0;
     int repeatTry = 0;
     for (i = 0; i < loc_samples; i++) {
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
