@@ -1168,12 +1168,12 @@ uint32_t ScalMC::ScalGen(
 )
 {
     lbool ret = l_False;
-    uint32_t i, solutionCount, currentHashCount, currentHashOffset, hashOffsets[3];
+    uint32_t i, currentHashCount, currentHashOffset, hashOffsets[3];
     vector<Lit> assumps;
     for (i = 0; i < loc_samples; i++) {
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
         sampleCounter ++;
-        ret = l_False;
+        ret = l_Undef;
 
         hashOffsets[0] = *lastSuccessfulHashOffset;   // Start at last successful hash offset
         if (hashOffsets[0] == 0) { // Starting at q-2; go to q-1 then q
@@ -1188,8 +1188,8 @@ uint32_t ScalMC::ScalGen(
             currentHashCount = currentHashOffset + startIterationUG;
             SetHash(currentHashCount, hashVars, assumps);
 
-            const uint64_t no_sols = BoundedSATCount(hiThresh, loThresh, assumps, currentHashCount, &solutionMap);
-            if (no_sols < hiThresh && no_sols >= loThresh) {
+            const uint64_t solutionCount = BoundedSATCount(hiThresh, loThresh, assumps, currentHashCount, &solutionMap);
+            if (solutionCount < hiThresh && solutionCount >= loThresh) {
                 ret = l_True;
             } else {
                 ret = l_False;
@@ -1206,7 +1206,9 @@ uint32_t ScalMC::ScalGen(
                 *lastSuccessfulHashOffset = currentHashOffset;
                 break;
             } else { // Number of solutions too small or too large
-                if ((j == 0) && (currentHashOffset == 1)) { // At q-1, and need to pick next hash count
+
+                // At q-1, and need to pick next hash count
+                if ((j == 0) && (currentHashOffset == 1)) {
                     if (solutionCount < loThresh) {
                         // Go to q-2; next will be q
                         hashOffsets[1] = 0;
