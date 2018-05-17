@@ -152,6 +152,7 @@ private:
     double total_runtime; //runTime
     int what_to_break = 0;
     int dosimp = 1;
+    uint32_t seed = 1;
 
     int argc;
     char** argv;
