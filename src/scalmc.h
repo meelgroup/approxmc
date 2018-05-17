@@ -153,6 +153,7 @@ private:
     int what_to_break = 0;
     int dosimp = 1;
     uint32_t seed = 1;
+    uint32_t reconf = 15;
 
     int argc;
     char** argv;

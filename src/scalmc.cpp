@@ -118,6 +118,8 @@ void ScalMC::add_scalmc_options()
     ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
     ("scalmc", po::value(&scalmc)->default_value(scalmc)
         , "scalmc = 1, scalgen = 0")
+    ("reconf", po::value(&reconf)->default_value(reconf)
+        , "Reconfigure value")
     ("seed,s", po::value(&seed)->default_value(seed), "Seed")
     ("pivot", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
@@ -540,7 +542,7 @@ int ScalMC::solve()
     conf.global_timeout_multiplier_multiplier = 1.5;
     conf.varElimRatioPerIter = 0.2;
     conf.simplify_at_startup = 1;
-    conf.reconfigure_val = 15;
+    conf.reconfigure_val = reconf;
     conf.reconfigure_at = 0;
 
     if (maple) {
