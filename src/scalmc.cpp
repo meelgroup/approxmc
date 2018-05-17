@@ -513,6 +513,7 @@ int ScalMC::solve()
 {
     total_runtime = cpuTimeTotal();
     //set seed
+    cout << "[scalmc] using seed: " << seed << endl;
     randomEngine.seed(seed);
 
     if (vm.count("log") == 0) {
