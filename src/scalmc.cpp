@@ -749,7 +749,7 @@ int ScalMC::solve()
 
         /* Output samples */
         std::ostream* os;
-        if (vm.count("sampleFile"))
+        if (vm.count("sampleout"))
         {
             std::ofstream* sampleFile = new std::ofstream;
             sampleFile->open(sampleFilename.c_str());
