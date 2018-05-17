@@ -535,7 +535,7 @@ int ScalMC::solve()
 
     //solver = new SATSolver(&must_interrupt);
     CMSat::GaussConf gconf;
-    conf.gaussconf.max_num_matrixes = 10;
+    conf.gaussconf.max_num_matrixes = 2;
     conf.gaussconf.autodisable = false;
     conf.burst_search_len = 0;
     conf.global_multiplier_multiplier_max = 3;
