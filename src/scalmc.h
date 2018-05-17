@@ -130,18 +130,18 @@ private:
     void readInStandardInput(SATSolver* solver2);
 
     //config
-    std::string logfile;
+    std::string logfilename;
 
     double startTime;
     std::map< std::string, std::vector<uint32_t>> globalSolutionMap;
-    bool openLogFile();
+    void openLogFile();
     //std::atomic<bool> must_interrupt;
     void call_after_parse();
 
     uint32_t start_iter = 0;
     uint32_t pivot = 72; //precision
     uint32_t tScalMC = 9; //confidence of 0.81
-    std::ofstream cusp_logf;
+    std::ofstream logfile;
     std::mt19937 randomEngine;
     bool maple = 1;
     uint32_t num_threads = 1;

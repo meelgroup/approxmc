@@ -125,8 +125,8 @@ void ScalMC::add_scalmc_options()
         , "Number of measurements")
     ("start", po::value(&start_iter)->default_value(start_iter),
          "Start at this many XORs")
-    ("log", po::value(&logfile),
-         "Log of SCALMC iterations")
+    ("log", po::value(&logfilename)->default_value(""),
+         "Log of SCALMC iterations.")
     ("break", po::value(&what_to_break)->default_value(what_to_break),
          "What thing to break in CMS")
     ("maple", po::value(&maple)->default_value(maple),
@@ -270,15 +270,16 @@ void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
     cout << " = " << (rhs ? "True" : "False") << endl;
 }
 
-bool ScalMC::openLogFile()
+void ScalMC::openLogFile()
 {
-    cusp_logf.open(logfile.c_str());
-    if (!cusp_logf.is_open()) {
-        cout << "[scalmc] Cannot open ScalMC log file '" << logfile
-             << "' for writing." << endl;
-        exit(1);
+    if (!logfilename.empty()) {
+        logfile.open(logfilename.c_str());
+        if (!logfile.is_open()) {
+            cout << "[scalmc] Cannot open ScalMC log file '" << logfilename
+                 << "' for writing." << endl;
+            exit(1);
+        }
     }
-    return true;
 }
 
 template<class T>
@@ -518,8 +519,8 @@ int ScalMC::solve()
 
     if (vm.count("log") == 0) {
         if (vm.count("input") != 0) {
-            logfile = vm["input"].as<vector<string> >()[0] + ".log";
-            cout << "[scalmc] Logfile name not given, assumed to be " << logfile << endl;
+            logfilename = vm["input"].as<vector<string> >()[0] + ".log";
+            cout << "[scalmc] Logfile name not given, assumed to be " << logfilename << endl;
         } else {
             std::cerr << "[scalmc] ERROR: You must provide the logfile name" << endl;
             exit(-1);
@@ -850,12 +851,14 @@ bool ScalMC::count(SATCount& count)
     cout << "[scalmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
         int64_t currentNumSolutions = BoundedSATCount(pivot+1, 0, assumps, count.hashCount);
-        cusp_logf << "ScalMC:"
-                  << "breakmode-" << what_to_break << ":"
-                  <<"0:0:"
-                  << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
-                  << (int)(currentNumSolutions == (pivot + 1)) << ":"
-                  << currentNumSolutions << endl;
+        if (!logfilename.empty()) {
+            logfile << "scalmc:"
+            << "breakmode-" << what_to_break << ":"
+            <<"0:0:"
+            << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
+            << (int)(currentNumSolutions == (pivot + 1)) << ":"
+            << currentNumSolutions << endl;
+        }
 
         //Din't find at least pivot+1
         if (currentNumSolutions <= pivot) {
@@ -885,12 +888,14 @@ bool ScalMC::count(SATCount& count)
             int64_t currentNumSolutions = BoundedSATCount(pivot + 1, 0, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << pivot << endl;
-            cusp_logf << "ScalMC:"
-                      << "breakmode-" << what_to_break << ":"
-                      << j << ":" << hashCount << ":"
-                      << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
-                      << (int)(currentNumSolutions == (pivot + 1)) << ":"
-                      << currentNumSolutions << endl;
+            if (!logfilename.empty()) {
+                logfile << "scalmc:"
+                << "breakmode-" << what_to_break << ":"
+                << j << ":" << hashCount << ":"
+                << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
+                << (int)(currentNumSolutions == (pivot + 1)) << ":"
+                << currentNumSolutions << endl;
+            }
 
             if (currentNumSolutions < pivot + 1) {
                 numExplored = lowerFib+independent_vars.size()-hashCount;
@@ -1186,11 +1191,13 @@ uint32_t ScalMC::ScalGen(
                 ret = l_False;
             }
 
-            cusp_logf << "UniGen2:"
-            << sampleCounter << ":" << currentHashCount << ":"
-            << std::fixed << std::setprecision(2) << (cpuTimeTotal() - timeReference) << ":"
-            << (int)(ret == l_False ? 1 : (ret == l_True ? 0 : 2)) << ":"
-            << solutionCount << endl;
+            if (!logfilename.empty()) {
+                logfile << "scalgen:"
+                << sampleCounter << ":" << currentHashCount << ":"
+                << std::fixed << std::setprecision(2) << (cpuTimeTotal() - timeReference) << ":"
+                << (int)(ret == l_False ? 1 : (ret == l_True ? 0 : 2)) << ":"
+                << solutionCount << endl;
+            }
 
             // Number of solutions in correct range
             if (ret == l_True) {
