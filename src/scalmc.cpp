@@ -170,7 +170,7 @@ void ScalMC::add_supported_options()
             << "Approximate counter" << endl;
 
             cout
-            << "scalmc [options] inputfile [drat-trim-file]" << endl << endl;
+            << "scalmc [options] inputfile" << endl << endl;
 
             cout << help_options << endl;
             std::exit(0);
@@ -227,12 +227,7 @@ void ScalMC::add_supported_options()
         boost::exception_detail::error_info_injector<po::too_many_positional_options_error> >& what
     ) {
         cerr
-        << "ERROR: You gave too many positional arguments. Only at most two can be given:" << endl
-        << "       the 1st the CNF file input, and optinally, the 2nd the DRAT file output" << endl
-        << "    OR (pre-processing)  1st for the input CNF, 2nd for the simplified CNF" << endl
-        << "    OR (post-processing) 1st for the solution file" << endl
-        ;
-
+        << "ERROR: You gave too many positional arguments. Only the input CNF can be given as a positional option." << endl;
         std::exit(-1);
     } catch (boost::exception_detail::clone_impl<
         boost::exception_detail::error_info_injector<po::ambiguous_option> >& what
