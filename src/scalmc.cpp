@@ -118,7 +118,7 @@ void ScalMC::add_scalmc_options()
     ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
     ("scalmc", po::value(&scalmc)->default_value(scalmc)
         , "scalmc = 1, scalgen = 0")
-    ("seed,s", po::value< int >(), "Seed")
+    ("seed,s", po::value(&seed)->default_value(seed), "Seed")
     ("pivot", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
     ("measure", po::value(&tScalMC)->default_value(tScalMC)
@@ -513,11 +513,6 @@ int ScalMC::solve()
 {
     total_runtime = cpuTimeTotal();
     //set seed
-    if (vm.count("seed") == 0) {
-        cerr << "ERROR: You must provide a seed value with the '-s NUM' option" << endl;
-        exit(-1);
-    }
-    unsigned int seed = vm["seed"].as<int>();
     randomEngine.seed(seed);
 
     if (vm.count("log") == 0) {
