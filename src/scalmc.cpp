@@ -1,5 +1,5 @@
 /*
- CUSP and ScalMC
+ ScalMC
 
  Copyright (c) 2009-2015, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -665,13 +665,13 @@ int ScalMC::solve()
         if (samples == 0 || startIterationUG == 0) {
             if (samples > 0)
             {
-                cout << "Using ApproxMC to compute startIteration for UniGen" << endl;
+                cout << "Using scalmc to compute startIteration for UniGen" << endl;
                 if (!vm["pivotAC"].defaulted() || !vm["tScalMC"].defaulted()) {
                     cout << "WARNING: manually-specified pivotAC and/or tScalMC may"
                          << " not be large enough to guarantee correctness of UniGen." << endl
                          << "Omit those arguments to use safe default values." << endl;
                 } else {
-                    /* Fill in here the best parameters for ApproxMC achieving
+                    /* Fill in here the best parameters for scalmc achieving
                      * epsilon=0.8 and delta=0.177 as required by UniGen2 */
                     pivot = 73;
                     tScalMC = 11;
@@ -679,7 +679,7 @@ int ScalMC::solve()
             }
             else if(vm["tScalMC"].defaulted())
             {
-                /* Compute tApproxMC */
+                /* Compute tscalmc */
                 double delta = 0.2;
                 double confidence = 1.0 - delta;
                 int bestIteration = iterationConfidences.size() - 1;
@@ -991,9 +991,9 @@ bool ScalMC::count(SATCount& count)
      std::cerr << "Probmapfile failed, delta is " << conf.delta << std::endl;
      exit(-1);
    }
-   conf.tApproxMC = val;
-   std::cout<<"t ApproxMC:"<<conf.tApproxMC<<std::endl;
-     confidence = (float *) malloc(sizeof(float)*(2+conf.tApproxMC));
+   conf.tscalmc = val;
+   std::cout<<"t scalmc:"<<conf.tscalmc<<std::endl;
+     confidence = (float *) malloc(sizeof(float)*(2+conf.tscalmc));
    if(confidence == NULL){
      printf("Out of memory, could not allocate confidence list\n");
      exit(-1);
