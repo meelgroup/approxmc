@@ -647,7 +647,7 @@ int ScalMC::solve()
         if (samples > 0)    /* Running UniGen */
         {
             if (startIterationUG > independent_vars.size()) {
-                cout << "ERROR: Manually-specified startIteration for UniGen"
+                cerr << "ERROR: Manually-specified startIteration for UniGen"
                      "is larger than the size of the independent set.\n" << endl;
                 return -1;
             }
@@ -657,7 +657,7 @@ int ScalMC::solve()
         }
         else
         {
-            cout << "ERROR: samples not set.\n" << endl;
+            cerr << "ERROR: number of samples not set. Set with '--samples N'\n" << endl;
             return -1;
         }
 
@@ -762,9 +762,9 @@ int ScalMC::solve()
                 std::exit(-1);
             }
             os = sampleFile;
-        }
-        else
+        } else {
             os = &cout;
+        }
 
         for (map< std::string, std::vector<uint32_t>>:: iterator
             it = globalSolutionMap.begin();
