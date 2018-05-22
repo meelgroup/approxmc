@@ -143,7 +143,7 @@ private:
     uint32_t tScalMC = 9; //confidence of 0.81
     std::ofstream logfile;
     std::mt19937 randomEngine;
-    bool maple = 1;
+    bool maple = 0;
     uint32_t num_threads = 1;
     SATSolver* solver;
     vector<uint32_t> independent_vars;
@@ -153,7 +153,6 @@ private:
     int what_to_break = 0;
     int dosimp = 1;
     uint32_t seed = 1;
-    uint32_t reconf = 15;
 
     int argc;
     char** argv;

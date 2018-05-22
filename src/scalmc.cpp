@@ -118,8 +118,6 @@ void ScalMC::add_scalmc_options()
     ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
     ("scalmc", po::value(&scalmc)->default_value(scalmc)
         , "scalmc = 1, scalgen = 0")
-    ("reconf", po::value(&reconf)->default_value(reconf)
-        , "Reconfigure value")
     ("seed,s", po::value(&seed)->default_value(seed), "Seed")
     ("pivot", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
@@ -540,59 +538,45 @@ int ScalMC::solve()
     conf.burst_search_len = 0;
     conf.global_multiplier_multiplier_max = 3;
     conf.global_timeout_multiplier_multiplier = 1.5;
-    conf.varElimRatioPerIter = 0.2;
-    conf.simplify_at_startup = 1;
-    conf.reconfigure_val = reconf;
-    conf.reconfigure_at = 0;
 
-    if (maple) {
-        conf.maple = 1;
-    }
+    conf.simplify_at_startup = 1;
+    conf.varElimRatioPerIter = 1;
+    conf.restartType = Restart::geom;
+    conf.polarity_mode = CMSat::PolarityMode::polarmode_neg;
+    conf.maple = maple;
 
     //simplify broken
-    if (what_to_break == 30) {
+    if (what_to_break == 40) {
         conf.simplify_at_every_startup = true;
     }
 
-    //polarity mess-up + burst
-    if (what_to_break == 31) {
+    //polarity cached
+    if (what_to_break == 41) {
+        conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
+    }
+
+    //burst broken
+    if (what_to_break == 43) {
         conf.burst_broken = true;
-        conf.burst_search_len = 1000;
-        conf.reconfigure_val = 115;
-        conf.reconfigure_at = 0;
+        conf.burst_search_len = 500;
+    }
+
+    //polarity mess-up
+    if (what_to_break == 44) {
         conf.mess_up_polarity = true;
     }
 
-    //simplify broken + polarity mess-up + burst
-    if (what_to_break == 32) {
+    //simplify broken + polarity mess-up + burst + glue-restart-only
+    if (what_to_break == 44) {
         conf.burst_broken = true;
-        conf.burst_search_len = 1000;
+        conf.burst_search_len = 500;
+
+        conf.mess_up_polarity = true;
+
+        conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
+
         conf.simplify_at_every_startup = true;
-        conf.reconfigure_val = 115;
-        conf.reconfigure_at = 0;
-        conf.mess_up_polarity = true;
     }
-
-    //glue-restart-only + nointree + nomaple
-    if (what_to_break == 33) {
-        conf.doIntreeProbe = false;
-        conf.restartType = CMSat::Restart::glue;
-        conf.maple = 0;
-    }
-
-    //simplify broken + polarity mess-up + burst + glue-restart-only + nointree + nomaple
-    if (what_to_break == 34) {
-        conf.mess_up_polarity = true;
-        conf.simplify_at_every_startup = true;
-        conf.restartType = CMSat::Restart::glue;
-        conf.reconfigure_val = 15;
-        conf.reconfigure_at = 0;
-        conf.burst_search_len = 1000;
-        conf.burst_broken = true;
-        conf.maple = 0;
-        conf.doIntreeProbe = false;
-    }
-
     conf.do_simplify_problem = dosimp;
 
     solver = new SATSolver((void*)&conf);
