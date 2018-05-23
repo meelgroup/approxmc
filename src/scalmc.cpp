@@ -733,9 +733,10 @@ int ScalMC::solve()
 
         /* Output samples */
         std::ostream* os;
+        std::ofstream* sampleFile = NULL;
         if (vm.count("sampleout"))
         {
-            std::ofstream* sampleFile = new std::ofstream;
+            sampleFile = new std::ofstream;
             sampleFile->open(sampleFilename.c_str());
             if (!(*sampleFile)) {
                 cout
@@ -758,6 +759,7 @@ int ScalMC::solve()
             // TODO this will need to be changed once multithreading is implemented
             *os << it->first.c_str() << " :" << counts[0] << endl;
         }
+        delete sampleFile;
     }
 
     return correctReturnValue(l_True);
