@@ -751,13 +751,10 @@ int ScalMC::solve()
             os = &cout;
         }
 
-        for (map< std::string, std::vector<uint32_t>>:: iterator
-            it = globalSolutionMap.begin();
-            it != globalSolutionMap.end(); it++)
-        {
-            std::vector<uint32_t> counts = it->second;
+        for (const auto& sol: globalSolutionMap) {
+            std::vector<uint32_t> counts = sol.second;
             // TODO this will need to be changed once multithreading is implemented
-            *os << it->first.c_str() << " :" << counts[0] << endl;
+            *os << std::setw(5) << counts[0] << " : "  << sol.first.c_str() << endl;
         }
         delete sampleFile;
     }
