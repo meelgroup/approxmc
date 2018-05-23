@@ -104,7 +104,7 @@ public:
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     uint32_t samples = 0;
     uint32_t callsPerSolver = 0;
-    uint32_t pivotUniGen; //TODO rename scalgen
+    uint32_t pivotScalGen; //TODO rename scalgen
     bool indep_only = false;
 
 private:

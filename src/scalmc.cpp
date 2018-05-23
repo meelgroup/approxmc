@@ -148,7 +148,7 @@ void ScalMC::add_scalmc_options()
     ("startIterationUG", po::value(&startIterationUG)->default_value(startIterationUG)
         , "If positive, use instead of startIteration computed by ScalMC")
     ("callsPerSolver", po::value(&callsPerSolver)->default_value(callsPerSolver)
-        , "Number of UniGen calls to make in a single solver, or 0 to use a heuristic")
+        , "Number of ScalGen calls to make in a single solver, or 0 to use a heuristic")
     ;
 
     help_options.add(scalmc_options);
@@ -634,25 +634,25 @@ int ScalMC::solve()
          << " x 2^" << solCount.hashCount << endl;
     } else {
         if (startIterationUG > independent_vars.size()) {
-            cerr << "ERROR: Manually-specified startIteration for UniGen"
+            cerr << "ERROR: Manually-specified startIteration for ScalGen"
                  "is larger than the size of the independent set.\n" << endl;
             return -1;
         }
 
         /* Compute pivot via formula from TACAS-15 paper */
-        pivotUniGen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
+        pivotScalGen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
 
         if (samples == 0 || startIterationUG == 0) {
             if (samples > 0)
             {
-                cout << "Using scalmc to compute startIteration for UniGen" << endl;
+                cout << "Using scalmc to compute startIteration for ScalGen" << endl;
                 if (!vm["pivotAC"].defaulted() || !vm["tScalMC"].defaulted()) {
                     cout << "WARNING: manually-specified pivotAC and/or tScalMC may"
-                         << " not be large enough to guarantee correctness of UniGen." << endl
+                         << " not be large enough to guarantee correctness of ScalGen." << endl
                          << "Omit those arguments to use safe default values." << endl;
                 } else {
                     /* Fill in here the best parameters for scalmc achieving
-                     * epsilon=0.8 and delta=0.177 as required by UniGen2 */
+                     * epsilon=0.8 and delta=0.177 as required by ScalGen */
                     pivot = 73;
                     tScalMC = 11;
                 }
@@ -714,7 +714,7 @@ int ScalMC::solve()
             else
             {
                 double si = round(solCount.hashCount + log2(solCount.cellSolCount)
-                    + log2(1.8) - log2(pivotUniGen)) - 2;
+                    + log2(1.8) - log2(pivotScalGen)) - 2;
                 if (si > 0)
                     startIterationUG = si;
                 else
@@ -723,7 +723,7 @@ int ScalMC::solve()
         }
         else
         {
-            cout << "Using manually-specified startIteration for UniGen" << endl;
+            cout << "Using manually-specified startIteration for ScalGen" << endl;
         }
         /* Run ScalGen */
         generate_samples();
@@ -1036,15 +1036,15 @@ uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
 
 void ScalMC::generate_samples()
 {
-    hiThresh = ceil(1 + (1.4142136 * (1 + kappa) * pivotUniGen));
-    loThresh = floor(pivotUniGen / (1.4142136 * (1 + kappa)));
+    hiThresh = ceil(1 + (1.4142136 * (1 + kappa) * pivotScalGen));
+    loThresh = floor(pivotScalGen / (1.4142136 * (1 + kappa)));
     uint32_t samplesPerCall = SolutionsToReturn(samples);
     uint32_t callsNeeded = (samples + samplesPerCall - 1) / samplesPerCall;
     cout << "loThresh " << loThresh
     << ", hiThresh " << hiThresh
     << ", startIteration " << startIterationUG << endl;
 
-    cout << "Outputting " << samplesPerCall << " solutions from each UniGen2 call" << endl;
+    cout << "Outputting " << samplesPerCall << " solutions from each ScalGen call" << endl;
     uint32_t numCallsInOneLoop = 0;
     if (callsPerSolver == 0) {
         // TODO: does this heuristic still work okay?
@@ -1074,7 +1074,7 @@ void ScalMC::generate_samples()
 
     if (startIterationUG > 0)
     {
-        ///Perform extra UniGen calls that don't fit into the loops
+        ///Perform extra ScalGen calls that don't fit into the loops
         if (remainingCalls > 0) {
             sampleCounter = ScalGenCall(
                                 remainingCalls, sampleCounter
@@ -1082,7 +1082,7 @@ void ScalMC::generate_samples()
                                 , &lastSuccessfulHashOffset, threadStartTime);
         }
 
-        // Perform main UniGen call loops
+        // Perform main ScalGen call loops
         for (uint32_t i = 0; i < numCallLoops; i++) {
             if (!timedOut) {
                 sampleCounter = ScalGenCall(
@@ -1125,12 +1125,12 @@ void ScalMC::generate_samples()
     double timeTaken = cpuTimeTotal() - threadStartTime;
     allThreadsTime += timeTaken;
     cout
-    << "Total time for UniGen2: " << timeTaken << " s"
+    << "Total time for ScalGen: " << timeTaken << " s"
     << (timedOut ? " (TIMED OUT)" : "")
     << endl;
 
     // TODO put this back once multithreading is implemented
-    //cout << "Total time for all UniGen2 calls: " << allThreadsTime << " s" << endl;
+    //cout << "Total time for all ScalGen calls: " << allThreadsTime << " s" << endl;
     cout << "Samples generated: " << allThreadsSampleCount << endl;
 }
 
@@ -1220,7 +1220,7 @@ int ScalMC::ScalGenCall(
     //solverToInterrupt = solver;
 
     /* Heuristic: running solver once before adding any hashes
-     * tends to help performance (need to do this for UniGen since
+     * tends to help performance (need to do this for ScalGen since
      * we aren't necessarily starting from hashCount zero) */
     solver->solve();
 
