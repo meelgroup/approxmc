@@ -612,6 +612,11 @@ int ScalMC::solve()
     }
 
     if (samples == 0) {
+        if (vm.count("sampleout")){
+            cerr << "ERROR: You did not give the '--samples N' option, but you gave the '--sampleout FNAME' option." << endl;
+            cout << "ERROR: This is confusing. Please give '--samples N' if you give '--sampleout FNAME'" << endl;
+            exit(-1);
+        }
         cout << "[scalmc] Using start iteration " << start_iter << endl;
 
         SATCount solCount;
