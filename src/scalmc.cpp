@@ -58,7 +58,6 @@
 #include "cryptominisat5/streambuffer.h"
 #include "cryptominisat5/solvertypesmini.h"
 #include "GitSHA1.h"
-#include "signalcode.h"
 
 using std::cout;
 using std::cerr;
@@ -579,7 +578,6 @@ int ScalMC::solve()
     conf.do_simplify_problem = dosimp;
 
     solver = new SATSolver((void*)&conf);
-    solverToInterrupt = solver;
 
     if (verb > 2) {
         solver->set_verbosity(verb-2);
