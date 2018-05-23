@@ -34,7 +34,6 @@
 #include <fenv.h>
 #endif
 
-#include <stdio.h>
 #include <ctime>
 #include <cstring>
 #include <errno.h>
@@ -925,7 +924,7 @@ bool ScalMC::count(SATCount& count)
                     lowerFib = hashCount;
                     hashCount = (lowerFib+upperFib)/2;
                 } else {
-                    //printf("hashPrev:%d hashCount:%d\n",hashPrev, hashCount);
+                    //cout << "hashPrev: " << hashPrev << " hashCount: " << hashCount << endl;
                     hashCount = lowerFib + (hashCount -lowerFib)*2;
                 }
             }
@@ -977,7 +976,7 @@ bool ScalMC::count(SATCount& count)
    std::cout<<"t scalmc:"<<conf.tscalmc<<std::endl;
      confidence = (float *) malloc(sizeof(float)*(2+conf.tscalmc));
    if(confidence == NULL){
-     printf("Out of memory, could not allocate confidence list\n");
+     cout << "Out of memory, could not allocate confidence list" << endl;
      exit(-1);
    }
 
@@ -1047,7 +1046,7 @@ void ScalMC::generate_samples()
     << ", hiThresh " << hiThresh
     << ", startIteration " << startIterationUG << endl;
 
-    printf("Outputting %d solutions from each UniGen2 call\n", samplesPerCall);
+    cout << "Outputting " << samplesPerCall << " solutions from each UniGen2 call" << endl;
     uint32_t numCallsInOneLoop = 0;
     if (callsPerSolver == 0) {
         // TODO: does this heuristic still work okay?
