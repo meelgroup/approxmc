@@ -145,6 +145,8 @@ void ScalMC::add_scalmc_options()
         , "Return multiple samples from each call")
     ("sampleout", po::value(&sampleFilename)
         , "Write samples to this file")
+    ("indep", po::value(&indep_only)->default_value(indep_only)
+        , "Don't extend solution by SAT solver")
     ("startIterationUG", po::value(&startIterationUG)->default_value(startIterationUG)
         , "If positive, use instead of startIteration computed by ScalMC")
     ("callsPerSolver", po::value(&callsPerSolver)->default_value(callsPerSolver)
@@ -363,7 +365,7 @@ int64_t ScalMC::BoundedSATCount(
     lbool ret;
     double last_found_time = cpuTimeTotal();
     while (solutions < maxSolutions) {
-        ret = solver->solve(&new_assumps);
+        ret = solver->solve(&new_assumps, indep_only);
         if (verb >=2 ) {
             cout << "[scalmc] boundedSATCount ret: " << std::setw(7) << ret;
             if (ret == l_True) {

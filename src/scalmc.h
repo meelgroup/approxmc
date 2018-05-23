@@ -105,6 +105,7 @@ public:
     uint32_t samples = 0;
     uint32_t callsPerSolver = 0;
     uint32_t pivotUniGen; //TODO rename scalgen
+    bool indep_only = false;
 
 private:
     SolverConf conf;
