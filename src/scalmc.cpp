@@ -116,8 +116,6 @@ void ScalMC::add_scalmc_options()
     ("version", "Print version info")
     ("input", po::value< vector<string> >(), "file(s) to read")
     ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
-    ("scalmc", po::value(&scalmc)->default_value(scalmc)
-        , "scalmc = 1, scalgen = 0")
     ("seed,s", po::value(&seed)->default_value(seed), "Seed")
     ("pivot", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
@@ -611,7 +609,7 @@ int ScalMC::solve()
         return -1;
     }
 
-    if (scalmc) {
+    if (samples == 0) {
         cout << "[scalmc] Using start iteration " << start_iter << endl;
 
         SATCount solCount;
@@ -631,22 +629,14 @@ int ScalMC::solve()
         << solCount.cellSolCount
          << " x 2^" << solCount.hashCount << endl;
     } else {
-        if (samples > 0)    /* Running UniGen */
-        {
-            if (startIterationUG > independent_vars.size()) {
-                cerr << "ERROR: Manually-specified startIteration for UniGen"
-                     "is larger than the size of the independent set.\n" << endl;
-                return -1;
-            }
-
-            /* Compute pivot via formula from TACAS-15 paper */
-            pivotUniGen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
-        }
-        else
-        {
-            cerr << "ERROR: number of samples not set. Set with '--samples N'\n" << endl;
+        if (startIterationUG > independent_vars.size()) {
+            cerr << "ERROR: Manually-specified startIteration for UniGen"
+                 "is larger than the size of the independent set.\n" << endl;
             return -1;
         }
+
+        /* Compute pivot via formula from TACAS-15 paper */
+        pivotUniGen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
 
         if (samples == 0 || startIterationUG == 0) {
             if (samples > 0)

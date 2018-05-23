@@ -105,7 +105,6 @@ public:
     uint32_t samples = 0;
     uint32_t callsPerSolver = 0;
     uint32_t pivotUniGen; //TODO rename scalgen
-    int scalmc = 1;
 
 private:
     SolverConf conf;
