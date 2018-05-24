@@ -145,8 +145,8 @@ void ScalMC::add_scalmc_options()
         , "Write samples to this file")
     ("indep", po::value(&indep_only)->default_value(indep_only)
         , "Don't extend solution by SAT solver")
-    ("startIterationUG", po::value(&startIterationUG)->default_value(startIterationUG)
-        , "If positive, use instead of startIteration computed by ScalMC")
+    ("startiter", po::value(&startiter)->default_value(startiter)
+        , "If positive, use instead of startiter computed by ScalMC")
     ("callsPerSolver", po::value(&callsPerSolver)->default_value(callsPerSolver)
         , "Number of ScalGen calls to make in a single solver, or 0 to use a heuristic")
     ;
@@ -633,8 +633,8 @@ int ScalMC::solve()
         << solCount.cellSolCount
          << " x 2^" << solCount.hashCount << endl;
     } else {
-        if (startIterationUG > independent_vars.size()) {
-            cerr << "ERROR: Manually-specified startIteration for ScalGen"
+        if (startiter > independent_vars.size()) {
+            cerr << "ERROR: Manually-specified startiter for ScalGen"
                  "is larger than the size of the independent set.\n" << endl;
             return -1;
         }
@@ -642,10 +642,10 @@ int ScalMC::solve()
         /* Compute pivot via formula from TACAS-15 paper */
         pivotScalGen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
 
-        if (samples == 0 || startIterationUG == 0) {
+        if (samples == 0 || startiter == 0) {
             if (samples > 0)
             {
-                cout << "Using scalmc to compute startIteration for ScalGen" << endl;
+                cout << "Using scalmc to compute startiter for ScalGen" << endl;
                 if (!vm["pivotAC"].defaulted() || !vm["tScalMC"].defaulted()) {
                     cout << "WARNING: manually-specified pivotAC and/or tScalMC may"
                          << " not be large enough to guarantee correctness of ScalGen." << endl
@@ -687,7 +687,7 @@ int ScalMC::solve()
             }
 
             SATCount solCount;
-            cout << "ScalGen starting from iteration " << startIterationUG << endl;
+            cout << "ScalGen starting from iteration " << startiter << endl;
 
             bool finished = false;
             finished = count(solCount);
@@ -716,14 +716,14 @@ int ScalMC::solve()
                 double si = round(solCount.hashCount + log2(solCount.cellSolCount)
                     + log2(1.8) - log2(pivotScalGen)) - 2;
                 if (si > 0)
-                    startIterationUG = si;
+                    startiter = si;
                 else
-                    startIterationUG = 0;   /* Indicate ideal sampling case */
+                    startiter = 0;   /* Indicate ideal sampling case */
             }
         }
         else
         {
-            cout << "Using manually-specified startIteration for ScalGen" << endl;
+            cout << "Using manually-specified startiter for ScalGen" << endl;
         }
         /* Run ScalGen */
         generate_samples();
@@ -1026,7 +1026,7 @@ int ScalMC::correctReturnValue(const lbool ret) const
 /* Number of solutions to return from one invocation of ScalGen. */
 uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
 {
-    if (startIterationUG == 0)   // TODO improve hack for ideal sampling case?
+    if (startiter == 0)   // TODO improve hack for ideal sampling case?
         return numSolutions;
     else if (multisample)
         return loThresh;
@@ -1042,13 +1042,13 @@ void ScalMC::generate_samples()
     uint32_t callsNeeded = (samples + samplesPerCall - 1) / samplesPerCall;
     cout << "loThresh " << loThresh
     << ", hiThresh " << hiThresh
-    << ", startIteration " << startIterationUG << endl;
+    << ", startiter " << startiter << endl;
 
     cout << "Outputting " << samplesPerCall << " solutions from each ScalGen call" << endl;
     uint32_t numCallsInOneLoop = 0;
     if (callsPerSolver == 0) {
         // TODO: does this heuristic still work okay?
-        uint32_t si = startIterationUG > 0 ? startIterationUG : 1;
+        uint32_t si = startiter > 0 ? startiter : 1;
         numCallsInOneLoop = std::min(solver->nVars() / (si * 14), callsNeeded);
         if (numCallsInOneLoop == 0) {
             numCallsInOneLoop = 1;
@@ -1072,7 +1072,7 @@ void ScalMC::generate_samples()
     double threadStartTime = cpuTimeTotal();
     uint32_t lastSuccessfulHashOffset = 0;
 
-    if (startIterationUG > 0)
+    if (startiter > 0)
     {
         ///Perform extra ScalGen calls that don't fit into the loops
         if (remainingCalls > 0) {
@@ -1160,7 +1160,7 @@ uint32_t ScalMC::ScalGen(
         }
         for (uint32_t j = 0; j < 3; j++) {
             currentHashOffset = hashOffsets[j];
-            currentHashCount = currentHashOffset + startIterationUG;
+            currentHashCount = currentHashOffset + startiter;
             SetHash(currentHashCount, hashVars, assumps);
 
             const uint64_t solutionCount = BoundedSATCount(hiThresh, loThresh, assumps, currentHashCount, &solutionMap);

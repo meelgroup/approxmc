@@ -96,7 +96,7 @@ public:
         , double timeReference
     );
     std::string sampleFilename;
-    uint32_t startIterationUG = 0;
+    uint32_t startiter = 0;
     uint32_t multisample = 1;
     uint32_t loThresh;
     uint32_t hiThresh;
