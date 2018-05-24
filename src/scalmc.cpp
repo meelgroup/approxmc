@@ -369,7 +369,7 @@ int64_t ScalMC::bounded_sol_count(
         if (verb >=2 ) {
             cout << "[scalmc] bounded_sol_count ret: " << std::setw(7) << ret;
             if (ret == l_True) {
-                cout << " sol no. " << std::setw(3) << solutions;
+                cout << " sol no.  " << std::setw(3) << solutions;
             } else {
                 cout << " No more. " << std::setw(3) << "";
             }
