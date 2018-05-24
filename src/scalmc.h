@@ -112,7 +112,7 @@ private:
     bool count(SATCount& count);
     void add_scalmc_options();
     bool ScalScalMC(SATCount& count);
-    bool AddHash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes);
+    bool add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes);
     void SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);
 
     void printVersionInfo() const;

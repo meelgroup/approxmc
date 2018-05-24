@@ -306,7 +306,7 @@ inline T findMin(vector<T>& numList)
     return min;
 }
 
-bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
+bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
 {
     const string randomBits =
         GenerateRandomBits(independent_vars.size() * num_xor_cls, total_num_hashes);
@@ -819,7 +819,7 @@ void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector
             }
         }
         if (clausNum > hashVars.size()) {
-            AddHash(clausNum-hashVars.size(), assumps, clausNum);
+            add_hash(clausNum-hashVars.size(), assumps, clausNum);
             for (uint64_t i = hashVars.size(); i < clausNum; i++) {
                 hashVars[i] = assumps[i];
             }
