@@ -122,7 +122,7 @@ private:
         const vector<lbool>& model
         , std::map<std::string, uint32_t>* solutionMap) const;
 
-    int64_t BoundedSATCount(
+    int64_t bounded_sol_count(
         uint32_t maxSolutions,
         uint32_t minSolutions,
         const vector<Lit>& assumps,

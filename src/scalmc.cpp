@@ -337,7 +337,7 @@ bool ScalMC::AddHash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_
     return true;
 }
 
-int64_t ScalMC::BoundedSATCount(
+int64_t ScalMC::bounded_sol_count(
         uint32_t maxSolutions,
         uint32_t minSolutions,
         const vector<Lit>& assumps,
@@ -348,7 +348,7 @@ int64_t ScalMC::BoundedSATCount(
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
     << (cpuTimeTotal()-total_runtime)
     << " ]"
-    << " BoundedSATCount looking for " << std::setw(4) << maxSolutions << " solutions"
+    << " bounded_sol_count looking for " << std::setw(4) << maxSolutions << " solutions"
     << " -- hashes active: " << hashCount << endl;
 
     //Set up things for adding clauses that can later be removed
@@ -365,7 +365,7 @@ int64_t ScalMC::BoundedSATCount(
     while (solutions < maxSolutions) {
         ret = solver->solve(&new_assumps, indep_only);
         if (verb >=2 ) {
-            cout << "[scalmc] boundedSATCount ret: " << std::setw(7) << ret;
+            cout << "[scalmc] bounded_sol_count ret: " << std::setw(7) << ret;
             if (ret == l_True) {
                 cout << " sol no. " << std::setw(3) << solutions;
             }
@@ -836,7 +836,7 @@ bool ScalMC::count(SATCount& count)
     double myTime = cpuTimeTotal();
     cout << "[scalmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
-        int64_t currentNumSolutions = BoundedSATCount(pivot+1, 0, assumps, count.hashCount);
+        int64_t currentNumSolutions = bounded_sol_count(pivot+1, 0, assumps, count.hashCount);
         if (!logfilename.empty()) {
             logfile << "scalmc:"
             << "breakmode-" << what_to_break << ":"
@@ -871,7 +871,7 @@ bool ScalMC::count(SATCount& count)
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
             cout << "[scalmc] hashes active: " << std::setw(6) << hashCount << endl;
-            int64_t currentNumSolutions = BoundedSATCount(pivot + 1, 0, assumps, hashCount);
+            int64_t currentNumSolutions = bounded_sol_count(pivot + 1, 0, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << pivot << endl;
             if (!logfilename.empty()) {
@@ -1104,7 +1104,7 @@ void ScalMC::generate_samples()
         /* Ideal sampling case; enumerate all solutions */
         vector<Lit> assumps;
         uint32_t count = 0;
-        BoundedSATCount(std::numeric_limits<uint32_t>::max(), 0, assumps, 0, &threadSolutionMap);
+        bounded_sol_count(std::numeric_limits<uint32_t>::max(), 0, assumps, 0, &threadSolutionMap);
 
         std::uniform_int_distribution<unsigned> uid {0, count-1};
         for (uint32_t i = 0; i < samples; ++i)
@@ -1170,7 +1170,7 @@ uint32_t ScalMC::ScalGen(
             currentHashCount = currentHashOffset + startiter;
             SetHash(currentHashCount, hashVars, assumps);
 
-            const uint64_t solutionCount = BoundedSATCount(hiThresh, loThresh, assumps, currentHashCount, &solutionMap);
+            const uint64_t solutionCount = bounded_sol_count(hiThresh, loThresh, assumps, currentHashCount, &solutionMap);
             if (solutionCount < hiThresh && solutionCount >= loThresh) {
                 ret = l_True;
             } else {
