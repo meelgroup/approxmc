@@ -364,10 +364,14 @@ int64_t ScalMC::bounded_sol_count(
     double last_found_time = cpuTimeTotal();
     while (solutions < maxSolutions) {
         ret = solver->solve(&new_assumps, indep_only);
+        assert(ret == l_False || ret == l_True);
+
         if (verb >=2 ) {
             cout << "[scalmc] bounded_sol_count ret: " << std::setw(7) << ret;
             if (ret == l_True) {
                 cout << " sol no. " << std::setw(3) << solutions;
+            } else {
+                cout << " No more. " << std::setw(3) << "";
             }
             cout << " T: "
             << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-total_runtime)
@@ -377,6 +381,7 @@ int64_t ScalMC::bounded_sol_count(
             << endl;
             last_found_time = cpuTimeTotal();
         }
+
         if (ret != l_True) {
             break;
         }
