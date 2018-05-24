@@ -116,7 +116,7 @@ if (SANITIZE)
     add_compile_options("-fsanitize=integer")
     add_compile_options("-fsanitize=undefined")
 
-    #add_compile_options("-fsanitize=null")
+    add_compile_options("-fsanitize=null")
     add_compile_options("-fsanitize=alignment")
     #add_compile_options("-fno-sanitize-recover")
 
