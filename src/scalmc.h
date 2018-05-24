@@ -130,7 +130,7 @@ private:
     void readInStandardInput(SATSolver* solver2);
 
     //config
-    std::string logfilename;
+    std::string logfilename = "";
 
     double startTime;
     std::map< std::string, std::vector<uint32_t>> globalSolutionMap;

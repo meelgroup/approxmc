@@ -121,7 +121,7 @@ void ScalMC::add_scalmc_options()
         , "Number of measurements")
     ("start", po::value(&start_iter)->default_value(start_iter),
          "Start at this many XORs")
-    ("log", po::value(&logfilename)->default_value(""),
+    ("log", po::value(&logfilename)->default_value(logfilename),
          "Log of SCALMC iterations.")
     ("break", po::value(&what_to_break)->default_value(what_to_break),
          "What thing to break in CMS")
@@ -132,7 +132,7 @@ void ScalMC::add_scalmc_options()
     ("simp", po::value(&dosimp)->default_value(dosimp),
          "Perform simplifications in CMS")
     ("vcl", po::value(&verb_scalmc_cls)->default_value(verb_scalmc_cls)
-        ,"banning clause, xor clause printing")
+        ,"Print banning clause + xor clauses. Highly verbose.")
     ("samples", po::value(&samples)->default_value(samples)
         , "Number of random samples to generate")
     ("sparse", po::value(&sparse)->default_value(sparse)
