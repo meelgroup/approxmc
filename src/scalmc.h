@@ -62,8 +62,11 @@ public:
         , argc(_argc)
         , argv(_argv)
     {
-        //must_interrupt.store(false, std::memory_order_relaxed);
-        solver = new SATSolver;
+    }
+
+    ~ScalMC()
+    {
+        delete solver;
     }
 
     int solve();
@@ -149,7 +152,7 @@ private:
     std::mt19937 randomEngine;
     bool maple = 0;
     uint32_t num_threads = 1;
-    SATSolver* solver;
+    SATSolver* solver = NULL;
     vector<uint32_t> independent_vars;
     unsigned verb = 1;
     unsigned verb_scalmc_cls = 0;
