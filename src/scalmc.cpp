@@ -26,11 +26,6 @@
  */
 
 #if defined(__GNUC__) && defined(__linux__)
-
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
 #include <fenv.h>
 #endif
 
