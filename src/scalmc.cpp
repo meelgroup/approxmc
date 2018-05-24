@@ -1088,7 +1088,6 @@ void ScalMC::generate_samples()
     cout << "Making " << numCallLoops << " loops."
          << " calls per loop: " << numCallsInOneLoop
          << " remaining: " << remainingCalls << endl;
-    bool timedOut = false;
     uint32_t sampleCounter = 0;
     std::map<string, uint32_t> threadSolutionMap;
     double allThreadsTime = 0;
@@ -1096,28 +1095,22 @@ void ScalMC::generate_samples()
     double threadStartTime = cpuTimeTotal();
     uint32_t lastSuccessfulHashOffset = 0;
 
-    if (startiter > 0)
-    {
+    if (startiter > 0) {
         ///Perform extra ScalGen calls that don't fit into the loops
         if (remainingCalls > 0) {
             sampleCounter = ScalGenCall(
-                                remainingCalls, sampleCounter
-                                , threadSolutionMap
-                                , &lastSuccessfulHashOffset, threadStartTime);
+                remainingCalls, sampleCounter
+                , threadSolutionMap
+                , &lastSuccessfulHashOffset, threadStartTime);
         }
 
         // Perform main ScalGen call loops
         for (uint32_t i = 0; i < numCallLoops; i++) {
-            if (!timedOut) {
-                sampleCounter = ScalGenCall(
-                                    numCallsInOneLoop, sampleCounter, threadSolutionMap
-                                    , &lastSuccessfulHashOffset, threadStartTime
-                                );
-            }
+            sampleCounter = ScalGenCall(
+                numCallsInOneLoop, sampleCounter, threadSolutionMap
+                , &lastSuccessfulHashOffset, threadStartTime);
         }
-    }
-    else
-    {
+    } else {
         /* Ideal sampling case; enumerate all solutions */
         vector<Lit> assumps;
         uint32_t count = 0;
@@ -1136,7 +1129,7 @@ void ScalMC::generate_samples()
     for (map<string, uint32_t>::iterator itt = threadSolutionMap.begin()
             ; itt != threadSolutionMap.end()
             ; itt++
-        ) {
+    ) {
         string solution = itt->first;
         map<string, std::vector<uint32_t>>::iterator itg = globalSolutionMap.find(solution);
         if (itg == globalSolutionMap.end()) {
@@ -1148,14 +1141,12 @@ void ScalMC::generate_samples()
 
     double timeTaken = cpuTimeTotal() - threadStartTime;
     allThreadsTime += timeTaken;
-    cout
-    << "Total time for ScalGen: " << timeTaken << " s"
-    << (timedOut ? " (TIMED OUT)" : "")
+    cout << "[scalmc] Total time for ScalGen: " << timeTaken << " s"
     << endl;
 
     // TODO put this back once multithreading is implemented
     //cout << "Total time for all ScalGen calls: " << allThreadsTime << " s" << endl;
-    cout << "Samples generated: " << allThreadsSampleCount << endl;
+    cout << "[scalmc] Samples generated: " << allThreadsSampleCount << endl;
 }
 
 uint32_t ScalMC::ScalGen(
