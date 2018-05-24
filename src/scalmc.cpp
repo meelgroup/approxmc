@@ -135,6 +135,8 @@ void ScalMC::add_scalmc_options()
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("samples", po::value(&samples)->default_value(samples)
         , "Number of random samples to generate")
+    ("indepsamples", po::value(&only_indep_samples)->default_value(only_indep_samples)
+        , "Number of random samples to generate")
     ("sparse", po::value(&sparse)->default_value(sparse)
         , "Generate sparse XORs when possible")
     ("kappa", po::value(&kappa)->default_value(kappa)
@@ -438,10 +440,15 @@ void ScalMC::add_solution_to_map(
     assert(solutionMap != NULL);
 
     std::stringstream  solution;
-    solution << "v ";
-    for (uint32_t j = 0; j < independent_vars.size(); j++) {
-        uint32_t var = independent_vars[j];
-        if (model[var] != l_Undef) {
+    if (only_indep_samples) {
+        for (uint32_t j = 0; j < independent_vars.size(); j++) {
+            uint32_t var = independent_vars[j];
+            assert(model[var] != l_Undef);
+            solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
+        }
+    } else {
+        for(uint32_t var = 0; var < model.size(); var++) {
+            assert(model[var] != l_Undef);
             solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
         }
     }
@@ -537,6 +544,11 @@ int ScalMC::solve()
         }
     }
     printVersionInfo();
+
+    if (!only_indep_samples && indep_only) {
+        cout << "ERROR: You requested samples with full solutions but '--indep 1' is set. Set it to false: '--indep 0'" << endl;
+        exit(-1);
+    }
 
     openLogFile();
     startTime = cpuTimeTotal();

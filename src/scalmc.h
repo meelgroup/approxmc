@@ -157,6 +157,7 @@ private:
     int what_to_break = 0;
     int dosimp = 1;
     uint32_t seed = 1;
+    bool only_indep_samples = true;
 
     int argc;
     char** argv;
