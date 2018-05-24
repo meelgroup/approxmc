@@ -954,7 +954,6 @@ bool ScalMC::count(SATCount& count)
             hashPrev = swapVar;
         }
         assumps.clear();
-        solver->simplify(&assumps);
         hashCount =mPrev;
     }
     if (numHashList.size() == 0) {
