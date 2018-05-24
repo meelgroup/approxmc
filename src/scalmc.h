@@ -118,6 +118,10 @@ private:
     void printVersionInfo() const;
     int correctReturnValue(const lbool ret) const;
 
+    void add_solution_to_map(
+        const vector<lbool>& model
+        , std::map<std::string, uint32_t>* solutionMap) const;
+
     int64_t BoundedSATCount(
         uint32_t maxSolutions,
         uint32_t minSolutions,

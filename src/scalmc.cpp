@@ -409,28 +409,11 @@ int64_t ScalMC::BoundedSATCount(
             modelIndices.push_back(i);
         }
         std::shuffle(modelIndices.begin(), modelIndices.end(), randomEngine);
-        uint32_t var;
+
         uint32_t numSolutionsToReturn = SolutionsToReturn(solutions);
         for (uint32_t i = 0; i < numSolutionsToReturn; i++) {
             model = modelsSet.at(modelIndices.at(i));
-            string solution ("v ");
-            for (uint32_t j = 0; j < independent_vars.size(); j++) {
-                var = independent_vars[j];
-                if (model[var] != l_Undef) {
-                    if (model[var] != l_True) {
-                        solution += "-";
-                    }
-                    solution += std::to_string(var + 1);
-                    solution += " ";
-                }
-            }
-            solution += "0";
-
-            std::map<string, uint32_t>::iterator it = solutionMap->find(solution);
-            if (it == solutionMap->end()) {
-                (*solutionMap)[solution] = 0;
-            }
-            (*solutionMap)[solution] += 1;
+            add_solution_to_map(model, solutionMap);
         }
     }
 
@@ -441,6 +424,30 @@ int64_t ScalMC::BoundedSATCount(
 
     assert(ret != l_Undef);
     return solutions;
+}
+
+void ScalMC::add_solution_to_map(
+    const vector<lbool>& model
+    , std::map<std::string, uint32_t>* solutionMap
+) const {
+    assert(solutionMap != NULL);
+
+    std::stringstream  solution;
+    solution << "v ";
+    for (uint32_t j = 0; j < independent_vars.size(); j++) {
+        uint32_t var = independent_vars[j];
+        if (model[var] != l_Undef) {
+            solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
+        }
+    }
+    solution << "0";
+
+    std::string sol_str = solution.str();
+    std::map<string, uint32_t>::iterator it = solutionMap->find(sol_str);
+    if (it == solutionMap->end()) {
+        (*solutionMap)[sol_str] = 0;
+    }
+    (*solutionMap)[sol_str] += 1;
 }
 
 void ScalMC::readInAFile(SATSolver* solver2, const string& filename)
