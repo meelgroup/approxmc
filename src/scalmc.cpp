@@ -360,6 +360,7 @@ int64_t ScalMC::bounded_sol_count(
     solver->new_var();
     uint32_t act_var = solver->nVars()-1;
     new_assumps.push_back(Lit(act_var, true));
+    solver->simplify(&new_assumps);
 
     uint64_t solutions = 0;
     lbool ret;
