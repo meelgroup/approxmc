@@ -117,7 +117,7 @@ void ScalMC::add_scalmc_options()
     ("seed,s", po::value(&seed)->default_value(seed), "Seed")
     ("pivot", po::value(&pivot)->default_value(pivot)
         , "Number of solutions to check for")
-    ("measure", po::value(&tScalMC)->default_value(tScalMC)
+    ("measure", po::value(&measurements)->default_value(measurements)
         , "Number of measurements")
     ("start", po::value(&start_iter)->default_value(start_iter),
          "Start at this many XORs")
@@ -671,18 +671,18 @@ int ScalMC::solve()
             if (samples > 0)
             {
                 cout << "Using scalmc to compute startiter for ScalGen" << endl;
-                if (!vm["pivotAC"].defaulted() || !vm["tScalMC"].defaulted()) {
-                    cout << "WARNING: manually-specified pivotAC and/or tScalMC may"
+                if (!vm["pivotAC"].defaulted() || !vm["measurements"].defaulted()) {
+                    cout << "WARNING: manually-specified pivotAC and/or measurements may"
                          << " not be large enough to guarantee correctness of ScalGen." << endl
                          << "Omit those arguments to use safe default values." << endl;
                 } else {
                     /* Fill in here the best parameters for scalmc achieving
                      * epsilon=0.8 and delta=0.177 as required by ScalGen */
                     pivot = 73;
-                    tScalMC = 11;
+                    measurements = 11;
                 }
             }
-            else if(vm["tScalMC"].defaulted())
+            else if(vm["measurements"].defaulted())
             {
                 /* Compute tscalmc */
                 double delta = 0.2;
@@ -705,10 +705,10 @@ int ScalMC::solve()
                             currentIteration = (currentIteration + bestIteration) / 2;
                         }
                     }
-                    tScalMC = (2 * bestIteration) + 1;
+                    measurements = (2 * bestIteration) + 1;
                 }
                 else
-                    tScalMC = ceil(17 * log2(3.0 / delta));
+                    measurements = ceil(17 * log2(3.0 / delta));
             }
 
             SATCount solCount;
@@ -874,7 +874,7 @@ bool ScalMC::count(SATCount& count)
         hashCount++;
     }
 
-    for (uint32_t j = 0; j < tScalMC; j++) {
+    for (uint32_t j = 0; j < measurements; j++) {
         map<uint64_t,int64_t> countRecord;
         map<uint64_t,uint32_t> succRecord;
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash

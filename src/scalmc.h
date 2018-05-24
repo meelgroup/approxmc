@@ -144,7 +144,7 @@ private:
 
     uint32_t start_iter = 0;
     uint32_t pivot = 72; //precision
-    uint32_t tScalMC = 9; //confidence of 0.81
+    uint32_t measurements = 9; //confidence of 0.81
     std::ofstream logfile;
     std::mt19937 randomEngine;
     bool maple = 0;
