@@ -107,7 +107,7 @@ public:
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     uint32_t samples = 0;
     uint32_t callsPerSolver = 0;
-    uint32_t pivotScalGen; //TODO rename scalgen
+    uint32_t thresholdScalGen;
     bool cms_indep_only = false;
 
 private:
@@ -146,7 +146,7 @@ private:
     void call_after_parse();
 
     uint32_t start_iter = 0;
-    uint32_t pivot = 72; //precision
+    uint32_t threshold = 72; //precision
     uint32_t measurements = 9; //confidence of 0.81
     std::ofstream logfile;
     std::mt19937 randomEngine;

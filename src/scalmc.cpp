@@ -110,7 +110,7 @@ void ScalMC::add_scalmc_options()
     ("input", po::value< vector<string> >(), "file(s) to read")
     ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
     ("seed,s", po::value(&seed)->default_value(seed), "Seed")
-    ("pivot", po::value(&pivot)->default_value(pivot)
+    ("threshold", po::value(&threshold)->default_value(threshold)
         , "Number of solutions to check for")
     ("measure", po::value(&measurements)->default_value(measurements)
         , "Number of measurements")
@@ -661,21 +661,21 @@ int ScalMC::solve()
             return -1;
         }
 
-        /* Compute pivot via formula from TACAS-15 paper */
-        pivotScalGen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
+        /* Compute threshold via formula from TACAS-15 paper */
+        thresholdScalGen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
 
         if (samples == 0 || startiter == 0) {
             if (samples > 0)
             {
                 cout << "Using scalmc to compute startiter for ScalGen" << endl;
-                if (!vm["pivotAC"].defaulted() || !vm["measurements"].defaulted()) {
-                    cout << "WARNING: manually-specified pivotAC and/or measurements may"
+                if (!vm["thresholdAC"].defaulted() || !vm["measurements"].defaulted()) {
+                    cout << "WARNING: manually-specified thresholdAC and/or measurements may"
                          << " not be large enough to guarantee correctness of ScalGen." << endl
                          << "Omit those arguments to use safe default values." << endl;
                 } else {
                     /* Fill in here the best parameters for scalmc achieving
                      * epsilon=0.8 and delta=0.177 as required by ScalGen */
-                    pivot = 73;
+                    threshold = 73;
                     measurements = 11;
                 }
             }
@@ -736,7 +736,7 @@ int ScalMC::solve()
             else
             {
                 double si = round(solCount.hashCount + log2(solCount.cellSolCount)
-                    + log2(1.8) - log2(pivotScalGen)) - 2;
+                    + log2(1.8) - log2(thresholdScalGen)) - 2;
                 if (si > 0)
                     startiter = si;
                 else
@@ -851,19 +851,19 @@ bool ScalMC::count(SATCount& count)
     double myTime = cpuTimeTotal();
     cout << "[scalmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
-        int64_t currentNumSolutions = bounded_sol_count(pivot+1, 0, assumps, count.hashCount);
+        int64_t currentNumSolutions = bounded_sol_count(threshold+1, 0, assumps, count.hashCount);
         if (!logfilename.empty()) {
             logfile << "scalmc:"
             << "breakmode-" << what_to_break << ":"
             <<"0:0:"
             << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
-            << (int)(currentNumSolutions == (pivot + 1)) << ":"
+            << (int)(currentNumSolutions == (threshold + 1)) << ":"
             << currentNumSolutions << endl;
         }
 
-        //Din't find at least pivot+1
-        if (currentNumSolutions <= pivot) {
-            cout << "[scalmc] Did not find at least pivot+1 (" << pivot << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
+        //Din't find at least threshold+1
+        if (currentNumSolutions <= threshold) {
+            cout << "[scalmc] Did not find at least threshold+1 (" << threshold << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
             count.cellSolCount = currentNumSolutions;
             count.hashCount = 0;
             return true;
@@ -886,19 +886,19 @@ bool ScalMC::count(SATCount& count)
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
             cout << "[scalmc] hashes active: " << std::setw(6) << hashCount << endl;
-            int64_t currentNumSolutions = bounded_sol_count(pivot + 1, 0, assumps, hashCount);
+            int64_t currentNumSolutions = bounded_sol_count(threshold + 1, 0, assumps, hashCount);
 
-            //cout << currentNumSolutions << ", " << pivot << endl;
+            //cout << currentNumSolutions << ", " << threshold << endl;
             if (!logfilename.empty()) {
                 logfile << "scalmc:"
                 << "breakmode-" << what_to_break << ":"
                 << j << ":" << hashCount << ":"
                 << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
-                << (int)(currentNumSolutions == (pivot + 1)) << ":"
+                << (int)(currentNumSolutions == (threshold + 1)) << ":"
                 << currentNumSolutions << endl;
             }
 
-            if (currentNumSolutions < pivot + 1) {
+            if (currentNumSolutions < threshold + 1) {
                 numExplored = lowerFib+independent_vars.size()-hashCount;
                 if (succRecord.find(hashCount-1) != succRecord.end()
                     && succRecord[hashCount-1] == 1
@@ -906,7 +906,7 @@ bool ScalMC::count(SATCount& count)
                     numHashList.push_back(hashCount);
                     numCountList.push_back(currentNumSolutions);
                     mPrev = hashCount;
-                    //less than pivot solutions
+                    //less than threshold solutions
                     break;
                 }
                 succRecord[hashCount] = 0;
@@ -925,7 +925,7 @@ bool ScalMC::count(SATCount& count)
                     hashCount = (upperFib+lowerFib)/2;
                 }
             } else {
-                assert(currentNumSolutions == pivot+1);
+                assert(currentNumSolutions == threshold+1);
 
                 numExplored = hashCount + independent_vars.size()-upperFib;
                 if (succRecord.find(hashCount+1) != succRecord.end()
@@ -1005,7 +1005,7 @@ bool ScalMC::count(SATCount& count)
 
    // confidece = 1-delta
    // 1+epsilon = desired distance from the ground truth
-   conf.pivot = = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+   conf.threshold = = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
 }*/
 
 ///////////
@@ -1057,8 +1057,8 @@ uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
 
 void ScalMC::generate_samples()
 {
-    hiThresh = ceil(1 + (1.4142136 * (1 + kappa) * pivotScalGen));
-    loThresh = floor(pivotScalGen / (1.4142136 * (1 + kappa)));
+    hiThresh = ceil(1 + (1.4142136 * (1 + kappa) * thresholdScalGen));
+    loThresh = floor(thresholdScalGen / (1.4142136 * (1 + kappa)));
     uint32_t samplesPerCall = SolutionsToReturn(samples);
     uint32_t callsNeeded = (samples + samplesPerCall - 1) / samplesPerCall;
     cout << "loThresh " << loThresh
