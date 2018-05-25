@@ -140,7 +140,7 @@ void ScalMC::add_scalmc_options()
         , "Return multiple samples from each call")
     ("sampleout", po::value(&sampleFilename)
         , "Write samples to this file")
-    ("indep", po::value(&cms_indep_only)->default_value(cms_indep_only)
+    ("cmsindeponly", po::value(&cms_indep_only)->default_value(cms_indep_only)
         , "Don't extend solution by SAT solver")
     ("cutting", po::value(&xor_cut)->default_value(xor_cut)
         , "Cut XORs to sizes this big or smaller")
@@ -548,7 +548,7 @@ int ScalMC::solve()
     printVersionInfo();
 
     if (!only_indep_samples && cms_indep_only) {
-        cout << "ERROR: You requested samples with full solutions but '--indep 1' is set. Set it to false: '--indep 0'" << endl;
+        cout << "ERROR: You requested samples with full solutions but '--cmpindeponly 1' is set. Set it to false: '--indep 0'" << endl;
         exit(-1);
     }
 
