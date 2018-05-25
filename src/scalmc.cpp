@@ -142,6 +142,10 @@ void ScalMC::add_scalmc_options()
         , "Write samples to this file")
     ("indep", po::value(&cms_indep_only)->default_value(cms_indep_only)
         , "Don't extend solution by SAT solver")
+    ("cutting", po::value(&xor_cut)->default_value(xor_cut)
+        , "Cut XORs to sizes this big or smaller")
+    ("findmorexors", po::value(&find_more_xors)->default_value(find_more_xors)
+        , "Find more xors through cache usage in CMS")
     ("startiter", po::value(&startiter)->default_value(startiter)
         , "If positive, use instead of startiter computed by ScalMC")
     ("callsPerSolver", po::value(&callsPerSolver)->default_value(callsPerSolver)
@@ -558,6 +562,9 @@ int ScalMC::solve()
     conf.burst_search_len = 0;
     conf.global_multiplier_multiplier_max = 3;
     conf.global_timeout_multiplier_multiplier = 1.5;
+    conf.useCacheWhenFindingXors = find_more_xors;
+    assert(xor_cut >= 4);
+    conf.xor_var_per_cut = xor_cut-2;
 
     conf.simplify_at_startup = 1;
     conf.varElimRatioPerIter = 1;

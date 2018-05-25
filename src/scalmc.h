@@ -161,6 +161,8 @@ private:
     int dosimp = 1;
     uint32_t seed = 1;
     bool only_indep_samples = true;
+    unsigned xor_cut = 4;
+    bool find_more_xors = 0;
 
     int argc;
     char** argv;
