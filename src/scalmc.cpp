@@ -140,7 +140,7 @@ void ScalMC::add_scalmc_options()
         , "Return multiple samples from each call")
     ("sampleout", po::value(&sampleFilename)
         , "Write samples to this file")
-    ("indep", po::value(&indep_only)->default_value(indep_only)
+    ("indep", po::value(&cms_indep_only)->default_value(cms_indep_only)
         , "Don't extend solution by SAT solver")
     ("startiter", po::value(&startiter)->default_value(startiter)
         , "If positive, use instead of startiter computed by ScalMC")
@@ -363,7 +363,7 @@ int64_t ScalMC::bounded_sol_count(
     lbool ret;
     double last_found_time = cpuTimeTotal();
     while (solutions < maxSolutions) {
-        ret = solver->solve(&new_assumps, indep_only);
+        ret = solver->solve(&new_assumps, cms_indep_only);
         assert(ret == l_False || ret == l_True);
 
         if (verb >=2 ) {
@@ -543,7 +543,7 @@ int ScalMC::solve()
     }
     printVersionInfo();
 
-    if (!only_indep_samples && indep_only) {
+    if (!only_indep_samples && cms_indep_only) {
         cout << "ERROR: You requested samples with full solutions but '--indep 1' is set. Set it to false: '--indep 0'" << endl;
         exit(-1);
     }
