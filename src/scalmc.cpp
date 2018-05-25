@@ -662,7 +662,7 @@ int ScalMC::solve()
         }
 
         /* Compute threshold via formula from TACAS-15 paper */
-        thresholdScalGen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
+        threshold_scalgen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
 
         if (samples == 0 || startiter == 0) {
             if (samples > 0)
@@ -736,7 +736,7 @@ int ScalMC::solve()
             else
             {
                 double si = round(solCount.hashCount + log2(solCount.cellSolCount)
-                    + log2(1.8) - log2(thresholdScalGen)) - 2;
+                    + log2(1.8) - log2(threshold_scalgen)) - 2;
                 if (si > 0)
                     startiter = si;
                 else
@@ -1057,8 +1057,8 @@ uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
 
 void ScalMC::generate_samples()
 {
-    hiThresh = ceil(1 + (1.4142136 * (1 + kappa) * thresholdScalGen));
-    loThresh = floor(thresholdScalGen / (1.4142136 * (1 + kappa)));
+    hiThresh = ceil(1 + (1.4142136 * (1 + kappa) * threshold_scalgen));
+    loThresh = floor(threshold_scalgen / (1.4142136 * (1 + kappa)));
     uint32_t samplesPerCall = SolutionsToReturn(samples);
     uint32_t callsNeeded = (samples + samplesPerCall - 1) / samplesPerCall;
     cout << "loThresh " << loThresh

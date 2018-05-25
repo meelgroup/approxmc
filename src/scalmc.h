@@ -107,7 +107,7 @@ public:
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     uint32_t samples = 0;
     uint32_t callsPerSolver = 0;
-    uint32_t thresholdScalGen;
+    uint32_t threshold_scalgen;
     bool cms_indep_only = false;
 
 private:
