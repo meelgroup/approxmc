@@ -720,9 +720,8 @@ int ScalMC::solve()
 
             bool finished = false;
             finished = count(solCount);
-
-            cout << "[scalmc] finished in " << (cpuTimeTotal() - startTime) << " s" << endl;
             assert(finished);
+            cout << "[scalmc] finished counting solutions in " << (cpuTimeTotal() - startTime) << " s" << endl;
 
             if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
                 cout << "[scalmc] The input formula is unsatisfiable." << endl;
