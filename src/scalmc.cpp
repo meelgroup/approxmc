@@ -716,16 +716,16 @@ int ScalMC::solve()
             }
 
             SATCount solCount;
-            cout << "ScalGen starting from iteration " << startiter << endl;
+            cout << "[scalmc] ScalGen starting from iteration " << startiter << endl;
 
             bool finished = false;
             finished = count(solCount);
 
-            cout << "ScalMC finished in " << (cpuTimeTotal() - startTime) << " s" << endl;
+            cout << "[scalmc] finished in " << (cpuTimeTotal() - startTime) << " s" << endl;
             assert(finished);
 
             if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-                cout << "The input formula is unsatisfiable." << endl;
+                cout << "[scalmc] The input formula is unsatisfiable." << endl;
                 return correctReturnValue(l_False);
             }
 
@@ -1068,11 +1068,11 @@ void ScalMC::generate_samples()
     loThresh = floor(threshold_scalgen / (1.4142136 * (1 + kappa)));
     uint32_t samplesPerCall = SolutionsToReturn(samples);
     uint32_t callsNeeded = (samples + samplesPerCall - 1) / samplesPerCall;
-    cout << "loThresh " << loThresh
+    cout << "[scalmc] loThresh " << loThresh
     << ", hiThresh " << hiThresh
     << ", startiter " << startiter << endl;
 
-    cout << "Outputting " << samplesPerCall << " solutions from each ScalGen call" << endl;
+    cout << "[scalmc] Outputting " << samplesPerCall << " solutions from each ScalGen call" << endl;
     uint32_t numCallsInOneLoop = 0;
     if (callsPerSolver == 0) {
         // TODO: does this heuristic still work okay?
@@ -1083,13 +1083,13 @@ void ScalMC::generate_samples()
         }
     } else {
         numCallsInOneLoop = callsPerSolver;
-        cout << "Using manually-specified callsPerSolver" << endl;
+        cout << "[scalmc] Using manually-specified callsPerSolver: " << callsPerSolver << endl;
     }
 
     uint32_t numCallLoops = callsNeeded / numCallsInOneLoop;
     uint32_t remainingCalls = callsNeeded % numCallsInOneLoop;
 
-    cout << "Making " << numCallLoops << " loops."
+    cout << "[scalmc] Making " << numCallLoops << " loops."
          << " calls per loop: " << numCallsInOneLoop
          << " remaining: " << remainingCalls << endl;
     uint32_t sampleCounter = 0;
