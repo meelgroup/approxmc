@@ -672,8 +672,7 @@ int ScalMC::solve()
         threshold_scalgen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
 
         if (samples == 0 || startiter == 0) {
-            if (samples > 0)
-            {
+            if (samples > 0) {
                 cout << "Using scalmc to compute startiter for ScalGen" << endl;
                 if (!vm["thresholdAC"].defaulted() || !vm["measurements"].defaulted()) {
                     cout << "WARNING: manually-specified thresholdAC and/or measurements may"
@@ -685,9 +684,7 @@ int ScalMC::solve()
                     threshold = 73;
                     measurements = 11;
                 }
-            }
-            else if(vm["measurements"].defaulted())
-            {
+            } else if(vm["measurements"].defaulted()) {
                 /* Compute tscalmc */
                 double delta = 0.2;
                 double confidence = 1.0 - delta;
@@ -732,8 +729,7 @@ int ScalMC::solve()
                 solver->print_stats();
             }
 
-            if (samples == 0)
-            {
+            if (samples == 0) {
                 cout << "Number of solutions is: " << solCount.cellSolCount
                      << " x 2^" << solCount.hashCount << endl;
 
