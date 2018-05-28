@@ -120,6 +120,7 @@ private:
 
     void printVersionInfo() const;
     int correctReturnValue(const lbool ret) const;
+    void output_samples();
 
     void add_solution_to_map(
         const vector<lbool>& model

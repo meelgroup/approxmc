@@ -749,38 +749,41 @@ int ScalMC::solve()
         {
             cout << "Using manually-specified startiter for ScalGen" << endl;
         }
-        /* Run ScalGen */
         generate_samples();
-
-        /* Output samples */
-        std::ostream* os;
-        std::ofstream* sampleFile = NULL;
-        if (vm.count("sampleout"))
-        {
-            sampleFile = new std::ofstream;
-            sampleFile->open(sampleFilename.c_str());
-            if (!(*sampleFile)) {
-                cout
-                << "ERROR: Couldn't open file '"
-                << sampleFilename
-                << "' for writing!"
-                << endl;
-                std::exit(-1);
-            }
-            os = sampleFile;
-        } else {
-            os = &cout;
-        }
-
-        for (const auto& sol: globalSolutionMap) {
-            std::vector<uint32_t> counts = sol.second;
-            // TODO this will need to be changed once multithreading is implemented
-            *os << std::setw(5) << std::left << counts[0] << " : "  << sol.first.c_str() << endl;
-        }
-        delete sampleFile;
+        output_samples();
     }
 
     return correctReturnValue(l_True);
+}
+
+void ScalMC::output_samples()
+{
+    /* Output samples */
+    std::ostream* os;
+    std::ofstream* sampleFile = NULL;
+    if (vm.count("sampleout"))
+    {
+        sampleFile = new std::ofstream;
+        sampleFile->open(sampleFilename.c_str());
+        if (!(*sampleFile)) {
+            cout
+            << "ERROR: Couldn't open file '"
+            << sampleFilename
+            << "' for writing!"
+            << endl;
+            std::exit(-1);
+        }
+        os = sampleFile;
+    } else {
+        os = &cout;
+    }
+
+    for (const auto& sol: globalSolutionMap) {
+        std::vector<uint32_t> counts = sol.second;
+        // TODO this will need to be changed once multithreading is implemented
+        *os << std::setw(5) << std::left << counts[0] << " : "  << sol.first.c_str() << endl;
+    }
+    delete sampleFile;
 }
 
 int main(int argc, char** argv)
@@ -866,6 +869,8 @@ bool ScalMC::count(SATCount& count)
         //Din't find at least threshold+1
         if (currentNumSolutions <= threshold) {
             cout << "[scalmc] Did not find at least threshold+1 (" << threshold << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
+            output_samples();
+
             count.cellSolCount = currentNumSolutions;
             count.hashCount = 0;
             return true;
@@ -1119,6 +1124,11 @@ void ScalMC::generate_samples()
             , &threadSolutionMap //return sols here
             , 1 //minsol
         );
+        assert(count > 0);
+
+        for(auto&x : threadSolutionMap) {
+            x.second = 0;
+        }
 
         std::uniform_int_distribution<unsigned> uid {0, count-1};
         for (uint32_t i = 0; i < samples; ++i)
