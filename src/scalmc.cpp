@@ -410,7 +410,7 @@ int64_t ScalMC::bounded_sol_count(
         solutions++;
     }
 
-    //we have all solutions now, if not l_False
+    //we have all solutions now, scalgen variant
     if (solutions < maxSolutions && solutions >= minSolutions && solutionMap) {
         assert(minSolutions > 0);
         std::vector<int> modelIndices;
