@@ -340,10 +340,10 @@ bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total
 
 int64_t ScalMC::bounded_sol_count(
         uint32_t maxSolutions,
-        uint32_t minSolutions,
         const vector<Lit>& assumps,
         const uint32_t hashCount,
-        std::map<std::string, uint32_t>* solutionMap
+        std::map<std::string, uint32_t>* solutionMap,
+        uint32_t minSolutions
 ) {
     cout << "[scalmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
@@ -857,7 +857,7 @@ bool ScalMC::count(SATCount& count)
     double myTime = cpuTimeTotal();
     cout << "[scalmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
-        int64_t currentNumSolutions = bounded_sol_count(threshold+1, 0, assumps, count.hashCount);
+        int64_t currentNumSolutions = bounded_sol_count(threshold+1, assumps, count.hashCount);
         if (!logfilename.empty()) {
             logfile << "scalmc:"
             << "breakmode-" << what_to_break << ":"
@@ -892,7 +892,7 @@ bool ScalMC::count(SATCount& count)
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
             cout << "[scalmc] hashes active: " << std::setw(6) << hashCount << endl;
-            int64_t currentNumSolutions = bounded_sol_count(threshold + 1, 0, assumps, hashCount);
+            int64_t currentNumSolutions = bounded_sol_count(threshold + 1, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << threshold << endl;
             if (!logfilename.empty()) {
@@ -1116,8 +1116,13 @@ void ScalMC::generate_samples()
     } else {
         /* Ideal sampling case; enumerate all solutions */
         vector<Lit> assumps;
-        uint32_t count = 0;
-        bounded_sol_count(std::numeric_limits<uint32_t>::max(), 0, assumps, 0, &threadSolutionMap);
+        const uint32_t count = bounded_sol_count(
+            std::numeric_limits<uint32_t>::max() //maxsol
+            ,assumps //assumps
+            , 0 //number of hahes
+            , &threadSolutionMap //return sols here
+            , 1 //minsol
+        );
 
         std::uniform_int_distribution<unsigned> uid {0, count-1};
         for (uint32_t i = 0; i < samples; ++i)
@@ -1181,7 +1186,13 @@ uint32_t ScalMC::ScalGen(
             currentHashCount = currentHashOffset + startiter;
             SetHash(currentHashCount, hashVars, assumps);
 
-            const uint64_t solutionCount = bounded_sol_count(hiThresh, loThresh, assumps, currentHashCount, &solutionMap);
+            const uint64_t solutionCount = bounded_sol_count(
+                hiThresh
+                , assumps
+                , currentHashCount
+                , &solutionMap
+                , loThresh);
+
             if (solutionCount < hiThresh && solutionCount >= loThresh) {
                 ret = l_True;
             } else {
