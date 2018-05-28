@@ -127,10 +127,10 @@ private:
 
     int64_t bounded_sol_count(
         uint32_t maxSolutions,
-        uint32_t minSolutions,
         const vector<Lit>& assumps,
         const uint32_t hashCount,
-        std::map<std::string, uint32_t>* solutionMap = NULL
+        std::map<std::string, uint32_t>* solutionMap = NULL,
+        uint32_t minSolutions = 1
     );
 
     void readInAFile(SATSolver* solver2, const string& filename);
