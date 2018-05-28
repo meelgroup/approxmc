@@ -1131,8 +1131,7 @@ void ScalMC::generate_samples()
         }
 
         std::uniform_int_distribution<unsigned> uid {0, count-1};
-        for (uint32_t i = 0; i < samples; ++i)
-        {
+        for (uint32_t i = 0; i < samples; ++i) {
             map<string, uint32_t>::iterator it = threadSolutionMap.begin();
             for (uint32_t j = uid(randomEngine); j > 0; --j)    // TODO improve hack
                 ++it;
