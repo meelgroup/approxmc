@@ -44,10 +44,29 @@ include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" @ONLY)
 
-add_executable(scalmc
-    scalmc.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
-)
+if (NOT EMSCRIPTEN)
+    add_executable(scalmc
+        scalmc.cpp
+        main.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
+    )
+else()
+    add_executable(scalmc
+        scalmc.cpp
+        main_min.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
+    )
+
+    set_target_properties(
+      scalmc PROPERTIES LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
+    )
+
+
+    SET_SOURCE_FILES_PROPERTIES(main_min.cpp
+        PROPERTIES COMPILE_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
+    )
+endif()
+
 
 set(scalmc_exec_link_libs
     ${Boost_LIBRARIES}

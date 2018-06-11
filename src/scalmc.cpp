@@ -25,13 +25,10 @@
  THE SOFTWARE.
  */
 
-#if defined(__GNUC__) && defined(__linux__)
-#include <fenv.h>
-#endif
-
 #include <ctime>
 #include <cstring>
 #include <errno.h>
+#include <algorithm>
 #include <string.h>
 #include <sstream>
 #include <iostream>
@@ -49,213 +46,14 @@
 #include "scalmc.h"
 #include "time_mem.h"
 #include "cryptominisat5/cryptominisat.h"
-#include "cryptominisat5/dimacsparser.h"
-#include "cryptominisat5/streambuffer.h"
 #include "cryptominisat5/solvertypesmini.h"
 #include "GitSHA1.h"
 
 using std::cout;
 using std::cerr;
 using std::endl;
-using boost::lexical_cast;
 using std::list;
 using std::map;
-
-bool ScalMC::gen_rhs()
-{
-    std::uniform_int_distribution<uint32_t> dist{0, 1};
-    bool rhs = dist(randomEngine);
-    //cout << "rnd rhs:" << (int)rhs << endl;
-    return rhs;
-}
-
-string ScalMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes)
-{
-    string randomBits;
-    std::uniform_int_distribution<uint32_t> dist{0, 1000};
-    uint32_t cutoff = 500;
-    if (sparse && num_hashes > 132) {
-        double probability = 13.46*std::log(num_hashes)/num_hashes;
-        assert(probability < 0.5);
-        cutoff = std::ceil(1000.0*probability);
-        cout << "[scalmc] sparse hashing used, cutoff: " << cutoff << endl;
-    }
-
-    while (randomBits.size() < size) {
-        bool val = dist(randomEngine) < cutoff;
-        randomBits += '0' + val;
-    }
-    assert(randomBits.size() >= size);
-
-    //cout << "rnd bits: " << randomBits << endl;
-    return randomBits;
-}
-
-void printVersionInfoScalMC()
-{
-    cout << "c ScalMC SHA revision " << ::get_version_sha1() << endl;
-    cout << "c ScalMC compilation env " << ::get_compilation_env() << endl;
-    #ifdef __GNUC__
-    cout << "c compiled with gcc version " << __VERSION__ << endl;
-    #else
-    cout << "c compiled with non-gcc compiler" << endl;
-    #endif
-}
-
-void ScalMC::add_scalmc_options()
-{
-    scalmc_options.add_options()
-    ("help,h", "Prints help")
-    ("version", "Print version info")
-    ("input", po::value< vector<string> >(), "file(s) to read")
-    ("verb,v", po::value(&verb)->default_value(verb), "verbosity")
-    ("seed,s", po::value(&seed)->default_value(seed), "Seed")
-    ("threshold", po::value(&threshold)->default_value(threshold)
-        , "Number of solutions to check for")
-    ("measure", po::value(&measurements)->default_value(measurements)
-        , "Number of measurements")
-    ("start", po::value(&start_iter)->default_value(start_iter),
-         "Start at this many XORs")
-    ("log", po::value(&logfilename)->default_value(logfilename),
-         "Log of SCALMC iterations.")
-    ("break", po::value(&what_to_break)->default_value(what_to_break),
-         "What thing to break in CMS")
-    ("maple", po::value(&maple)->default_value(maple),
-         "Should Maple be enabled")
-    ("th", po::value(&num_threads)->default_value(num_threads),
-         "How many solving threads to use per solver call")
-    ("simp", po::value(&dosimp)->default_value(dosimp),
-         "Perform simplifications in CMS")
-    ("vcl", po::value(&verb_scalmc_cls)->default_value(verb_scalmc_cls)
-        ,"Print banning clause + xor clauses. Highly verbose.")
-    ("samples", po::value(&samples)->default_value(samples)
-        , "Number of random samples to generate")
-    ("indepsamples", po::value(&only_indep_samples)->default_value(only_indep_samples)
-        , "Should only output the independent vars from the samples")
-    ("sparse", po::value(&sparse)->default_value(sparse)
-        , "Generate sparse XORs when possible")
-    ("kappa", po::value(&kappa)->default_value(kappa)
-        , "Uniformity parameter (see TACAS-15 paper)")
-    ("multisample", po::value(&multisample)->default_value(multisample)
-        , "Return multiple samples from each call")
-    ("sampleout", po::value(&sampleFilename)
-        , "Write samples to this file")
-    ("cmsindeponly", po::value(&cms_indep_only)->default_value(cms_indep_only)
-        , "Don't extend solution by SAT solver")
-    ("cutting", po::value(&xor_cut)->default_value(xor_cut)
-        , "Cut XORs to sizes this big or smaller")
-    ("findmorexors", po::value(&find_more_xors)->default_value(find_more_xors)
-        , "Find more xors through cache usage in CMS")
-    ("startiter", po::value(&startiter)->default_value(startiter)
-        , "If positive, use instead of startiter computed by ScalMC")
-    ("callsPerSolver", po::value(&callsPerSolver)->default_value(callsPerSolver)
-        , "Number of ScalGen calls to make in a single solver, or 0 to use a heuristic")
-    ;
-
-    help_options.add(scalmc_options);
-    //help_options_complicated.add(scalmc_options);
-}
-
-void ScalMC::add_supported_options()
-{
-    add_scalmc_options();
-    p.add("input", 1);
-
-    try {
-        po::store(po::command_line_parser(argc, argv).options(help_options).positional(p).run(), vm);
-        if (vm.count("help"))
-        {
-            cout
-            << "Approximate counter" << endl;
-
-            cout
-            << "scalmc [options] inputfile" << endl << endl;
-
-            cout << help_options << endl;
-            std::exit(0);
-        }
-
-        if (vm.count("version")) {
-            printVersionInfo();
-            std::exit(0);
-        }
-
-        po::notify(vm);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::unknown_option> >& c
-    ) {
-        cerr
-        << "ERROR: Some option you gave was wrong. Please give '--help' to get help" << endl
-        << "       Unkown option: " << c.what() << endl;
-        std::exit(-1);
-    } catch (boost::bad_any_cast &e) {
-        std::cerr
-        << "ERROR! You probably gave a wrong argument type" << endl
-        << "       Bad cast: " << e.what()
-        << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::invalid_option_value> >& what
-    ) {
-        cerr
-        << "ERROR: Invalid value '" << what.what() << "'" << endl
-        << "       given to option '" << what.get_option_name() << "'"
-        << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::multiple_occurrences> >& what
-    ) {
-        cerr
-        << "ERROR: " << what.what() << " of option '"
-        << what.get_option_name() << "'"
-        << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::required_option> >& what
-    ) {
-        cerr
-        << "ERROR: You forgot to give a required option '"
-        << what.get_option_name() << "'"
-        << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::too_many_positional_options_error> >& what
-    ) {
-        cerr
-        << "ERROR: You gave too many positional arguments. Only the input CNF can be given as a positional option." << endl;
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::ambiguous_option> >& what
-    ) {
-        cerr
-        << "ERROR: The option you gave was not fully written and matches" << endl
-        << "       more than one option. Please give the full option name." << endl
-        << "       The option you gave: '" << what.get_option_name() << "'" <<endl
-        << "       The alternatives are: ";
-        for(size_t i = 0; i < what.alternatives().size(); i++) {
-            cout << what.alternatives()[i];
-            if (i+1 < what.alternatives().size()) {
-                cout << ", ";
-            }
-        }
-        cout << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::invalid_command_line_syntax> >& what
-    ) {
-        cerr
-        << "ERROR: The option you gave is missing the argument or the" << endl
-        << "       argument is given with space between the equal sign." << endl
-        << "       detailed error message: " << what.what() << endl
-        ;
-        std::exit(-1);
-    }
-}
 
 void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
@@ -271,10 +69,10 @@ void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 
 void ScalMC::openLogFile()
 {
-    if (!logfilename.empty()) {
-        logfile.open(logfilename.c_str());
+    if (!conf.logfilename.empty()) {
+        logfile.open(conf.logfilename.c_str());
         if (!logfile.is_open()) {
-            cout << "[scalmc] Cannot open ScalMC log file '" << logfilename
+            cout << "[scalmc] Cannot open ScalMC log file '" << conf.logfilename
                  << "' for writing." << endl;
             exit(1);
         }
@@ -310,7 +108,7 @@ inline T findMin(vector<T>& numList)
 bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
 {
     const string randomBits =
-        GenerateRandomBits(independent_vars.size() * num_xor_cls, total_num_hashes);
+        GenerateRandomBits(conf.independent_vars.size() * num_xor_cls, total_num_hashes);
 
     bool rhs;
     vector<uint32_t> vars;
@@ -325,13 +123,13 @@ bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total
         vars.push_back(act_var);
         rhs = gen_rhs();
 
-        for (uint32_t j = 0; j < independent_vars.size(); j++) {
-            if (randomBits.at(independent_vars.size() * i + j) == '1') {
-                vars.push_back(independent_vars[j]);
+        for (uint32_t j = 0; j < conf.independent_vars.size(); j++) {
+            if (randomBits.at(conf.independent_vars.size() * i + j) == '1') {
+                vars.push_back(conf.independent_vars[j]);
             }
         }
         solver->add_xor_clause(vars, rhs);
-        if (verb_scalmc_cls) {
+        if (conf.verb_scalmc_cls) {
             print_xor(vars, rhs);
         }
     }
@@ -367,10 +165,10 @@ int64_t ScalMC::bounded_sol_count(
     lbool ret;
     double last_found_time = cpuTimeTotal();
     while (solutions < maxSolutions) {
-        ret = solver->solve(&new_assumps, cms_indep_only);
+        ret = solver->solve(&new_assumps, conf.cms_indep_only);
         assert(ret == l_False || ret == l_True);
 
-        if (verb >=2 ) {
+        if (conf.verb >=2 ) {
             cout << "[scalmc] bounded_sol_count ret: " << std::setw(7) << ret;
             if (ret == l_True) {
                 cout << " sol no.  " << std::setw(3) << solutions;
@@ -395,14 +193,14 @@ int64_t ScalMC::bounded_sol_count(
         if (solutions < maxSolutions) {
             vector<Lit> lits;
             lits.push_back(Lit(act_var, false));
-            for (const uint32_t var: independent_vars) {
+            for (const uint32_t var: conf.independent_vars) {
                 if (solver->get_model()[var] != l_Undef) {
                     lits.push_back(Lit(var, solver->get_model()[var] == l_True));
                 } else {
                     assert(false);
                 }
             }
-            if (verb_scalmc_cls) {
+            if (conf.verb_scalmc_cls) {
                 cout << "[scalmc] Adding banning clause: " << lits << endl;
             }
             solver->add_clause(lits);
@@ -442,9 +240,9 @@ void ScalMC::add_solution_to_map(
     assert(solutionMap != NULL);
 
     std::stringstream  solution;
-    if (only_indep_samples) {
-        for (uint32_t j = 0; j < independent_vars.size(); j++) {
-            uint32_t var = independent_vars[j];
+    if (conf.only_indep_samples) {
+        for (uint32_t j = 0; j < conf.independent_vars.size(); j++) {
+            uint32_t var = conf.independent_vars[j];
             assert(model[var] != l_Undef);
             solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
         }
@@ -464,186 +262,45 @@ void ScalMC::add_solution_to_map(
     (*solutionMap)[sol_str] += 1;
 }
 
-void ScalMC::readInAFile(SATSolver* solver2, const string& filename)
+bool ScalMC::gen_rhs()
 {
-    solver2->add_sql_tag("filename", filename);
-    #ifndef USE_ZLIB
-    FILE * in = fopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<FILE*, FN> > parser(solver, NULL, 2);
-    #else
-    gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ> > parser(solver, NULL, 2);
-    #endif
-
-    if (in == NULL) {
-        std::cerr
-        << "ERROR! Could not open file '"
-        << filename
-        << "' for reading: " << strerror(errno) << endl;
-
-        std::exit(1);
-    }
-
-    if (!parser.parse_DIMACS(in, false)) {
-        exit(-1);
-    }
-
-    independent_vars.swap(parser.independent_vars);
-
-    #ifndef USE_ZLIB
-        fclose(in);
-    #else
-        gzclose(in);
-    #endif
+    std::uniform_int_distribution<uint32_t> dist{0, 1};
+    bool rhs = dist(randomEngine);
+    //cout << "rnd rhs:" << (int)rhs << endl;
+    return rhs;
 }
 
-void ScalMC::readInStandardInput(SATSolver* solver2)
+string ScalMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes)
 {
-    cout
-    << "c Reading from standard input... Use '-h' or '--help' for help."
-    << endl;
-
-    #ifndef USE_ZLIB
-    FILE * in = stdin;
-    #else
-    gzFile in = gzdopen(0, "rb"); //opens stdin, which is 0
-    #endif
-
-    if (in == NULL) {
-        std::cerr << "ERROR! Could not open standard input for reading" << endl;
-        std::exit(1);
+    string randomBits;
+    std::uniform_int_distribution<uint32_t> dist{0, 1000};
+    uint32_t cutoff = 500;
+    if (conf.sparse && num_hashes > 132) {
+        double probability = 13.46*std::log(num_hashes)/num_hashes;
+        assert(probability < 0.5);
+        cutoff = std::ceil(1000.0*probability);
+        cout << "[scalmc] sparse hashing used, cutoff: " << cutoff << endl;
     }
 
-    #ifndef USE_ZLIB
-    DimacsParser<StreamBuffer<FILE*, FN> > parser(solver2, NULL, 2);
-    #else
-    DimacsParser<StreamBuffer<gzFile, GZ> > parser(solver2, NULL, 2);
-    #endif
-
-    if (!parser.parse_DIMACS(in, false)) {
-        exit(-1);
+    while (randomBits.size() < size) {
+        bool val = dist(randomEngine) < cutoff;
+        randomBits += '0' + val;
     }
+    assert(randomBits.size() >= size);
 
-    #ifdef USE_ZLIB
-        gzclose(in);
-    #endif
+    //cout << "rnd bits: " << randomBits << endl;
+    return randomBits;
 }
 
-int ScalMC::solve()
+int ScalMC::solve(ScalMCConfig _conf)
 {
-    total_runtime = cpuTimeTotal();
-    //set seed
-    cout << "[scalmc] using seed: " << seed << endl;
-    randomEngine.seed(seed);
-
-    if (vm.count("log") == 0) {
-        if (vm.count("input") != 0) {
-            logfilename = vm["input"].as<vector<string> >()[0] + ".log";
-            cout << "[scalmc] Logfile name not given, assumed to be " << logfilename << endl;
-        } else {
-            std::cerr << "[scalmc] ERROR: You must provide the logfile name" << endl;
-            exit(-1);
-        }
-    }
-    printVersionInfo();
-
-    if (!only_indep_samples && cms_indep_only) {
-        cout << "ERROR: You requested samples with full solutions but '--cmpindeponly 1' is set. Set it to false: '--indep 0'" << endl;
-        exit(-1);
-    }
+    conf = _conf;
 
     openLogFile();
-    startTime = cpuTimeTotal();
-
-    //solver = new SATSolver(&must_interrupt);
-    CMSat::GaussConf gconf;
-    conf.gaussconf.max_num_matrixes = 2;
-    conf.gaussconf.autodisable = false;
-    conf.burst_search_len = 0;
-    conf.global_multiplier_multiplier_max = 3;
-    conf.global_timeout_multiplier_multiplier = 1.5;
-    conf.useCacheWhenFindingXors = find_more_xors;
-    assert(xor_cut >= 4);
-    conf.xor_var_per_cut = xor_cut-2;
-
-    conf.simplify_at_startup = 1;
-    conf.varElimRatioPerIter = 1;
-    conf.restartType = Restart::geom;
-    conf.polarity_mode = CMSat::PolarityMode::polarmode_neg;
-    conf.maple = maple;
-
-    //simplify broken
-    if (what_to_break == 40) {
-        conf.simplify_at_every_startup = true;
-    }
-
-    //polarity cached
-    if (what_to_break == 41) {
-        conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
-    }
-
-    //burst broken
-    if (what_to_break == 43) {
-        conf.burst_broken = true;
-        conf.burst_search_len = 500;
-    }
-
-    //polarity mess-up
-    if (what_to_break == 44) {
-        conf.mess_up_polarity = true;
-    }
-
-    //simplify broken + polarity mess-up + burst + glue-restart-only
-    if (what_to_break == 44) {
-        conf.burst_broken = true;
-        conf.burst_search_len = 500;
-
-        conf.mess_up_polarity = true;
-
-        conf.polarity_mode = CMSat::PolarityMode::polarmode_automatic;
-
-        conf.simplify_at_every_startup = true;
-    }
-    conf.do_simplify_problem = dosimp;
-
-    solver = new SATSolver((void*)&conf);
-
-    if (verb > 2) {
-        solver->set_verbosity(verb-2);
-    }
-    solver->set_allow_otf_gauss();
-
-    if (num_threads > 1) {
-        solver->set_num_threads(num_threads);
-    }
-
-    if (vm.count("input") != 0) {
-        vector<string> inp = vm["input"].as<vector<string> >();
-        if (inp.size() > 1) {
-            cout << "[scalmc] ERROR: can only parse in one file" << endl;
-        }
-        readInAFile(solver, inp[0].c_str());
-    } else {
-        readInStandardInput(solver);
-    }
-    call_after_parse();
-
-    //TODO this somehow messes up things.. but why? This is a bug in CMS.
-    //solver->simplify();
-
-    if (start_iter > independent_vars.size()) {
-        cout << "[scalmc] ERROR: Manually-specified start_iter"
-             "is larger than the size of the independent set.\n" << endl;
-        return -1;
-    }
-
-    if (samples == 0) {
-        if (vm.count("sampleout")){
-            cerr << "ERROR: You did not give the '--samples N' option, but you gave the '--sampleout FNAME' option." << endl;
-            cout << "ERROR: This is confusing. Please give '--samples N' if you give '--sampleout FNAME'" << endl;
-            exit(-1);
-        }
-        cout << "[scalmc] Using start iteration " << start_iter << endl;
+    randomEngine.seed(conf.seed);
+    total_runtime = cpuTimeTotal();
+    if (conf.samples == 0) {
+        cout << "[scalmc] Using start iteration " << conf.start_iter << endl;
 
         SATCount solCount;
         bool finished = count(solCount);
@@ -654,7 +311,7 @@ int ScalMC::solve()
             cout << "[scalmc] Formula was UNSAT " << endl;
         }
 
-        if (verb > 2) {
+        if (conf.verb > 2) {
             solver->print_stats();
         }
 
@@ -662,58 +319,18 @@ int ScalMC::solve()
         << solCount.cellSolCount
          << " x 2^" << solCount.hashCount << endl;
     } else {
-        if (startiter > independent_vars.size()) {
+        if (conf.startiter > conf.independent_vars.size()) {
             cerr << "ERROR: Manually-specified startiter for ScalGen"
                  "is larger than the size of the independent set.\n" << endl;
             return -1;
         }
 
         /* Compute threshold via formula from TACAS-15 paper */
-        threshold_scalgen = ceil(4.03 * (1 + (1/kappa)) * (1 + (1/kappa)));
+        threshold_scalgen = ceil(4.03 * (1 + (1/conf.kappa)) * (1 + (1/conf.kappa)));
 
-        if (samples == 0 || startiter == 0) {
-            if (samples > 0) {
-                cout << "Using scalmc to compute startiter for ScalGen" << endl;
-                if (!vm["thresholdAC"].defaulted() || !vm["measurements"].defaulted()) {
-                    cout << "WARNING: manually-specified thresholdAC and/or measurements may"
-                         << " not be large enough to guarantee correctness of ScalGen." << endl
-                         << "Omit those arguments to use safe default values." << endl;
-                } else {
-                    /* Fill in here the best parameters for scalmc achieving
-                     * epsilon=0.8 and delta=0.177 as required by ScalGen */
-                    threshold = 73;
-                    measurements = 11;
-                }
-            } else if(vm["measurements"].defaulted()) {
-                /* Compute tscalmc */
-                double delta = 0.2;
-                double confidence = 1.0 - delta;
-                int bestIteration = iterationConfidences.size() - 1;
-                int worstIteration = 0;
-                int currentIteration = (worstIteration + bestIteration) / 2;
-                if (iterationConfidences[bestIteration] >= confidence)
-                {
-                    while (currentIteration != worstIteration)
-                    {
-                        if (iterationConfidences[currentIteration] >= confidence)
-                        {
-                            bestIteration = currentIteration;
-                            currentIteration = (worstIteration + currentIteration) / 2;
-                        }
-                        else
-                        {
-                            worstIteration = currentIteration;
-                            currentIteration = (currentIteration + bestIteration) / 2;
-                        }
-                    }
-                    measurements = (2 * bestIteration) + 1;
-                }
-                else
-                    measurements = ceil(17 * log2(3.0 / delta));
-            }
-
+        if (conf.samples == 0 || conf.startiter == 0) {
             SATCount solCount;
-            cout << "[scalmc] ScalGen starting from iteration " << startiter << endl;
+            cout << "[scalmc] ScalGen starting from iteration " << conf.startiter << endl;
 
             bool finished = false;
             finished = count(solCount);
@@ -725,11 +342,11 @@ int ScalMC::solve()
                 return correctReturnValue(l_False);
             }
 
-            if (conf.verbosity) {
+            if (satconf.verbosity) {
                 solver->print_stats();
             }
 
-            if (samples == 0) {
+            if (conf.samples == 0) {
                 cout << "Number of solutions is: " << solCount.cellSolCount
                      << " x 2^" << solCount.hashCount << endl;
 
@@ -740,9 +357,9 @@ int ScalMC::solve()
                 double si = round(solCount.hashCount + log2(solCount.cellSolCount)
                     + log2(1.8) - log2(threshold_scalgen)) - 2;
                 if (si > 0)
-                    startiter = si;
+                    conf.startiter = si;
                 else
-                    startiter = 0;   /* Indicate ideal sampling case */
+                    conf.startiter = 0;   /* Indicate ideal sampling case */
             }
         }
         else
@@ -761,14 +378,14 @@ void ScalMC::output_samples()
     /* Output samples */
     std::ostream* os;
     std::ofstream* sampleFile = NULL;
-    if (vm.count("sampleout"))
+    if (!conf.sampleFilename.empty())
     {
         sampleFile = new std::ofstream;
-        sampleFile->open(sampleFilename.c_str());
+        sampleFile->open(conf.sampleFilename.c_str());
         if (!(*sampleFile)) {
             cout
             << "ERROR: Couldn't open file '"
-            << sampleFilename
+            << conf.sampleFilename
             << "' for writing!"
             << endl;
             std::exit(-1);
@@ -784,40 +401,6 @@ void ScalMC::output_samples()
         *os << std::setw(5) << std::left << counts[0] << " : "  << sol.first.c_str() << endl;
     }
     delete sampleFile;
-}
-
-int main(int argc, char** argv)
-{
-    #if defined(__GNUC__) && defined(__linux__)
-    feenableexcept(FE_INVALID   |
-                   FE_DIVBYZERO |
-                   FE_OVERFLOW
-                  );
-    #endif
-
-    ScalMC main(argc, argv);
-    main.add_supported_options();
-    return main.solve();
-}
-
-void ScalMC::call_after_parse()
-{
-    if (independent_vars.empty()) {
-        cout
-        << "[scalmc] WARNING! No independent vars were set using 'c ind var1 [var2 var3 ..] 0'"
-        "notation in the CNF." << endl
-        << "[scalmc] we may work substantially worse!" << endl;
-        for (size_t i = 0; i < solver->nVars(); i++) {
-            independent_vars.push_back(i);
-        }
-    }
-    cout << "[scalmc] Num independent vars: " << independent_vars.size() << endl;
-    cout << "[scalmc] Independent vars: ";
-    for (auto v: independent_vars) {
-        cout << v+1 << ", ";
-    }
-    cout << endl;
-    solver->set_independent_vars(&independent_vars);
 }
 
 void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps)
@@ -849,26 +432,26 @@ bool ScalMC::count(SATCount& count)
     vector<int64_t> numCountList;
     vector<Lit> assumps;
 
-    uint64_t hashCount = start_iter;
+    uint64_t hashCount = conf.start_iter;
     uint64_t hashPrev = 0;
     uint64_t mPrev = 0;
 
     double myTime = cpuTimeTotal();
     cout << "[scalmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
-        int64_t currentNumSolutions = bounded_sol_count(threshold+1, assumps, count.hashCount);
-        if (!logfilename.empty()) {
+        int64_t currentNumSolutions = bounded_sol_count(conf.threshold+1, assumps, count.hashCount);
+        if (!conf.logfilename.empty()) {
             logfile << "scalmc:"
-            << "breakmode-" << what_to_break << ":"
+            << "breakmode-" << conf.what_to_break << ":"
             <<"0:0:"
             << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
-            << (int)(currentNumSolutions == (threshold + 1)) << ":"
+            << (int)(currentNumSolutions == (conf.threshold + 1)) << ":"
             << currentNumSolutions << endl;
         }
 
         //Din't find at least threshold+1
-        if (currentNumSolutions <= threshold) {
-            cout << "[scalmc] Did not find at least threshold+1 (" << threshold << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
+        if (currentNumSolutions <= conf.threshold) {
+            cout << "[scalmc] Did not find at least threshold+1 (" << conf.threshold << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
             output_samples();
 
             count.cellSolCount = currentNumSolutions;
@@ -878,35 +461,35 @@ bool ScalMC::count(SATCount& count)
         hashCount++;
     }
 
-    for (uint32_t j = 0; j < measurements; j++) {
+    for (uint32_t j = 0; j < conf.measurements; j++) {
         map<uint64_t,int64_t> countRecord;
         map<uint64_t,uint32_t> succRecord;
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
 
         uint64_t numExplored = 0;
-        uint64_t lowerFib = 0, upperFib = independent_vars.size();
+        uint64_t lowerFib = 0, upperFib = conf.independent_vars.size();
 
-        while (numExplored < independent_vars.size()) {
+        while (numExplored < conf.independent_vars.size()) {
             cout << "[scalmc] Explored: " << std::setw(4) << numExplored
-                 << " ind set size: " << std::setw(6) << independent_vars.size() << endl;
+                 << " ind set size: " << std::setw(6) << conf.independent_vars.size() << endl;
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
             cout << "[scalmc] hashes active: " << std::setw(6) << hashCount << endl;
-            int64_t currentNumSolutions = bounded_sol_count(threshold + 1, assumps, hashCount);
+            int64_t currentNumSolutions = bounded_sol_count(conf.threshold + 1, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << threshold << endl;
-            if (!logfilename.empty()) {
+            if (!conf.logfilename.empty()) {
                 logfile << "scalmc:"
-                << "breakmode-" << what_to_break << ":"
+                << "breakmode-" << conf.what_to_break << ":"
                 << j << ":" << hashCount << ":"
                 << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
-                << (int)(currentNumSolutions == (threshold + 1)) << ":"
+                << (int)(currentNumSolutions == (conf.threshold + 1)) << ":"
                 << currentNumSolutions << endl;
             }
 
-            if (currentNumSolutions < threshold + 1) {
-                numExplored = lowerFib+independent_vars.size()-hashCount;
+            if (currentNumSolutions < conf.threshold + 1) {
+                numExplored = lowerFib+conf.independent_vars.size()-hashCount;
                 if (succRecord.find(hashCount-1) != succRecord.end()
                     && succRecord[hashCount-1] == 1
                 ) {
@@ -932,9 +515,9 @@ bool ScalMC::count(SATCount& count)
                     hashCount = (upperFib+lowerFib)/2;
                 }
             } else {
-                assert(currentNumSolutions == threshold+1);
+                assert(currentNumSolutions == conf.threshold+1);
 
-                numExplored = hashCount + independent_vars.size()-upperFib;
+                numExplored = hashCount + conf.independent_vars.size()-upperFib;
                 if (succRecord.find(hashCount+1) != succRecord.end()
                     && succRecord[hashCount+1] == 0
                 ) {
@@ -1019,17 +602,23 @@ bool ScalMC::count(SATCount& count)
 // Useful helper functions
 ///////////
 
+void printVersionInfoScalMC()
+{
+    cout << "c ScalMC SHA revision " << ::get_version_sha1() << endl;
+    cout << "c ScalMC compilation env " << ::get_compilation_env() << endl;
+    #ifdef __GNUC__
+    cout << "c ScalMC compiled with gcc version " << __VERSION__ << endl;
+    #else
+    cout << "c ScalMC compiled with non-gcc compiler" << endl;
+    #endif
+}
+
 void ScalMC::printVersionInfo() const
 {
     ::printVersionInfoScalMC();
     cout << "c CryptoMiniSat version " << solver->get_version() << endl;
     cout << "c CryptoMiniSat SHA revision " << solver->get_version_sha1() << endl;
     cout << "c CryptoMiniSat compilation env " << solver->get_compilation_env() << endl;
-    #ifdef __GNUC__
-    cout << "c compiled with gcc version " << __VERSION__ << endl;
-    #else
-    cout << "c compiled with non-gcc compiler" << endl;
-    #endif
 }
 
 int ScalMC::correctReturnValue(const lbool ret) const
@@ -1054,9 +643,9 @@ int ScalMC::correctReturnValue(const lbool ret) const
 /* Number of solutions to return from one invocation of ScalGen. */
 uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
 {
-    if (startiter == 0)   // TODO improve hack for ideal sampling case?
+    if (conf.startiter == 0)   // TODO improve hack for ideal sampling case?
         return numSolutions;
-    else if (multisample)
+    else if (conf.multisample)
         return loThresh;
     else
         return 1;
@@ -1064,26 +653,27 @@ uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
 
 void ScalMC::generate_samples()
 {
-    hiThresh = ceil(1 + (1.4142136 * (1 + kappa) * threshold_scalgen));
-    loThresh = floor(threshold_scalgen / (1.4142136 * (1 + kappa)));
-    uint32_t samplesPerCall = SolutionsToReturn(samples);
-    uint32_t callsNeeded = (samples + samplesPerCall - 1) / samplesPerCall;
-    cout << "[scalmc] loThresh " << loThresh
+    hiThresh = ceil(1 + (1.4142136 * (1 + conf.kappa) * threshold_scalgen));
+    loThresh = floor(threshold_scalgen / (1.4142136 * (1 + conf.kappa)));
+    uint32_t samplesPerCall = SolutionsToReturn(conf.samples);
+    uint32_t callsNeeded = (conf.samples + samplesPerCall - 1) / samplesPerCall;
+    cout << "[scalmc] starting sample generation. loThresh " << loThresh
     << ", hiThresh " << hiThresh
-    << ", startiter " << startiter << endl;
+    << ", startiter " << conf.startiter << endl;
 
     cout << "[scalmc] Outputting " << samplesPerCall << " solutions from each ScalGen call" << endl;
+
     uint32_t numCallsInOneLoop = 0;
-    if (callsPerSolver == 0) {
+    if (conf.callsPerSolver == 0) {
         // TODO: does this heuristic still work okay?
-        uint32_t si = startiter > 0 ? startiter : 1;
+        uint32_t si = conf.startiter > 0 ? conf.startiter : 1;
         numCallsInOneLoop = std::min(solver->nVars() / (si * 14), callsNeeded);
         if (numCallsInOneLoop == 0) {
             numCallsInOneLoop = 1;
         }
     } else {
-        numCallsInOneLoop = callsPerSolver;
-        cout << "[scalmc] Using manually-specified callsPerSolver: " << callsPerSolver << endl;
+        numCallsInOneLoop = conf.callsPerSolver;
+        cout << "[scalmc] Using manually-specified callsPerSolver: " << conf.callsPerSolver << endl;
     }
 
     uint32_t numCallLoops = callsNeeded / numCallsInOneLoop;
@@ -1099,7 +689,7 @@ void ScalMC::generate_samples()
     double threadStartTime = cpuTimeTotal();
     uint32_t lastSuccessfulHashOffset = 0;
 
-    if (startiter > 0) {
+    if (conf.startiter > 0) {
         ///Perform extra ScalGen calls that don't fit into the loops
         if (remainingCalls > 0) {
             sampleCounter = ScalGenCall(
@@ -1131,7 +721,7 @@ void ScalMC::generate_samples()
         }
 
         std::uniform_int_distribution<unsigned> uid {0, count-1};
-        for (uint32_t i = 0; i < samples; ++i) {
+        for (uint32_t i = 0; i < conf.samples; ++i) {
             map<string, uint32_t>::iterator it = threadSolutionMap.begin();
             for (uint32_t j = uid(randomEngine); j > 0; --j)    // TODO improve hack
                 ++it;
@@ -1154,8 +744,8 @@ void ScalMC::generate_samples()
 
     double timeTaken = cpuTimeTotal() - threadStartTime;
     allThreadsTime += timeTaken;
-    cout << "[scalmc] Total time for ScalGen: " << timeTaken << " s"
-    << endl;
+    cout << "[scalmc] Time for ScalGen: " << timeTaken << " s"
+    " -- Total time ScalMC+ScalGen: " << cpuTimeTotal() << " s" << endl;
 
     // TODO put this back once multithreading is implemented
     //cout << "Total time for all ScalGen calls: " << allThreadsTime << " s" << endl;
@@ -1188,7 +778,7 @@ uint32_t ScalMC::ScalGen(
         }
         for (uint32_t j = 0; j < 3; j++) {
             currentHashOffset = hashOffsets[j];
-            currentHashCount = currentHashOffset + startiter;
+            currentHashCount = currentHashOffset + conf.startiter;
             SetHash(currentHashCount, hashVars, assumps);
 
             const uint64_t solutionCount = bounded_sol_count(
@@ -1204,7 +794,7 @@ uint32_t ScalMC::ScalGen(
                 ret = l_False;
             }
 
-            if (!logfilename.empty()) {
+            if (!conf.logfilename.empty()) {
                 logfile << "scalgen:"
                 << sampleCounter << ":" << currentHashCount << ":"
                 << std::fixed << std::setprecision(2) << (cpuTimeTotal() - timeReference) << ":"

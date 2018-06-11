@@ -357,14 +357,17 @@ MESSAGE(STATUS "PROJECT_VERSION_MINOR: ${PROJECT_VERSION_MINOR}")
 MESSAGE(STATUS "PROJECT_VERSION_PATCH: ${PROJECT_VERSION_PATCH}")
 
 
-set (boost_components "")
-set(boost_components ${boost_components} program_options)
-find_package( Boost 1.46 COMPONENTS ${boost_components})
+option(EMSCRIPTEN "Generate only emscripten JS" OFF)
+if (NOT EMSCRIPTEN)
+    set (boost_components "")
+    set(boost_components ${boost_components} program_options)
+    find_package( Boost 1.46 COMPONENTS ${boost_components})
+endif()
 
 # ----------
 # manpage
 # ----------
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT EMSCRIPTEN)
     find_program(HELP2MAN_FOUND help2man)
     if (HELP2MAN_FOUND)
         ADD_CUSTOM_TARGET(man_scalmc
@@ -446,6 +449,8 @@ if (cryptominisat5_FOUND)
 else()
     message(FATAL_ERROR "Cannot find CryptoMiniSat5. Please install it! Exiting.")
 endif()
+# set(CRYPTOMINISAT5_INCLUDE_DIRS "/usr/local/include/")
+# set(CRYPTOMINISAT5_LIBRARIES "/usr/local/lib/libcryptominisat5.so")
 
 # -----------------------------------------------------------------------------
 # Provide an export name to be used by targets that wish to export themselves.
