@@ -442,7 +442,6 @@ bool ScalMC::count(SATCount& count)
         int64_t currentNumSolutions = bounded_sol_count(conf.threshold+1, assumps, count.hashCount);
         if (!conf.logfilename.empty()) {
             logfile << "scalmc:"
-            << "breakmode-" << conf.what_to_break << ":"
             <<"0:0:"
             << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
             << (int)(currentNumSolutions == (conf.threshold + 1)) << ":"
@@ -481,7 +480,6 @@ bool ScalMC::count(SATCount& count)
             //cout << currentNumSolutions << ", " << threshold << endl;
             if (!conf.logfilename.empty()) {
                 logfile << "scalmc:"
-                << "breakmode-" << conf.what_to_break << ":"
                 << j << ":" << hashCount << ":"
                 << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                 << (int)(currentNumSolutions == (conf.threshold + 1)) << ":"
