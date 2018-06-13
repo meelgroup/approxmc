@@ -328,7 +328,7 @@ int ScalMC::solve(ScalMCConfig _conf)
         /* Compute threshold via formula from TACAS-15 paper */
         threshold_scalgen = ceil(4.03 * (1 + (1/conf.kappa)) * (1 + (1/conf.kappa)));
 
-        if (conf.samples == 0 || conf.startiter == 0) {
+        if (conf.startiter == 0) {
             SATCount solCount;
             cout << "[scalmc] ScalGen starting from iteration " << conf.startiter << endl;
 
@@ -346,24 +346,16 @@ int ScalMC::solve(ScalMCConfig _conf)
                 solver->print_stats();
             }
 
-            if (conf.samples == 0) {
-                cout << "Number of solutions is: " << solCount.cellSolCount
-                     << " x 2^" << solCount.hashCount << endl;
+            cout << "[scalmc] Number of solutions is: "
+            << solCount.cellSolCount << " x 2^" << solCount.hashCount << endl;
 
-                return correctReturnValue(l_True);
-            }
+            double si = round(solCount.hashCount + log2(solCount.cellSolCount)
+                + log2(1.8) - log2(threshold_scalgen)) - 2;
+            if (si > 0)
+                conf.startiter = si;
             else
-            {
-                double si = round(solCount.hashCount + log2(solCount.cellSolCount)
-                    + log2(1.8) - log2(threshold_scalgen)) - 2;
-                if (si > 0)
-                    conf.startiter = si;
-                else
-                    conf.startiter = 0;   /* Indicate ideal sampling case */
-            }
-        }
-        else
-        {
+                conf.startiter = 0;   /* Indicate ideal sampling case */
+        } else {
             cout << "Using manually-specified startiter for ScalGen" << endl;
         }
         generate_samples();
