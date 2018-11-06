@@ -1,4 +1,4 @@
-# ScalMC -- an state-of-the-art approximate Model Counter
+# ScalMC, an state-of-the-art approximate Model Counter
 
 ScalMC is a state-of-the-art approximate model counter that uses an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before.
 
