@@ -57,4 +57,4 @@ c CryptoMiniSat SHA revision 17a1aed4956848404e33d514eef257ca1ed2382b
 [scalmc] FINISHED ScalMC T: 0.04 s
 [scalmc] Number of solutions is: 48 x 2^1
 ```
-ScalMC reports that have approximately 96 solutions to the CNF's independent support. The reason for this that for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
+ScalMC reports that have approximately 96 (=48*2) solutions to the CNF's independent support. The reason for this that for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
