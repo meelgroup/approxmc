@@ -1,9 +1,9 @@
-# ScalMC, an state-of-the-art approximate Model Counter
+# ScalMC a State-of-the-Art Approximate Model Counter
 
 ScalMC is a state-of-the-art approximate model counter that uses an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as published in AAAI-19. A large part of the work is in CryptoMiniSat, here: https://github.com/msoos/cryptominisat
 
 
-## How to build
+## How to Build
 To build on Linux, you will need the following:
 ```
 sudo apt-get install build-essential cmake
@@ -27,7 +27,7 @@ make
 sudo make install
 ```
 
-## How to use
+## How to Use
 
 First, you must translate your problem to CNF. ScalMC takes in a modified version of DIMACS where you can specify your independent support (essentially, independent variables) like this:
 
