@@ -42,7 +42,7 @@ Above, using the `c ind` line, we declare that only variables 1, 3, 4, 6, 7, 8 a
 In our case, the maximum number of solutions could be 128, but our CNF should be restricting this. Let's see:
 
 ```
-4 scalmc --seed 5 myfile.cnf
+$ scalmc --seed 5 myfile.cnf
 c ScalMC SHA revision ea21bfaaa97cf2aa6d7864083cf9597848202f39
 [...]
 c CryptoMiniSat SHA revision 17a1aed4956848404e33d514eef257ca1ed2382b
