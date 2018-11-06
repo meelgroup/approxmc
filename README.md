@@ -46,6 +46,9 @@ $ scalmc --seed 5 myfile.cnf
 c ScalMC SHA revision ea21bfaaa97cf2aa6d7864083cf9597848202f39
 [...]
 c CryptoMiniSat SHA revision 17a1aed4956848404e33d514eef257ca1ed2382b
+c CMS is MIT licensed
+c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
+[...]
 [scalmc] using seed: 5
 [scalmc] Num independent vars: 7
 [scalmc] Independent vars: 1, 3, 4, 6, 7, 8, 10, 
