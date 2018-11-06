@@ -1,13 +1,20 @@
 # ScalMC, an state-of-the-art approximate Model Counter
 
-ScalMC is a state-of-the-art approximate model counter that uses an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before.
+ScalMC is a state-of-the-art approximate model counter that uses an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as published in AAAI-19. A large part of the work is in CryptoMiniSat, here: https://github.com/msoos/cryptominisat
 
-To build perform the following:
+To build on LInux, you will need the following:
+```
+sudo apt-get install build-essential cmake
+sudo apt-get install zlib1g-dev libboost-program-options-dev libm4ri-dev
+```
+
+Then, build CryptoMiniSat and ScalMC:
 ```
 git clone https://github.com/msoos/cryptominisat
 cd cryptominisat
 mkdir build && cd build
 cmake cmake -DUSE_GAUSS=ON ..
+make
 sudo make install
 cd ../..
 git clone https://github.com/meelgroup/scalmc/
@@ -15,12 +22,13 @@ cd scalmc
 mkdir build && cd build
 cmake ..
 make
+sudo make install
 ```
 
 Then run ScalMC like:
 
 ```
-./scalmc --seed 5 myfile.cnf
+scalmc --seed 5 myfile.cnf
 c ScalMC SHA revision ea21bfaaa97cf2aa6d7864083cf9597848202f39
 [...]
 c CryptoMiniSat SHA revision 17a1aed4956848404e33d514eef257ca1ed2382b
