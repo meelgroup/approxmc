@@ -137,12 +137,8 @@ void add_scalmc_options()
          "Start at this many XORs")
     ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
          "Log of SCALMC iterations.")
-    ("maple", po::value(&conf.maple)->default_value(conf.maple),
-         "Should Maple be enabled")
     ("th", po::value(&conf.num_threads)->default_value(conf.num_threads),
          "How many solving threads to use per solver call")
-    ("simp", po::value(&conf.dosimp)->default_value(conf.dosimp),
-         "Perform simplifications in CMS")
     ("vcl", po::value(&conf.verb_scalmc_cls)->default_value(conf.verb_scalmc_cls)
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("samples", po::value(&conf.samples)->default_value(conf.samples)
@@ -159,8 +155,6 @@ void add_scalmc_options()
         , "Write samples to this file")
     ("cmsindeponly", po::value(&conf.cms_indep_only)->default_value(conf.cms_indep_only)
         , "Don't extend solution by SAT solver")
-    ("cutting", po::value(&conf.xor_cut)->default_value(conf.xor_cut)
-        , "Cut XORs to sizes this big or smaller")
     ("findmorexors", po::value(&conf.find_more_xors)->default_value(conf.find_more_xors)
         , "Find more xors through cache usage in CMS")
     ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)

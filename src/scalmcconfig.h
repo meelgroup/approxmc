@@ -34,16 +34,13 @@ struct ScalMCConfig {
     uint32_t start_iter = 0;
     uint32_t threshold = 72; //precision
     uint32_t measurements = 9; //confidence of 0.81
-    bool maple = 0; //BOTH scalgen and scalmc are SLOWER with this ON
     uint32_t num_threads = 1;
     uint32_t startiter = 0;
     bool sparse = false;
     unsigned verb = 1;
     unsigned verb_scalmc_cls = 0;
-    int dosimp = 1;
     uint32_t seed = 1;
     bool only_indep_samples = true;
-    unsigned xor_cut = 4;
     bool find_more_xors = 0;
     uint32_t multisample = 1;
     uint32_t samples = 0;
