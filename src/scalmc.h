@@ -36,7 +36,6 @@
 #include <map>
 #include <cstdint>
 #include <cryptominisat5/cryptominisat.h>
-#include <cryptominisat5/solverconf.h>
 
 using std::string;
 using std::vector;
@@ -92,7 +91,6 @@ public:
     void printVersionInfo() const;
 
 private:
-    SolverConf satconf;
     ScalMCConfig conf;
     bool count(SATCount& count);
     void add_scalmc_options();

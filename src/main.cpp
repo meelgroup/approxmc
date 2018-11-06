@@ -39,7 +39,6 @@ using std::vector;
 #include "time_mem.h"
 #include "scalmc.h"
 #include <cryptominisat5/cryptominisat.h>
-#include <cryptominisat5/solverconf.h>
 #include "cryptominisat5/dimacsparser.h"
 #include "cryptominisat5/streambuffer.h"
 
@@ -49,7 +48,6 @@ using std::cerr;
 using std::endl;
 ScalMC* scalmc = NULL;
 
-SolverConf satconf;
 ScalMCConfig conf;
 po::options_description scalmc_options = po::options_description("ScalMC options");
 po::options_description help_options;
@@ -391,23 +389,8 @@ int main(int argc, char** argv)
     }
 
     //startTime = cpuTimeTotal();
-
-    CMSat::GaussConf gconf;
-    satconf.gaussconf.max_num_matrixes = 2;
-    satconf.gaussconf.autodisable = false;
-    satconf.global_multiplier_multiplier_max = 3;
-    satconf.global_timeout_multiplier_multiplier = 1.5;
-    assert(conf.xor_cut >= 3);
-    satconf.xor_var_per_cut = conf.xor_cut-2;
-
-    satconf.simplify_at_startup = 1;
-    satconf.varElimRatioPerIter = 1;
-    satconf.restartType = Restart::geom;
-    satconf.polarity_mode = CMSat::PolarityMode::polarmode_neg;
-    satconf.maple = conf.maple;        //1113
-    satconf.do_simplify_problem = conf.dosimp;
-
-    scalmc->solver = new SATSolver((void*)&satconf);
+    scalmc->solver = new SATSolver();
+    scalmc->solver->set_up_for_scalmc();
 
     if (conf.verb > 2) {
         scalmc->solver->set_verbosity(conf.verb-2);

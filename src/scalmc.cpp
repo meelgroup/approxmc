@@ -342,7 +342,7 @@ int ScalMC::solve(ScalMCConfig _conf)
                 return correctReturnValue(l_False);
             }
 
-            if (satconf.verbosity) {
+            if (conf.verb) {
                 solver->print_stats();
             }
 
