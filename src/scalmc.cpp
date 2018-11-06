@@ -606,9 +606,7 @@ void printVersionInfoScalMC()
 void ScalMC::printVersionInfo() const
 {
     ::printVersionInfoScalMC();
-    cout << "c CryptoMiniSat version " << solver->get_version() << endl;
-    cout << "c CryptoMiniSat SHA revision " << solver->get_version_sha1() << endl;
-    cout << "c CryptoMiniSat compilation env " << solver->get_compilation_env() << endl;
+    cout << solver->get_text_version_info() << endl;
 }
 
 int ScalMC::correctReturnValue(const lbool ret) const
