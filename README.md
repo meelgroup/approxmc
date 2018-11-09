@@ -50,8 +50,8 @@ c CMS is MIT licensed
 c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 [...]
 [scalmc] using seed: 5
-[scalmc] Num independent vars: 7
-[scalmc] Independent vars: 1, 3, 4, 6, 7, 8, 10, 
+[scalmc] Sampling set size: 7
+[scalmc] Sampling set: 1, 3, 4, 6, 7, 8, 10, 
 [scalmc] Using start iteration 0
 [scalmc] [    0.00 ] bounded_sol_count looking for   73 solutions -- hashes active: 0
 [scalmc] [    0.01 ] bounded_sol_count looking for   73 solutions -- hashes active: 1
