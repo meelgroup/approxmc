@@ -29,7 +29,7 @@ sudo make install
 
 ## How to Use
 
-First, you must translate your problem to CNF. ScalMC takes in a modified version of DIMACS where you can specify your independent support (essentially, independent variables) like this:
+First, you must translate your problem to CNF. ScalMC takes in a modified version of DIMACS where you can specify your sampling set like this:
 
 ```
 $ cat myfile.cnf
@@ -37,7 +37,7 @@ c ind 1 3 4 6 7 8 10 0
 p cnf 500 1
 3 4 0
 ```
-Above, using the `c ind` line, we declare that only variables 1, 3, 4, 6, 7, 8 and 10 form part of the independent support out of the CNF's 500 variables `1,2...500`. This line must end with a 0. The solution that ScalMC will be giving is essentially answering the question: how many different combination of settings to this variables are there that satisfy this problem? Naturally, if you independent support only contains 7 variables, then the maximum number of solutions can only be at most 2^7 = 128. This is true even if your CNF has thousands of variables.
+Above, using the `c ind` line, we declare that only variables 1, 3, 4, 6, 7, 8 and 10 form part of the sampling set out of the CNF's 500 variables `1,2...500`. This line must end with a 0. The solution that ScalMC will be giving is essentially answering the question: how many different combination of settings to this variables are there that satisfy this problem? Naturally, if your sampling set only contains 7 variables, then the maximum number of solutions can only be at most 2^7 = 128. This is true even if your CNF has thousands of variables.
 
 In our case, the maximum number of solutions could be 128, but our CNF should be restricting this. Let's see:
 
