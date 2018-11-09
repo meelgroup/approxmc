@@ -45,7 +45,7 @@ struct ScalMCConfig {
     uint32_t multisample = 1;
     uint32_t samples = 0;
     bool cms_indep_only = false;
-    std::vector<uint32_t> independent_vars;
+    std::vector<uint32_t> sampling_set;
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     std::string sampleFilename;
     uint32_t callsPerSolver = 0;

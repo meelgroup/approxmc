@@ -108,7 +108,7 @@ inline T findMin(vector<T>& numList)
 bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
 {
     const string randomBits =
-        GenerateRandomBits(conf.independent_vars.size() * num_xor_cls, total_num_hashes);
+        GenerateRandomBits(conf.sampling_set.size() * num_xor_cls, total_num_hashes);
 
     bool rhs;
     vector<uint32_t> vars;
@@ -123,9 +123,9 @@ bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total
         vars.push_back(act_var);
         rhs = gen_rhs();
 
-        for (uint32_t j = 0; j < conf.independent_vars.size(); j++) {
-            if (randomBits.at(conf.independent_vars.size() * i + j) == '1') {
-                vars.push_back(conf.independent_vars[j]);
+        for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
+            if (randomBits.at(conf.sampling_set.size() * i + j) == '1') {
+                vars.push_back(conf.sampling_set[j]);
             }
         }
         solver->add_xor_clause(vars, rhs);
@@ -165,7 +165,7 @@ int64_t ScalMC::bounded_sol_count(
     lbool ret;
     double last_found_time = cpuTimeTotal();
     while (solutions < maxSolutions) {
-        ret = solver->solve(&new_assumps, conf.cms_indep_only);
+        ret = solver->solve(&new_assumps);
         assert(ret == l_False || ret == l_True);
 
         if (conf.verb >=2 ) {
@@ -193,7 +193,7 @@ int64_t ScalMC::bounded_sol_count(
         if (solutions < maxSolutions) {
             vector<Lit> lits;
             lits.push_back(Lit(act_var, false));
-            for (const uint32_t var: conf.independent_vars) {
+            for (const uint32_t var: conf.sampling_set) {
                 if (solver->get_model()[var] != l_Undef) {
                     lits.push_back(Lit(var, solver->get_model()[var] == l_True));
                 } else {
@@ -458,11 +458,11 @@ bool ScalMC::count(SATCount& count)
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
 
         uint64_t numExplored = 0;
-        uint64_t lowerFib = 0, upperFib = conf.independent_vars.size();
+        uint64_t lowerFib = 0, upperFib = conf.sampling_set.size();
 
-        while (numExplored < conf.independent_vars.size()) {
+        while (numExplored < conf.sampling_set.size()) {
             cout << "[scalmc] Explored: " << std::setw(4) << numExplored
-                 << " ind set size: " << std::setw(6) << conf.independent_vars.size() << endl;
+                 << " ind set size: " << std::setw(6) << conf.sampling_set.size() << endl;
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
@@ -479,7 +479,7 @@ bool ScalMC::count(SATCount& count)
             }
 
             if (currentNumSolutions < conf.threshold + 1) {
-                numExplored = lowerFib+conf.independent_vars.size()-hashCount;
+                numExplored = lowerFib+conf.sampling_set.size()-hashCount;
                 if (succRecord.find(hashCount-1) != succRecord.end()
                     && succRecord[hashCount-1] == 1
                 ) {
@@ -507,7 +507,7 @@ bool ScalMC::count(SATCount& count)
             } else {
                 assert(currentNumSolutions == conf.threshold+1);
 
-                numExplored = hashCount + conf.independent_vars.size()-upperFib;
+                numExplored = hashCount + conf.sampling_set.size()-upperFib;
                 if (succRecord.find(hashCount+1) != succRecord.end()
                     && succRecord[hashCount+1] == 0
                 ) {

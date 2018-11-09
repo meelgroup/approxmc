@@ -54,24 +54,24 @@ ScalMCConfig conf;
     #define DLL_LOCAL  __attribute__ ((visibility ("hidden")))
 #endif
 
-void set_indep_vars()
+void set_sampling_vars()
 {
-    if (conf.independent_vars.empty()) {
+    if (conf.sampling_set.empty()) {
         cout
-        << "[scalmc] WARNING! No independent vars were set using 'c ind var1 [var2 var3 ..] 0'"
-        "notation in the CNF." << endl
+        << "[scalmc] WARNING! Sampling set was not declared with 'c ind var1 [var2 var3 ..] 0'"
+        " notation in the CNF." << endl
         << "[scalmc] we may work substantially worse!" << endl;
         for (size_t i = 0; i < scalmc->solver->nVars(); i++) {
-            conf.independent_vars.push_back(i);
+            conf.sampling_set.push_back(i);
         }
     }
-    cout << "[scalmc] Num independent vars: " << conf.independent_vars.size() << endl;
-    cout << "[scalmc] Independent vars: ";
-    for (auto v: conf.independent_vars) {
+    cout << "[scalmc] Sampling set size: " << conf.sampling_set.size() << endl;
+    cout << "[scalmc] Sampling set: ";
+    for (auto v: conf.sampling_set) {
         cout << v+1 << ", ";
     }
     cout << endl;
-    scalmc->solver->set_independent_vars(&conf.independent_vars);
+    scalmc->solver->set_sampling_set(&conf.sampling_set);
 }
 
 int solve(const char* cnf)
@@ -86,9 +86,9 @@ int solve(const char* cnf)
     if (!parser.parse_DIMACS(cnf, false)) {
         exit(-1);
     }
-    conf.independent_vars.swap(parser.independent_vars);
+    conf.sampling_set.swap(parser.sampling_set);
 
-    set_indep_vars();
+    set_sampling_vars();
     scalmc->solve(conf);
     return 0;
 }

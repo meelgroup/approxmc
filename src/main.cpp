@@ -291,7 +291,7 @@ void readInAFile(SATSolver* solver2, const string& filename)
         exit(-1);
     }
 
-    conf.independent_vars.swap(parser.independent_vars);
+    conf.sampling_set.swap(parser.independent_vars);
 
     #ifndef USE_ZLIB
         fclose(in);
@@ -332,24 +332,24 @@ void readInStandardInput(SATSolver* solver2)
     #endif
 }
 
-void set_indep_vars()
+void set_sampling_vars()
 {
-    if (conf.independent_vars.empty()) {
+    if (conf.sampling_set.empty()) {
         cout
-        << "[scalmc] WARNING! No independent vars were set using 'c ind var1 [var2 var3 ..] 0'"
-        "notation in the CNF." << endl
+        << "[scalmc] WARNING! Sampling set was not declared with 'c ind var1 [var2 var3 ..] 0'"
+        " notation in the CNF." << endl
         << "[scalmc] we may work substantially worse!" << endl;
         for (size_t i = 0; i < scalmc->solver->nVars(); i++) {
-            conf.independent_vars.push_back(i);
+            conf.sampling_set.push_back(i);
         }
     }
-    cout << "[scalmc] Num independent vars: " << conf.independent_vars.size() << endl;
-    cout << "[scalmc] Independent vars: ";
-    for (auto v: conf.independent_vars) {
+    cout << "[scalmc] Sampling set size: " << conf.sampling_set.size() << endl;
+    cout << "[scalmc] Sampling set: ";
+    for (auto v: conf.sampling_set) {
         cout << v+1 << ", ";
     }
     cout << endl;
-    scalmc->solver->set_independent_vars(&conf.independent_vars);
+    scalmc->solver->set_independent_vars(&conf.sampling_set);
 }
 
 int main(int argc, char** argv)
@@ -405,10 +405,10 @@ int main(int argc, char** argv)
     } else {
         readInStandardInput(scalmc->solver);
     }
-    set_indep_vars();
+    set_sampling_vars();
 
 
-    //ScalMC or scalgen????
+    //ScalMC or scalgen?
     if (conf.samples == 0) {
         if (vm.count("sampleout")){
             cerr << "ERROR: You did not give the '--samples N' option, but you gave the '--sampleout FNAME' option." << endl;
@@ -459,9 +459,9 @@ int main(int argc, char** argv)
         }
     }
 
-    if (conf.start_iter > conf.independent_vars.size()) {
+    if (conf.start_iter > conf.sampling_set.size()) {
         cout << "[scalmc] ERROR: Manually-specified start_iter"
-             "is larger than the size of the independent set.\n" << endl;
+             "is larger than the size of the sampling set.\n" << endl;
         return -1;
     }
 
