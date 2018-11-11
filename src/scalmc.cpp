@@ -1,5 +1,5 @@
 /*
- ScalMC and ScalGen
+ AppMC and ScalGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -57,7 +57,7 @@ using std::map;
 
 void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
-    cout << "[scalmc] Added XOR ";
+    cout << "[appmc] Added XOR ";
     for (size_t i = 0; i < vars.size(); i++) {
         cout << vars[i]+1;
         if (i < vars.size()-1) {
@@ -67,12 +67,12 @@ void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
     cout << " = " << (rhs ? "True" : "False") << endl;
 }
 
-void ScalMC::openLogFile()
+void AppMC::openLogFile()
 {
     if (!conf.logfilename.empty()) {
         logfile.open(conf.logfilename.c_str());
         if (!logfile.is_open()) {
-            cout << "[scalmc] Cannot open ScalMC log file '" << conf.logfilename
+            cout << "[appmc] Cannot open AppMC log file '" << conf.logfilename
                  << "' for writing." << endl;
             exit(1);
         }
@@ -105,7 +105,7 @@ inline T findMin(vector<T>& numList)
     return min;
 }
 
-bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
+bool AppMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
 {
     const string randomBits =
         GenerateRandomBits(conf.sampling_set.size() * num_xor_cls, total_num_hashes);
@@ -129,21 +129,21 @@ bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total
             }
         }
         solver->add_xor_clause(vars, rhs);
-        if (conf.verb_scalmc_cls) {
+        if (conf.verb_appmc_cls) {
             print_xor(vars, rhs);
         }
     }
     return true;
 }
 
-int64_t ScalMC::bounded_sol_count(
+int64_t AppMC::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>& assumps,
         const uint32_t hashCount,
         std::map<std::string, uint32_t>* solutionMap,
         uint32_t minSolutions
 ) {
-    cout << "[scalmc] "
+    cout << "[appmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
     << (cpuTimeTotal()-total_runtime)
     << " ]"
@@ -169,7 +169,7 @@ int64_t ScalMC::bounded_sol_count(
         assert(ret == l_False || ret == l_True);
 
         if (conf.verb >=2 ) {
-            cout << "[scalmc] bounded_sol_count ret: " << std::setw(7) << ret;
+            cout << "[appmc] bounded_sol_count ret: " << std::setw(7) << ret;
             if (ret == l_True) {
                 cout << " sol no.  " << std::setw(3) << solutions;
             } else {
@@ -200,8 +200,8 @@ int64_t ScalMC::bounded_sol_count(
                     assert(false);
                 }
             }
-            if (conf.verb_scalmc_cls) {
-                cout << "[scalmc] Adding banning clause: " << lits << endl;
+            if (conf.verb_appmc_cls) {
+                cout << "[appmc] Adding banning clause: " << lits << endl;
             }
             solver->add_clause(lits);
         }
@@ -233,7 +233,7 @@ int64_t ScalMC::bounded_sol_count(
     return solutions;
 }
 
-void ScalMC::add_solution_to_map(
+void AppMC::add_solution_to_map(
     const vector<lbool>& model
     , std::map<std::string, uint32_t>* solutionMap
 ) const {
@@ -262,7 +262,7 @@ void ScalMC::add_solution_to_map(
     (*solutionMap)[sol_str] += 1;
 }
 
-bool ScalMC::gen_rhs()
+bool AppMC::gen_rhs()
 {
     std::uniform_int_distribution<uint32_t> dist{0, 1};
     bool rhs = dist(randomEngine);
@@ -270,7 +270,7 @@ bool ScalMC::gen_rhs()
     return rhs;
 }
 
-string ScalMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes)
+string AppMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes)
 {
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
@@ -279,7 +279,7 @@ string ScalMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes
         double probability = 13.46*std::log(num_hashes)/num_hashes;
         assert(probability < 0.5);
         cutoff = std::ceil(1000.0*probability);
-        cout << "[scalmc] sparse hashing used, cutoff: " << cutoff << endl;
+        cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
     }
 
     while (randomBits.size() < size) {
@@ -292,7 +292,7 @@ string ScalMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes
     return randomBits;
 }
 
-int ScalMC::solve(ScalMCConfig _conf)
+int AppMC::solve(AppMCConfig _conf)
 {
     conf = _conf;
 
@@ -300,22 +300,22 @@ int ScalMC::solve(ScalMCConfig _conf)
     randomEngine.seed(conf.seed);
     total_runtime = cpuTimeTotal();
     if (conf.samples == 0) {
-        cout << "[scalmc] Using start iteration " << conf.start_iter << endl;
+        cout << "[appmc] Using start iteration " << conf.start_iter << endl;
 
         SATCount solCount;
         bool finished = count(solCount);
         assert(finished);
 
-        cout << "[scalmc] FINISHED ScalMC T: " << (cpuTimeTotal() - startTime) << " s" << endl;
+        cout << "[appmc] FINISHED AppMC T: " << (cpuTimeTotal() - startTime) << " s" << endl;
         if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-            cout << "[scalmc] Formula was UNSAT " << endl;
+            cout << "[appmc] Formula was UNSAT " << endl;
         }
 
         if (conf.verb > 2) {
             solver->print_stats();
         }
 
-        cout << "[scalmc] Number of solutions is: "
+        cout << "[appmc] Number of solutions is: "
         << solCount.cellSolCount
          << " x 2^" << solCount.hashCount << endl;
     } else {
@@ -330,15 +330,15 @@ int ScalMC::solve(ScalMCConfig _conf)
 
         if (conf.startiter == 0) {
             SATCount solCount;
-            cout << "[scalmc] ScalGen starting from iteration " << conf.startiter << endl;
+            cout << "[appmc] ScalGen starting from iteration " << conf.startiter << endl;
 
             bool finished = false;
             finished = count(solCount);
             assert(finished);
-            cout << "[scalmc] finished counting solutions in " << (cpuTimeTotal() - startTime) << " s" << endl;
+            cout << "[appmc] finished counting solutions in " << (cpuTimeTotal() - startTime) << " s" << endl;
 
             if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-                cout << "[scalmc] The input formula is unsatisfiable." << endl;
+                cout << "[appmc] The input formula is unsatisfiable." << endl;
                 return correctReturnValue(l_False);
             }
 
@@ -346,7 +346,7 @@ int ScalMC::solve(ScalMCConfig _conf)
                 solver->print_stats();
             }
 
-            cout << "[scalmc] Number of solutions is: "
+            cout << "[appmc] Number of solutions is: "
             << solCount.cellSolCount << " x 2^" << solCount.hashCount << endl;
 
             double si = round(solCount.hashCount + log2(solCount.cellSolCount)
@@ -365,7 +365,7 @@ int ScalMC::solve(ScalMCConfig _conf)
     return correctReturnValue(l_True);
 }
 
-void ScalMC::output_samples()
+void AppMC::output_samples()
 {
     /* Output samples */
     std::ostream* os;
@@ -395,7 +395,7 @@ void ScalMC::output_samples()
     delete sampleFile;
 }
 
-void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps)
+void AppMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps)
 {
     if (clausNum < assumps.size()) {
         uint64_t numberToRemove = assumps.size()- clausNum;
@@ -417,7 +417,7 @@ void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector
     }
 }
 
-bool ScalMC::count(SATCount& count)
+bool AppMC::count(SATCount& count)
 {
     count.clear();
     vector<uint64_t> numHashList;
@@ -429,11 +429,11 @@ bool ScalMC::count(SATCount& count)
     uint64_t mPrev = 0;
 
     double myTime = cpuTimeTotal();
-    cout << "[scalmc] Starting up, initial measurement" << endl;
+    cout << "[appmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
         int64_t currentNumSolutions = bounded_sol_count(conf.threshold+1, assumps, count.hashCount);
         if (!conf.logfilename.empty()) {
-            logfile << "scalmc:"
+            logfile << "appmc:"
             <<"0:0:"
             << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
             << (int)(currentNumSolutions == (conf.threshold + 1)) << ":"
@@ -442,7 +442,7 @@ bool ScalMC::count(SATCount& count)
 
         //Din't find at least threshold+1
         if (currentNumSolutions <= conf.threshold) {
-            cout << "[scalmc] Did not find at least threshold+1 (" << conf.threshold << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
+            cout << "[appmc] Did not find at least threshold+1 (" << conf.threshold << ") we found only " << currentNumSolutions << ", exiting AppMC" << endl;
             output_samples();
 
             count.cellSolCount = currentNumSolutions;
@@ -461,17 +461,17 @@ bool ScalMC::count(SATCount& count)
         uint64_t lowerFib = 0, upperFib = conf.sampling_set.size();
 
         while (numExplored < conf.sampling_set.size()) {
-            cout << "[scalmc] Explored: " << std::setw(4) << numExplored
+            cout << "[appmc] Explored: " << std::setw(4) << numExplored
                  << " ind set size: " << std::setw(6) << conf.sampling_set.size() << endl;
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
-            cout << "[scalmc] hashes active: " << std::setw(6) << hashCount << endl;
+            cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
             int64_t currentNumSolutions = bounded_sol_count(conf.threshold + 1, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << threshold << endl;
             if (!conf.logfilename.empty()) {
-                logfile << "scalmc:"
+                logfile << "appmc:"
                 << j << ":" << hashCount << ":"
                 << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                 << (int)(currentNumSolutions == (conf.threshold + 1)) << ":"
@@ -557,24 +557,24 @@ bool ScalMC::count(SATCount& count)
 // Useful helper functions
 ///////////
 
-void printVersionInfoScalMC()
+void printVersionInfoAppMC()
 {
-    cout << "c ScalMC SHA revision " << ::get_version_sha1() << endl;
-    cout << "c ScalMC compilation env " << ::get_compilation_env() << endl;
+    cout << "c AppMC SHA revision " << ::get_version_sha1() << endl;
+    cout << "c AppMC compilation env " << ::get_compilation_env() << endl;
     #ifdef __GNUC__
-    cout << "c ScalMC compiled with gcc version " << __VERSION__ << endl;
+    cout << "c AppMC compiled with gcc version " << __VERSION__ << endl;
     #else
-    cout << "c ScalMC compiled with non-gcc compiler" << endl;
+    cout << "c AppMC compiled with non-gcc compiler" << endl;
     #endif
 }
 
-void ScalMC::printVersionInfo() const
+void AppMC::printVersionInfo() const
 {
-    ::printVersionInfoScalMC();
+    ::printVersionInfoAppMC();
     cout << solver->get_text_version_info() << endl;
 }
 
-int ScalMC::correctReturnValue(const lbool ret) const
+int AppMC::correctReturnValue(const lbool ret) const
 {
     int retval = -1;
     if (ret == l_True) {
@@ -594,7 +594,7 @@ int ScalMC::correctReturnValue(const lbool ret) const
 
 /////////////// scalgen ////////////////
 /* Number of solutions to return from one invocation of ScalGen. */
-uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
+uint32_t AppMC::SolutionsToReturn(uint32_t numSolutions)
 {
     if (conf.startiter == 0)   // TODO improve hack for ideal sampling case?
         return numSolutions;
@@ -604,17 +604,17 @@ uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
         return 1;
 }
 
-void ScalMC::generate_samples()
+void AppMC::generate_samples()
 {
     hiThresh = ceil(1 + (1.4142136 * (1 + conf.kappa) * threshold_scalgen));
     loThresh = floor(threshold_scalgen / (1.4142136 * (1 + conf.kappa)));
     uint32_t samplesPerCall = SolutionsToReturn(conf.samples);
     uint32_t callsNeeded = (conf.samples + samplesPerCall - 1) / samplesPerCall;
-    cout << "[scalmc] starting sample generation. loThresh " << loThresh
+    cout << "[appmc] starting sample generation. loThresh " << loThresh
     << ", hiThresh " << hiThresh
     << ", startiter " << conf.startiter << endl;
 
-    cout << "[scalmc] Outputting " << samplesPerCall << " solutions from each ScalGen call" << endl;
+    cout << "[appmc] Outputting " << samplesPerCall << " solutions from each ScalGen call" << endl;
 
     uint32_t numCallsInOneLoop = 0;
     if (conf.callsPerSolver == 0) {
@@ -626,13 +626,13 @@ void ScalMC::generate_samples()
         }
     } else {
         numCallsInOneLoop = conf.callsPerSolver;
-        cout << "[scalmc] Using manually-specified callsPerSolver: " << conf.callsPerSolver << endl;
+        cout << "[appmc] Using manually-specified callsPerSolver: " << conf.callsPerSolver << endl;
     }
 
     uint32_t numCallLoops = callsNeeded / numCallsInOneLoop;
     uint32_t remainingCalls = callsNeeded % numCallsInOneLoop;
 
-    cout << "[scalmc] Making " << numCallLoops << " loops."
+    cout << "[appmc] Making " << numCallLoops << " loops."
          << " calls per loop: " << numCallsInOneLoop
          << " remaining: " << remainingCalls << endl;
     uint32_t sampleCounter = 0;
@@ -697,15 +697,15 @@ void ScalMC::generate_samples()
 
     double timeTaken = cpuTimeTotal() - threadStartTime;
     allThreadsTime += timeTaken;
-    cout << "[scalmc] Time for ScalGen: " << timeTaken << " s"
-    " -- Total time ScalMC+ScalGen: " << cpuTimeTotal() << " s" << endl;
+    cout << "[appmc] Time for ScalGen: " << timeTaken << " s"
+    " -- Total time AppMC+ScalGen: " << cpuTimeTotal() << " s" << endl;
 
     // TODO put this back once multithreading is implemented
     //cout << "Total time for all ScalGen calls: " << allThreadsTime << " s" << endl;
-    cout << "[scalmc] Samples generated: " << allThreadsSampleCount << endl;
+    cout << "[appmc] Samples generated: " << allThreadsSampleCount << endl;
 }
 
-uint32_t ScalMC::ScalGen(
+uint32_t AppMC::ScalGen(
     uint32_t loc_samples
     , uint32_t sampleCounter
     , std::map<string, uint32_t>& solutionMap
@@ -784,7 +784,7 @@ uint32_t ScalMC::ScalGen(
     return sampleCounter;
 }
 
-int ScalMC::ScalGenCall(
+int AppMC::ScalGenCall(
     uint32_t loc_samples
     , uint32_t sampleCounter
     , std::map<string, uint32_t>& solutionMap

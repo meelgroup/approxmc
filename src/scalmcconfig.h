@@ -1,5 +1,5 @@
 /*
- ScalMC and ScalGen
+ AppMC and ScalGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -30,7 +30,7 @@
 
 #include <vector>
 
-struct ScalMCConfig {
+struct AppMCConfig {
     uint32_t start_iter = 0;
     uint32_t threshold = 72; //precision
     uint32_t measurements = 9; //confidence of 0.81
@@ -38,7 +38,7 @@ struct ScalMCConfig {
     uint32_t startiter = 0;
     bool sparse = false;
     unsigned verb = 1;
-    unsigned verb_scalmc_cls = 0;
+    unsigned verb_appmc_cls = 0;
     uint32_t seed = 1;
     bool only_indep_samples = true;
     bool find_more_xors = 0;

@@ -1,5 +1,5 @@
 /*
- ScalMC and ScalGen
+ AppMC and ScalGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -26,8 +26,8 @@
  */
 
 
-#ifndef ScalMC_H_
-#define ScalMC_H_
+#ifndef AppMC_H_
+#define AppMC_H_
 
 //#include "main.h"
 #include "scalmcconfig.h"
@@ -51,17 +51,17 @@ struct SATCount {
     uint32_t cellSolCount = 0;
 };
 
-class ScalMC {
+class AppMC {
 public:
-    ScalMC()
+    AppMC()
     {
     }
 
-    ~ScalMC()
+    ~AppMC()
     {
     }
 
-    int solve(ScalMCConfig _conf);
+    int solve(AppMCConfig _conf);
 
 
     uint32_t ScalGen();
@@ -91,10 +91,10 @@ public:
     void printVersionInfo() const;
 
 private:
-    ScalMCConfig conf;
+    AppMCConfig conf;
     bool count(SATCount& count);
     void add_scalmc_options();
-    bool ScalScalMC(SATCount& count);
+    bool ScalAppMC(SATCount& count);
     bool add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes);
     void SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);
 
@@ -131,4 +131,4 @@ private:
 };
 
 
-#endif //ScalMC_H_
+#endif //AppMC_H_
