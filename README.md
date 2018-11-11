@@ -1,6 +1,6 @@
-# ApproxMC a State-of-the-Art Approximate Model Counter
+# ApproxMC Approximate Model Counter
 
-ApproxMC is a state-of-the-art approximate model counter that uses an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as published in AAAI-19. A large part of the work is in CryptoMiniSat, here: https://github.com/msoos/cryptominisat
+ApproxMC is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as published in AAAI-19. A large part of the work is in CryptoMiniSat, here: https://github.com/msoos/cryptominisat
 
 
 ## How to Build
@@ -39,11 +39,11 @@ p cnf 500 1
 ```
 Above, using the `c ind` line, we declare that only variables 1, 3, 4, 6, 7, 8 and 10 form part of the sampling set out of the CNF's 500 variables `1,2...500`. This line must end with a 0. The solution that ApproxMC will be giving is essentially answering the question: how many different combination of settings to this variables are there that satisfy this problem? Naturally, if your sampling set only contains 7 variables, then the maximum number of solutions can only be at most 2^7 = 128. This is true even if your CNF has thousands of variables.
 
-In our case, the maximum number of solutions could be 128, but our CNF should be restricting this. Let's see:
+In our case, the maximum number of solutions could at most be 2^7=128, but our CNF should be restricting this. Let's see:
 
 ```
 $ approxmc --seed 5 myfile.cnf
-c ApproxMC SHA revision ea21bfaaa97cf2aa6d7864083cf9597848202f39
+c ApproxMC version 2.5
 [...]
 c CryptoMiniSat SHA revision 17a1aed4956848404e33d514eef257ca1ed2382b
 c CMS is MIT licensed
