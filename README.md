@@ -61,3 +61,7 @@ c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 [appmc] Number of solutions is: 48 x 2^1
 ```
 ApproxMC reports that have approximately `96 (=48*2)` solutions to the CNF's independent support. This is because for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
+
+## Old Versions
+
+The old version, 2.0 is available under the branch "ver2". Please check out the releases for the 2.x versions under GitHub [releases](https://github.com/meelgroup/approxmc/releases).
