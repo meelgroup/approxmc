@@ -1,3 +1,6 @@
+#ifndef GITSHA1_H
+#define GITSHA1_H
+
 /******************************************
 Copyright (c) 2016, Mate Soos
 
@@ -24,3 +27,5 @@ THE SOFTWARE.
 const char* get_version_sha1();
 const char* get_version_tag();
 const char* get_compilation_env();
+
+#endif //GITSHA1_H

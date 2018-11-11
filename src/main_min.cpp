@@ -1,5 +1,5 @@
 /*
- ScalMC and ScalGen
+ ApproxMC and ScalGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
