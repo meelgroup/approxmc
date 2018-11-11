@@ -41,7 +41,6 @@ struct AppMCConfig {
     unsigned verb_appmc_cls = 0;
     uint32_t seed = 1;
     bool only_indep_samples = true;
-    bool find_more_xors = 0;
     uint32_t multisample = 1;
     uint32_t samples = 0;
     bool cms_indep_only = false;
