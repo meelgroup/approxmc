@@ -1,0 +1,75 @@
+
+-----------
+GCC bug
+----------
+Beware, GCC has a bug affecting propagation in UniGen:
+
+http://gcc.gnu.org/bugzilla/show_bug.cgi?id=47365
+
+This seems to affect all gcc versions 4.5.x and is latent in
+trunk of upcoming 4.6.0
+
+-----------
+Libraries needed
+-----------
+You will need the following libraries to compile the sources:
+* libz
+
+-----------------
+Building the source
+-----------------
+
+If you got your source from the GIT/SVN, then you should do the following
+before doing the above::
+* Install automake, autoconf, libtool
+* Issue 'make -f Makefile.cvs' in the root dir
+
+$ mkdir build
+$ cd build
+$ ../configure
+$ make
+
+This should produce binary "approxmc" in the build directory.  ProbMapFile_36.txt and ProbMapFile_40.txt should be present in the directory from which approxmc is being invoked.
+
+
+
+-----------------
+Specifying Independent Support or Sampling Set
+-----------------
+
+To specify Independent Support or sampling set, you can specify the set in your CNF file by using "c ind" prefix. For example if the sampling set is {10, 13, 15, 16, 25, 28, 39, 41, 43, 45, 5, 53, 6, 69, 78, 9, 93}
+
+c ind 10 13 15 16 25 28 39 41 43 45 0
+c ind 5 53 6 69 78 9 93 0
+
+Note that each "c ind" line can list only 10 variables at most, followed by a closing '0'.
+
+
+----------------
+Running ApproxMC
+----------------
+$ ./approxmc --epsilon=0.8 --delta=0.02 <input file>
+
+Both epsilon and delta should be floats between 0 and 1.
+Epsilon represents the accuracy of the result with respect to the
+exact answer. (1-delta) is the confidence.
+
+ProbMapFile_36.txt and ProbMapFile_40.txt should be present in the directory from which approxmc is being invoked.
+
+
+--------------
+Verbose debug
+-------------
+You can also turn on verbose debugging.
+Simply remove the comment before 
+
+"//#define VERBOSE_DEBUG" 
+in Solver/constants.h and re-compile
+
+When executing:
+
+'./approxmc satfile.cnf'
+You will see a LOT of debug info. You should therefore maybe do:
+
+'./approxmc satfile.cnf > debuginfo.txt'
+then you can open the 'debuginfo.txt' file from a text editor and have a look
