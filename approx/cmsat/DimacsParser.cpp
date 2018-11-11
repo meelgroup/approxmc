@@ -162,7 +162,7 @@ void DimacsParser::readClause(StreamBuffer& in, vec<Lit>& lits) throw(DimacsPars
     for (;;) {
         parsed_lit = parseInt(in, len);
         if (parsed_lit == 0) break;
-        var = abs(parsed_lit) - 1;
+        var = std::abs(parsed_lit) - 1;
         if (!debugNewVar) {
             if (var >= ((uint32_t) 1) << 25) {
                 std::ostringstream ostr;
@@ -188,7 +188,7 @@ void DimacsParser::parseIndependentSet(StreamBuffer& in) {
     for (;;) {
         parsed_lit = parseInt(in, len);
         if (parsed_lit == 0) break;
-        var = abs(parsed_lit) - 1;
+        var = std::abs(parsed_lit) - 1;
         varVector.push(var);
     }
 
