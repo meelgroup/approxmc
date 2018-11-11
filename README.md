@@ -1,27 +1,41 @@
-# ApproxMC #
+# ApproxMC
 
-### What is it? ###
 ApproxMC2 is an approximate model counter for CNF formulas based on our IJCAI-16  paper: http://www.comp.nus.edu.sg/~meel/Papers/ijcai16_counting.pdf
 
 The version 1 can be invoked by setting searchMode to 0 (Use "-h" for
 more information when running approxmc binary).
 The version 1 was based on our CP-13 paper. 
 
-For more details on our hashing-based approach to sampling and counting, please visit: http://www.kuldeepmeel.com
 
-### The Latest Version ###
-The latest version can be downloaded from [https://bitbucket.org/kuldeepmeel/approxmc](https://bitbucket.org/kuldeepmeel/approxmc).
+## Licensing
 
+ApproxMC is released under MIT License. For more details, please see the file `LICENSE`.
 
-### Licensing ###
-ApproxMC is released under MIT License. For more details, please see the file `LICENSE`. 
+## Building
 
-## USAGE ##
+You will need:
+
+* automake
+* autotools
+* autoconfig
+* make
+* gcc
+
+Then:
 
 ```
-#!shell
+git clone https://github.com/meelgroup/approxmc
+git checkout ver2
+cd approx
+make -f Makefile.cvs
+./configure
+make
+```
 
- ./approxmc --epsilon=0.8 --delta=0.2 --gaussuntil=400 <input file>
+## Running
+
+```
+./approxmc --epsilon=0.8 --delta=0.2 --gaussuntil=400 myfile.cnf
 
 ```
 The file ProbMapFile.txt should be in the same directory from which
@@ -33,13 +47,6 @@ exact answer. (1-delta) is the confidence.
 ApproxMC, run on a given CNF file, returns an approximate #SAT result, within epsilon percent of the exact count, with a confidence of (1-delta).
 
 
-### Questions/Feedback/Comments ###
-Report issues using bitbucket. Please do not email me. 
+## Contact
+Kuldeep Meel ([kuldeep@rice.edu](mailto:kuldeep@rice.edu))
 
-### Contact ###
-
-
-  1. Kuldeep Meel ([kuldeep@rice.edu](mailto:kuldeep@rice.edu))
-
-
-Enjoy!
