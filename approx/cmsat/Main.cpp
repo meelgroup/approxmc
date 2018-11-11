@@ -1129,6 +1129,7 @@ bool Main::printSolutions(Solver& solver, FILE* res){
     return true;
 }
 int Main::singleThreadSolve() {
+    printVersionInfo(1);
 
    int val; 
    std::string line;
@@ -1264,7 +1265,6 @@ int main(int argc, char** argv) {
         return main.singleThreadSolve();
 
     }
-
     catch(std::bad_alloc) {
         std::cerr << "Memory manager cannot handle the load. Sorry. Exiting." << std::endl;
         exit(-1);
