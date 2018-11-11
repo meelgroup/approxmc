@@ -447,7 +447,7 @@ void printVersionInfoAppMC()
 void AppMC::printVersionInfo() const
 {
     ::printVersionInfoAppMC();
-    cout << solver->get_text_version_info() << endl;
+    cout << solver->get_text_version_info();
 }
 
 int AppMC::correctReturnValue(const lbool ret) const
