@@ -560,6 +560,7 @@ bool AppMC::count(SATCount& count)
 void printVersionInfoAppMC()
 {
     cout << "c AppMC SHA revision " << ::get_version_sha1() << endl;
+    cout << "c AppMC version " << ::get_version_tag() << endl;
     cout << "c AppMC compilation env " << ::get_compilation_env() << endl;
     #ifdef __GNUC__
     cout << "c AppMC compiled with gcc version " << __VERSION__ << endl;

@@ -347,7 +347,7 @@ if (GIT_EXECUTABLE)
 else()
   set(GIT_SHA "GIT-hash-notfound")
 endif()
-set(SCALMC_FULL_VERSION "1.0.0")
+set(SCALMC_FULL_VERSION "2.5.0")
 
 string(REPLACE "." ";" SCALMC_FULL_VERSION_LIST ${SCALMC_FULL_VERSION})
 SetVersionNumber("PROJECT" ${SCALMC_FULL_VERSION_LIST})
