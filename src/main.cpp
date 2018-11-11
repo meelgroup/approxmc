@@ -123,6 +123,10 @@ std::array<double,256> iterationConfidences = {{
 
 void add_appmc_options()
 {
+
+    std::ostringstream my_kappa;
+    my_kappa << std::setprecision(8) << conf.kappa;
+
     appmc_options.add_options()
     ("help,h", "Prints help")
     ("version", "Print version info")
@@ -147,7 +151,7 @@ void add_appmc_options()
         , "Should only output the independent vars from the samples")
     ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
         , "Generate sparse XORs when possible")
-    ("kappa", po::value(&conf.kappa)->default_value(conf.kappa)
+    ("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
         , "Uniformity parameter (see TACAS-15 paper)")
     ("multisample", po::value(&conf.multisample)->default_value(conf.multisample)
         , "Return multiple samples from each call")
