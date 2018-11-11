@@ -241,8 +241,8 @@ void ScalMC::add_solution_to_map(
 
     std::stringstream  solution;
     if (conf.only_indep_samples) {
-        for (uint32_t j = 0; j < conf.independent_vars.size(); j++) {
-            uint32_t var = conf.independent_vars[j];
+        for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
+            uint32_t var = conf.sampling_set[j];
             assert(model[var] != l_Undef);
             solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
         }
@@ -319,7 +319,7 @@ int ScalMC::solve(ScalMCConfig _conf)
         << solCount.cellSolCount
          << " x 2^" << solCount.hashCount << endl;
     } else {
-        if (conf.startiter > conf.independent_vars.size()) {
+        if (conf.startiter > conf.sampling_set.size()) {
             cerr << "ERROR: Manually-specified startiter for ScalGen"
                  "is larger than the size of the independent set.\n" << endl;
             return -1;
