@@ -29,8 +29,7 @@
 #ifndef AppMC_H_
 #define AppMC_H_
 
-//#include "main.h"
-#include "scalmcconfig.h"
+#include "approxmcconfig.h"
 #include <fstream>
 #include <random>
 #include <map>

@@ -35,9 +35,9 @@ using std::vector;
 #include <fenv.h>
 #endif
 
-#include "scalmcconfig.h"
+#include "approxmcconfig.h"
 #include "time_mem.h"
-#include "scalmc.h"
+#include "approxmc.h"
 #include <cryptominisat5/cryptominisat.h>
 #include "cryptominisat5/dimacsparser.h"
 #include "cryptominisat5/streambuffer.h"

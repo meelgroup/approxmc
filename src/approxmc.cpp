@@ -43,7 +43,7 @@
 #include <cmath>
 #include <complex>
 
-#include "scalmc.h"
+#include "approxmc.h"
 #include "time_mem.h"
 #include "cryptominisat5/cryptominisat.h"
 #include "cryptominisat5/solvertypesmini.h"
