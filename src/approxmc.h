@@ -61,9 +61,6 @@ public:
     }
 
     int solve(AppMCConfig _conf);
-
-
-    uint32_t ScalGen();
     string GenerateRandomBits(const uint32_t size, const uint32_t numhashes);
     string binary(const uint32_t x, const uint32_t length);
     uint32_t SolutionsToReturn(uint32_t numSolutions);
