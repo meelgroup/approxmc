@@ -33,7 +33,7 @@ sudo make install
 
 First, you must translate your problem to CNF and just pass your file as input to ApproxMC. Voila -- and it will print the number of solutions of the given CNF formula. 
 
-# Sampling Set
+### Sampling Set
 
 For several applications, one is typically not interested in solutions over all the variables and instead interested in counting the number of unique solutions to a subset of variables, called sampling set. ApproxMC allows you to specify the sampling set using the following modified version of DIMACS format:
 
@@ -68,7 +68,7 @@ c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 ```
 ApproxMC reports that have approximately `96 (=48*2)` solutions to the CNF's independent support. This is because for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
 
-# Independent Set
+### Independent Set
 While you may be intereted in counting the number of solutions to a CNF formula, not all variables are necessary to specify the solution space. For example, it may be the case that every solution can be specified by assignment to just a subset of variables. For exmaple, consider the formula 
 
 ```
