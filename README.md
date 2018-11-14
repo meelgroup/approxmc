@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# ApproxMC Approximate Model Counter
+# ApproxMC: Approximate Model Counter
 
 ApproxMC is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as published in AAAI-19. A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
 
@@ -31,7 +31,11 @@ sudo make install
 
 ## How to Use
 
-First, you must translate your problem to CNF. ApproxMC takes in a modified version of DIMACS where you can specify your sampling set like this:
+First, you must translate your problem to CNF and just pass your file as input to ApproxMC. Voila -- and it will print the number of solutions of the given CNF formula. 
+
+# Sampling Set
+
+For several applications, one is typically not interested in solutions over all the variables and instead interested in counting the number of unique solutions to a subset of variables, called sampling set. ApproxMC allows you to specify the sampling set using the following modified version of DIMACS format:
 
 ```
 $ cat myfile.cnf
@@ -63,6 +67,20 @@ c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 [appmc] Number of solutions is: 48 x 2^1
 ```
 ApproxMC reports that have approximately `96 (=48*2)` solutions to the CNF's independent support. This is because for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
+
+# Independent Set
+While you may be intereted in counting the number of solutions to a CNF formula, not all variables are necessary to specify the solution space. For example, it may be the case that every solution can be specified by assignment to just a subset of variables. For exmaple, consider the formula 
+
+```
+p cnf 3 3
+-3 1 2 0
+-1 3 0
+-2 3 0
+
+```
+The above file just encodes the formula where the variable `3` is essentially OR of `1` and `2`. As you can see, every solution can be uniquely specified by assignment to just 1 and 2. A subset of variables that uniquely determine a solution is called Independent support and ApproxMC is able to take advantage of the specified independent support -- the speed of the tool is greatly enhanced by providing Independent support. We also have a tool to compute independent support here: [MIS][https://bitbucket.org/kuldeepmeel/mis]. 
+
+So once you have independent support, how should you specify in your CNF file. Its simple -- just treat your Independent support as your sampling set and use `c ind` as described above. 
 
 ## Issues, Bugs, Wishes, etc
 
