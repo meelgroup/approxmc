@@ -86,6 +86,13 @@ So once you have independent support, how should you specify in your CNF file. I
 
 In case you encounter a bug, or a problem solving is very slow, etc. please create a [GitHub issue](https://github.com/meelgroup/approxmc/issues). We will deal with *every* case, and will resolve them all. The authors of this code have resolved over 500 GitHub issues on other software they release. All issues will be dealt with promptly.
 
+## How to Cite
+If you use ApproxMC, please cite the following papers: [AAAI19](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib) and [IJCAI16](https://www.comp.nus.edu.sg/~meel/bib/CMV16.bib). 
+
+## Papers
+ApproxMC builds on a series of papers on hashing-based approach: [Related Publicatinos](https://www.comp.nus.edu.sg/~meel/publications.html) 
+
+
 ## Old Versions
 
 The old version, 2.0 is available under the branch "ver2". Please check out the releases for the 2.x versions under GitHub [releases](https://github.com/meelgroup/approxmc/releases). Please read the README of the old release to know how to compile the code. Old releases should easily compile.
