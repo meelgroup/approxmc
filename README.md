@@ -1,8 +1,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# ApproxMC: Approximate Model Counter
+# ApproxMCv3: Approximate Model Counter
 
-ApproxMC is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
+ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
 
 
 ## How to Build
@@ -49,7 +49,7 @@ In our case, the maximum number of solutions could at most be 2^7=128, but our C
 
 ```
 $ approxmc --seed 5 myfile.cnf
-c ApproxMC version 2.5
+c ApproxMC version 3.0
 [...]
 c CryptoMiniSat SHA revision 17a1aed4956848404e33d514eef257ca1ed2382b
 c CMS is MIT licensed
