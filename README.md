@@ -17,7 +17,7 @@ Then, build CryptoMiniSat and ApproxMC:
 git clone https://github.com/msoos/cryptominisat
 cd cryptominisat
 mkdir build && cd build
-cmake cmake -DUSE_GAUSS=ON ..
+cmake -DUSE_GAUSS=ON ..
 make
 sudo make install
 cd ../..
