@@ -78,9 +78,9 @@ p cnf 3 3
 -2 3 0
 
 ```
-The above file just encodes the formula where the variable `3` is essentially OR of `1` and `2`. As you can see, every solution can be uniquely specified by assignment to just 1 and 2. A subset of variables that uniquely determine a solution is called Independent support and ApproxMC is able to take advantage of the specified independent support -- the speed of the tool is greatly enhanced by providing Independent support. We also have a tool to compute independent support here: [MIS][https://bitbucket.org/kuldeepmeel/mis]. 
+The above file encodes the formula where the variable `3` is essentially OR of `1` and `2`. Hence, every solution can be uniquely specified by assignment to variables 1 and 2 only. A subset of variables that uniquely determine a solution is called independent support and ApproxMC is able to take advantage of the specified independent support. The speed of the tool is **greatly** enhanced by providing independent support.
 
-So once you have independent support, how should you specify in your CNF file. Its simple -- just treat your Independent support as your sampling set and use `c ind` as described above. 
+We have a tool to help compute independent support [here](https://bitbucket.org/kuldeepmeel/mis). Once you have computed independent support, treat your independent support as your sampling set and use `c ind` as described above.
 
 ## Issues, Bugs, Wishes, etc
 
