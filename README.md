@@ -89,9 +89,7 @@ In case you encounter a bug, or a problem solving is very slow, etc. please crea
 ## How to Cite
 If you use ApproxMC, please cite the following papers: [AAAI19](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib) and [IJCAI16](https://www.comp.nus.edu.sg/~meel/bib/CMV16.bib). 
 
-## Papers
 ApproxMC builds on a series of papers on hashing-based approach: [Related Publicatinos](https://www.comp.nus.edu.sg/~meel/publications.html) 
-
 
 ## Old Versions
 
