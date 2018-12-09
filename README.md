@@ -66,7 +66,7 @@ c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 [appmc] FINISHED ApproxMC T: 0.04 s
 [appmc] Number of solutions is: 48 x 2^1
 ```
-ApproxMC reports that have approximately `96 (=48*2)` solutions to the CNF's independent support. This is because for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
+ApproxMC reports that we have approximately `96 (=48*2)` solutions to the CNF's independent support. This is because for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
 
 ### Independent Set
 While you may be intereted in counting the number of solutions to a CNF formula, not all variables are necessary to specify the solution space. For example, it may be the case that every solution can be specified by assignment to just a subset of variables. For exmaple, consider the formula 
@@ -89,7 +89,7 @@ In case you encounter a bug, or a problem solving is very slow, etc. please crea
 ## How to Cite
 If you use ApproxMC, please cite the following papers: [AAAI19](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib) and [IJCAI16](https://www.comp.nus.edu.sg/~meel/bib/CMV16.bib). 
 
-ApproxMC builds on a series of papers on hashing-based approach: [Related Publicatinos](https://www.comp.nus.edu.sg/~meel/publications.html) 
+ApproxMC builds on a series of papers on hashing-based approach: [Related Publications](https://www.comp.nus.edu.sg/~meel/publications.html) 
 
 ## Old Versions
 
