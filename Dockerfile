@@ -33,10 +33,11 @@ RUN ./configure \
 
 # build CMS
 WORKDIR /
-RUN git clone --depth 1 https://github.com/msoos/cryptominisat.git
-WORKDIR /cryptominisat
+RUN wget https://github.com/msoos/cryptominisat/archive/5.6.5.tar.gz \
+    && tar -xvf 5.6.5.tar.gz
+WORKDIR /cryptominisat-5.6.5
 RUN mkdir build
-WORKDIR /cryptominisat/build
+WORKDIR /cryptominisat-5.6.5/build
 RUN cmake .. \
     && make -j2 \
     && make install \
