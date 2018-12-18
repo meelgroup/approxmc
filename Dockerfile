@@ -57,7 +57,7 @@ RUN cmake .. \
 # set up for running
 FROM alpine:latest
 COPY --from=builder /usr/local/bin/* /usr/local/bin/
-COPY --from=builder /usr/local/bin/lib/* /usr/local/lib/
+COPY --from=builder /usr/local/lib/* /usr/local/lib/
 ENTRYPOINT ["/usr/local/bin/approxmc"]
 
 # --------------------
