@@ -82,9 +82,8 @@ The above file encodes the formula where the variable `3` is essentially OR of `
 
 We have a tool to help compute independent support [here](https://bitbucket.org/kuldeepmeel/mis). Once you have computed independent support, treat your independent support as your sampling set and use `c ind` as described above.
 
-## Issues, Bugs, Wishes, etc
-
-In case you encounter a bug, or a problem solving is very slow, etc. please create a [GitHub issue](https://github.com/meelgroup/approxmc/issues). We will deal with *every* case, and will resolve them all. The authors of this code have resolved over 500 GitHub issues on other software they release. All issues will be dealt with promptly.
+### Issues, questions, bugs, etc.
+Please click on "issues" at the top and [create a new issue](https://github.com/meelgroup/mis/issues/new). All issues are responded to promptly.
 
 ## How to Cite
 If you use ApproxMC, please cite the following papers: [AAAI19](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib) and [IJCAI16](https://www.comp.nus.edu.sg/~meel/bib/CMV16.bib). 
