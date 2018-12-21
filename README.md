@@ -5,6 +5,13 @@
 ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
 
 
+## Docker image
+The Docker image works out of the box, you just need to push the file into it:
+
+```
+cat myfile.cnf | docker run --rm -i -a stdin -a stdout msoos/approxmc
+```
+
 ## How to Build
 To build on Linux, you will need the following:
 ```

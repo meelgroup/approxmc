@@ -15,12 +15,6 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y libboost-program-options-dev gcc g++ make cmake zlib1g-dev wget autoconf automake make libtool \
     && rm -rf /var/lib/apt/lists/*
 
-# set up build env
-# RUN groupadd -r solver -g 433
-# RUN useradd -u 431 -r -g solver -d /home/solver -s /sbin/nologin -c "Docker image user" solver
-# RUN mkdir -p /home/solver/approxmc
-# RUN chown -R solver:solver /home/solver
-
 # get M4RI
 WORKDIR /
 RUN wget https://bitbucket.org/malb/m4ri/downloads/m4ri-20140914.tar.gz \
@@ -38,8 +32,8 @@ RUN wget https://github.com/msoos/cryptominisat/archive/5.6.6.tar.gz \
 WORKDIR /cryptominisat-5.6.6
 RUN mkdir build
 WORKDIR /cryptominisat-5.6.6/build
-RUN cmake .. \
-    && make -j2 \
+RUN cmake -DSTATICCOMPILE=ON -DUSE_GAUSS=ON .. \
+    && make -j6 \
     && make install \
     && rm -rf *
 
@@ -49,29 +43,28 @@ COPY . /home/solver/approxmc
 WORKDIR /home/solver/approxmc
 RUN mkdir build
 WORKDIR /home/solver/approxmc/build
-RUN cmake .. \
-    && make -j2 \
+RUN cmake -DSTATICCOMPILE=ON .. \
+    && make -j6 \
     && make install \
     && rm -rf *
 
 # set up for running
 FROM alpine:latest
-COPY --from=builder /usr/local/bin/* /usr/local/bin/
-COPY --from=builder /usr/local/lib/* /usr/local/lib/
+COPY --from=builder /usr/local/bin/approxmc /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/approxmc"]
 
 # --------------------
 # HOW TO USE
 # --------------------
 # on file through STDIN:
-#    zcat mizh-md5-47-3.cnf.gz | docker run --rm -i -a stdin -a stdout approxmc
+#    zcat mizh-md5-47-3.cnf.gz | docker run --rm -i -a stdin -a stdout msoos/approxmc
 
 # on a file:
-#    docker run --rm -v `pwd`/myfile.cnf.gz:/in approxmc in
+#    docker run --rm -v `pwd`/myfile.cnf.gz:/in msoos/approxmc in
 
 # echo through STDIN:
-#    echo "1 2 0" | docker run --rm -i -a stdin -a stdout approxmc
+#    echo "1 2 0" | docker run --rm -i -a stdin -a stdout msoos/approxmc
 
 # hand-written CNF:
-#    docker run --rm -ti -a stdin -a stdout approxmc
+#    docker run --rm -ti -a stdin -a stdout msoos/approxmc
 
