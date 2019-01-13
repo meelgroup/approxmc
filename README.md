@@ -6,7 +6,7 @@ ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved
 
 
 ## Docker image
-If you don't have or don't know what a sampling set is, first run our MIS tool:
+If you don't have or don't know what an independent set is, first run our MIS tool:
 ```
 docker run --rm -v `pwd`/formula.cnf:/in msoos/mis --timeout 300 /in
 [...]
@@ -47,6 +47,16 @@ sudo make install
 ## How to Use
 First, you must translate your problem to CNF and just pass your file as input to ApproxMC. Voila -- and it will print the number of solutions of the given CNF formula.
 
+### Sampling Set
+For some applications, one is not interested in solutions over all the variables and instead interested in counting the number of unique solutions to a subset of variables, called sampling set. ApproxMC allows you to specify the sampling set using the following modified version of DIMACS format:
+
+```
+$ cat myfile.cnf
+c ind 1 3 4 6 7 8 10 0
+p cnf 500 1
+3 4 0
+```
+Above, using the `c ind` line, we declare that only variables 1, 3, 4, 6, 7, 8 and 10 form part of the sampling set out of the CNF's 500 variables `1,2...500`. This line must end with a 0. The solution that ApproxMC will be giving is essentially answering the question: how many different combination of settings to this variables are there that satisfy this problem? Naturally, if your sampling set only contains 7 variables, then the maximum number of solutions can only be at most 2^7 = 128. This is true even if your CNF has thousands of variables.
 ### Independent set
 For most applications, we are want all solutions to the problem. To do this, you need to use the [MIS](https://github.com/meelgroup/mis) tool to find a small independent set of variables to your CNF. For example, for `formula.cnf` we can do:
 
@@ -83,16 +93,6 @@ c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 ```
 ApproxMC reports that we have approximately `96 (=48*2)` solutions to the CNF's independent support. This is because for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
 
-### Sampling Set
-For some applications, one is not interested in solutions over all the variables and instead interested in counting the number of unique solutions to a subset of variables, called sampling set. ApproxMC allows you to specify the sampling set using the following modified version of DIMACS format:
-
-```
-$ cat myfile.cnf
-c ind 1 3 4 6 7 8 10 0
-p cnf 500 1
-3 4 0
-```
-Above, using the `c ind` line, we declare that only variables 1, 3, 4, 6, 7, 8 and 10 form part of the sampling set out of the CNF's 500 variables `1,2...500`. This line must end with a 0. The solution that ApproxMC will be giving is essentially answering the question: how many different combination of settings to this variables are there that satisfy this problem? Naturally, if your sampling set only contains 7 variables, then the maximum number of solutions can only be at most 2^7 = 128. This is true even if your CNF has thousands of variables.
 
 ### Issues, questions, bugs, etc.
 Please click on "issues" at the top and [create a new issue](https://github.com/meelgroup/mis/issues/new). All issues are responded to promptly.
