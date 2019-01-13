@@ -5,37 +5,30 @@ LABEL version="1.0"
 LABEL Description="Approxmc"
 
 # get curl, etc
-RUN apt-get update && apt-get install --no-install-recommends -y software-properties-common \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y libboost-program-options-dev gcc g++ make cmake zlib1g-dev wget autoconf automake make libtool \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --no-install-recommends -y software-properties-common
+# RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
+# RUN apt-get update
+RUN apt-get install --no-install-recommends -y libboost-program-options-dev gcc g++ make cmake zlib1g-dev wget make
 
 # get M4RI
 WORKDIR /
-RUN wget https://bitbucket.org/malb/m4ri/downloads/m4ri-20140914.tar.gz \
-    && tar -xvf m4ri-20140914.tar.gz
+RUN wget https://bitbucket.org/malb/m4ri/downloads/m4ri-20140914.tar.gz
+RUN tar -xvf m4ri-20140914.tar.gz
 WORKDIR m4ri-20140914
-RUN ./configure \
-    && make \
-    && make install \
-    && make clean
+RUN ./configure
+RUN make \
+    && make install
 
 # build CMS
 WORKDIR /
-RUN wget https://github.com/msoos/cryptominisat/archive/5.6.6.tar.gz \
-    && tar -xvf 5.6.6.tar.gz
+RUN wget https://github.com/msoos/cryptominisat/archive/5.6.6.tar.gz
+RUN tar -xvf 5.6.6.tar.gz
 WORKDIR /cryptominisat-5.6.6
 RUN mkdir build
 WORKDIR /cryptominisat-5.6.6/build
-RUN cmake -DSTATICCOMPILE=ON -DUSE_GAUSS=ON .. \
-    && make -j6 \
-    && make install \
-    && rm -rf *
+RUN cmake -DSTATICCOMPILE=ON -DUSE_GAUSS=ON ..
+RUN make -j6 \
+    && make install
 
 # build approxmc
 USER root
@@ -43,10 +36,9 @@ COPY . /home/solver/approxmc
 WORKDIR /home/solver/approxmc
 RUN mkdir build
 WORKDIR /home/solver/approxmc/build
-RUN cmake -DSTATICCOMPILE=ON .. \
-    && make -j6 \
-    && make install \
-    && rm -rf *
+RUN cmake -DSTATICCOMPILE=ON ..
+RUN make -j6 \
+    && make install
 
 # set up for running
 FROM alpine:latest
