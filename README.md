@@ -6,10 +6,18 @@ ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved
 
 
 ## Docker image
-The Docker image works out of the box, you just need to push the file into it:
-
+If you don't have or don't know what a sampling set is, first run our MIS tool:
 ```
-cat myfile.cnf | docker run --rm -i -a stdin -a stdout msoos/approxmc
+docker run --rm -v `pwd`/formula.cnf:/in msoos/mis --timeout 300 /in
+[...]
+** Copy-paste the following line in the top of your CNF for ApproxMC **
+c ind 3 4 7 8 10 11 14 17 18 26 30 35 36 39 42 47 60 62 67 0
+```
+Then copy-paste that line into your CNF.
+
+Then run the updated CNF through approxmc:
+```
+cat formula.cnf | docker run --rm -i -a stdin -a stdout msoos/approxmc
 ```
 
 ## How to Build
