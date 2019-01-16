@@ -102,6 +102,8 @@ If you use ApproxMC, please cite the following papers: [AAAI19](https://www.comp
 
 ApproxMC builds on a series of papers on hashing-based approach: [Related Publications](https://www.comp.nus.edu.sg/~meel/publications.html) 
 
+The benchmarks used in our evaluation can be found [here](https://www.comp.nus.edu.sg/~meel/Benchmarks/).
+
 ## Old Versions
 
 The old version, 2.0 is available under the branch "ver2". Please check out the releases for the 2.x versions under GitHub [releases](https://github.com/meelgroup/approxmc/releases). Please read the README of the old release to know how to compile the code. Old releases should easily compile.
