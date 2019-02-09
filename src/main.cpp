@@ -137,7 +137,7 @@ void add_appmc_options()
     ("threshold", po::value(&conf.threshold)->default_value(conf.threshold)
         , "Number of solutions to check for -- used to be 'pivotAC'")
     ("measure", po::value(&conf.measurements)->default_value(conf.measurements)
-        , "Number of measurements -- used to be 'samplingT'")
+        , "Number of measurements -- used to be 'samplingT' or 'tApproxMC'")
     ("start", po::value(&conf.start_iter)->default_value(conf.start_iter),
          "Start at this many XORs")
     ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
