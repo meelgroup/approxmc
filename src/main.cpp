@@ -135,9 +135,9 @@ void add_appmc_options()
     ("verb,v", po::value(&conf.verb)->default_value(conf.verb), "verbosity")
     ("seed,s", po::value(&conf.seed)->default_value(conf.seed), "Seed")
     ("threshold", po::value(&conf.threshold)->default_value(conf.threshold)
-        , "Number of solutions to check for")
+        , "Number of solutions to check for -- used to be 'pivotAC'")
     ("measure", po::value(&conf.measurements)->default_value(conf.measurements)
-        , "Number of measurements")
+        , "Number of measurements -- used to be 'samplingT'")
     ("start", po::value(&conf.start_iter)->default_value(conf.start_iter),
          "Start at this many XORs")
     ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
