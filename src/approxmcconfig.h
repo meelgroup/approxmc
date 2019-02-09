@@ -25,8 +25,8 @@
  THE SOFTWARE.
  */
 
-#ifndef SCALMCCONFIG
-#define SCALMCCONFIG
+#ifndef APPMCCONFIG
+#define APPMCCONFIG
 
 #include <vector>
 
@@ -45,4 +45,4 @@ struct AppMCConfig {
     std::string logfilename = "";
 };
 
-#endif //SCALMCCONFIG
+#endif //APPMCCONFIG
