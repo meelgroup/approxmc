@@ -329,6 +329,8 @@ void readInStandardInput(SATSolver* solver2)
         exit(-1);
     }
 
+    conf.sampling_set.swap(parser.independent_vars);
+
     #ifdef USE_ZLIB
         gzclose(in);
     #endif
