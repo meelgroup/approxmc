@@ -208,7 +208,7 @@ int64_t AppMC::bounded_sol_count(
         solutions++;
     }
 
-    //we have all solutions now, scalgen variant
+    //we have all solutions now, appmcgen variant
     if (solutions < maxSolutions && solutions >= minSolutions && solutionMap) {
         assert(minSolutions > 0);
         std::vector<int> modelIndices;
@@ -326,7 +326,7 @@ int AppMC::solve(AppMCConfig _conf)
         }
 
         /* Compute threshold via formula from TACAS-15 paper */
-        threshold_scalgen = ceil(4.03 * (1 + (1/conf.kappa)) * (1 + (1/conf.kappa)));
+        threshold_appmcgen = ceil(4.03 * (1 + (1/conf.kappa)) * (1 + (1/conf.kappa)));
 
         if (conf.startiter == 0) {
             SATCount solCount;
@@ -350,7 +350,7 @@ int AppMC::solve(AppMCConfig _conf)
             << solCount.cellSolCount << " x 2^" << solCount.hashCount << endl;
 
             double si = round(solCount.hashCount + log2(solCount.cellSolCount)
-                + log2(1.8) - log2(threshold_scalgen)) - 2;
+                + log2(1.8) - log2(threshold_appmcgen)) - 2;
             if (si > 0)
                 conf.startiter = si;
             else
@@ -572,7 +572,7 @@ void printVersionInfoAppMC()
 void AppMC::printVersionInfo() const
 {
     ::printVersionInfoAppMC();
-    cout << solver->get_text_version_info() << endl;
+    cout << solver->get_text_version_info();
 }
 
 int AppMC::correctReturnValue(const lbool ret) const
@@ -593,7 +593,7 @@ int AppMC::correctReturnValue(const lbool ret) const
 }
 
 
-/////////////// scalgen ////////////////
+/////////////// appmcgen ////////////////
 /* Number of solutions to return from one invocation of AppmcGen. */
 uint32_t AppMC::SolutionsToReturn(uint32_t numSolutions)
 {
@@ -607,8 +607,8 @@ uint32_t AppMC::SolutionsToReturn(uint32_t numSolutions)
 
 void AppMC::generate_samples()
 {
-    hiThresh = ceil(1 + (1.4142136 * (1 + conf.kappa) * threshold_scalgen));
-    loThresh = floor(threshold_scalgen / (1.4142136 * (1 + conf.kappa)));
+    hiThresh = ceil(1 + (1.4142136 * (1 + conf.kappa) * threshold_appmcgen));
+    loThresh = floor(threshold_appmcgen / (1.4142136 * (1 + conf.kappa)));
     uint32_t samplesPerCall = SolutionsToReturn(conf.samples);
     uint32_t callsNeeded = (conf.samples + samplesPerCall - 1) / samplesPerCall;
     cout << "[appmc] starting sample generation. loThresh " << loThresh
@@ -749,7 +749,7 @@ uint32_t AppMC::AppmcGen(
             }
 
             if (!conf.logfilename.empty()) {
-                logfile << "scalgen:"
+                logfile << "appmcgen:"
                 << sampleCounter << ":" << currentHashCount << ":"
                 << std::fixed << std::setprecision(2) << (cpuTimeTotal() - timeReference) << ":"
                 << (int)(ret == l_False ? 1 : (ret == l_True ? 0 : 2)) << ":"

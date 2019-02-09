@@ -82,7 +82,7 @@ public:
     );
     uint32_t loThresh;
     uint32_t hiThresh;
-    uint32_t threshold_scalgen;
+    uint32_t threshold_appmcgen;
     SATSolver* solver = NULL;
     void printVersionInfo() const;
 

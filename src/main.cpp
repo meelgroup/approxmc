@@ -50,6 +50,7 @@ AppMC* appmc = NULL;
 
 AppMCConfig conf;
 po::options_description appmc_options = po::options_description("AppMC options");
+po::options_description appmcgen_options = po::options_description("AppmcGen options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
@@ -145,27 +146,31 @@ void add_appmc_options()
          "How many solving threads to use per solver call")
     ("vcl", po::value(&conf.verb_appmc_cls)->default_value(conf.verb_appmc_cls)
         ,"Print banning clause + xor clauses. Highly verbose.")
-    ("samples", po::value(&conf.samples)->default_value(conf.samples)
-        , "Number of random samples to generate")
-    ("indepsamples", po::value(&conf.only_indep_samples)->default_value(conf.only_indep_samples)
-        , "Should only output the independent vars from the samples")
     ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
         , "Generate sparse XORs when possible")
     ("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
         , "Uniformity parameter (see TACAS-15 paper)")
+    ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)
+        , "If positive, use instead of startiter computed by AppMC")
+    ;
+
+    appmcgen_options.add_options()
+    ("samples", po::value(&conf.samples)->default_value(conf.samples)
+        , "Number of random samples to generate")
+    ("indepsamples", po::value(&conf.only_indep_samples)->default_value(conf.only_indep_samples)
+        , "Should only output the independent vars from the samples")
     ("multisample", po::value(&conf.multisample)->default_value(conf.multisample)
         , "Return multiple samples from each call")
     ("sampleout", po::value(&conf.sampleFilename)
         , "Write samples to this file")
     ("cmsindeponly", po::value(&conf.cms_indep_only)->default_value(conf.cms_indep_only)
         , "Don't extend solution by SAT solver")
-    ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)
-        , "If positive, use instead of startiter computed by AppMC")
     ("callsPerSolver", po::value(&conf.callsPerSolver)->default_value(conf.callsPerSolver)
         , "Number of AppmcGen calls to make in a single solver, or 0 to use a heuristic")
     ;
 
     help_options.add(appmc_options);
+    help_options.add(appmcgen_options);
 }
 
 void add_supported_options(int argc, char** argv)
@@ -412,13 +417,14 @@ int main(int argc, char** argv)
     set_sampling_vars();
 
 
-    //AppMC or scalgen?
+    //AppMC only
     if (conf.samples == 0) {
         if (vm.count("sampleout")){
             cerr << "ERROR: You did not give the '--samples N' option, but you gave the '--sampleout FNAME' option." << endl;
             cout << "ERROR: This is confusing. Please give '--samples N' if you give '--sampleout FNAME'" << endl;
             exit(-1);
         }
+    //AppmcGen
     } else {
         if (conf.samples == 0 || conf.startiter == 0) {
             if (conf.samples > 0) {

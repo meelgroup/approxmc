@@ -76,7 +76,7 @@ void set_sampling_vars()
 
 int solve(const char* cnf)
 {
-    appmc = new ScalMC;
+    appmc = new AppMC;
     appmc->printVersionInfo();
     appmc->solver = new SATSolver;
     cout << "[appmc] using seed: " << conf.seed << endl;
