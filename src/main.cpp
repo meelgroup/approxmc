@@ -140,7 +140,7 @@ void add_appmc_options()
     ("start", po::value(&conf.start_iter)->default_value(conf.start_iter),
          "Start at this many XORs")
     ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
-         "Log of SCALMC iterations.")
+         "Log of ApproxMC iterations.")
     ("th", po::value(&conf.num_threads)->default_value(conf.num_threads),
          "How many solving threads to use per solver call")
     ("vcl", po::value(&conf.verb_appmc_cls)->default_value(conf.verb_appmc_cls)
