@@ -1,5 +1,5 @@
 /*
- ApproxMC and ScalGen
+ ApproxMC and AppmcGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -25,8 +25,8 @@
  THE SOFTWARE.
  */
 
-#ifndef SCALMCCONFIG
-#define SCALMCCONFIG
+#ifndef APPMCCONFIG
+#define APPMCCONFIG
 
 #include <vector>
 
@@ -51,4 +51,4 @@ struct AppMCConfig {
     std::string logfilename = "";
 };
 
-#endif //SCALMCCONFIG
+#endif //APPMCCONFIG

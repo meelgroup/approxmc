@@ -1,5 +1,5 @@
 /*
- ApproxMC and ScalGen
+ ApproxMC and AppmcGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -30,9 +30,9 @@
 using std::string;
 using std::vector;
 
-#include "scalmcconfig.h"
+#include "approxmcconfig.h"
 #include "time_mem.h"
-#include "scalmc.h"
+#include "approxmc.h"
 #include <cryptominisat5/cryptominisat.h>
 #include <cryptominisat5/solverconf.h>
 #include "cryptominisat5/dimacsparser.h"
@@ -42,10 +42,10 @@ using namespace CMSat;
 using std::cout;
 using std::cerr;
 using std::endl;
-ScalMC* scalmc = NULL;
+AppMC* appmc = NULL;
 
 SolverConf satconf;
-ScalMCConfig conf;
+AppMCConfig conf;
 
 #if defined _WIN32
     #define DLL_PUBLIC __declspec(dllexport)
@@ -61,7 +61,7 @@ void set_sampling_vars()
         << "[appmc] WARNING! Sampling set was not declared with 'c ind var1 [var2 var3 ..] 0'"
         " notation in the CNF." << endl
         << "[appmc] we may work substantially worse!" << endl;
-        for (size_t i = 0; i < scalmc->solver->nVars(); i++) {
+        for (size_t i = 0; i < appmc->solver->nVars(); i++) {
             conf.sampling_set.push_back(i);
         }
     }
@@ -71,25 +71,25 @@ void set_sampling_vars()
         cout << v+1 << ", ";
     }
     cout << endl;
-    scalmc->solver->set_sampling_set(&conf.sampling_set);
+    appmc->solver->set_sampling_set(&conf.sampling_set);
 }
 
 int solve(const char* cnf)
 {
-    scalmc = new ScalMC;
-    scalmc->printVersionInfo();
-    scalmc->solver = new SATSolver;
+    appmc = new ScalMC;
+    appmc->printVersionInfo();
+    appmc->solver = new SATSolver;
     cout << "[appmc] using seed: " << conf.seed << endl;
     conf.logfilename = "log.txt";
 
-    DimacsParser<StreamBuffer<const char*, CH>> parser(scalmc->solver, NULL, 2);
+    DimacsParser<StreamBuffer<const char*, CH>> parser(appmc->solver, NULL, 2);
     if (!parser.parse_DIMACS(cnf, false)) {
         exit(-1);
     }
     conf.sampling_set.swap(parser.sampling_set);
 
     set_sampling_vars();
-    scalmc->solve(conf);
+    appmc->solve(conf);
     return 0;
 }
 

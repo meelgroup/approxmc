@@ -1,5 +1,5 @@
 /*
- ApproxMC and ScalGen
+ ApproxMC and AppmcGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
@@ -162,7 +162,7 @@ void add_appmc_options()
     ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)
         , "If positive, use instead of startiter computed by AppMC")
     ("callsPerSolver", po::value(&conf.callsPerSolver)->default_value(conf.callsPerSolver)
-        , "Number of ScalGen calls to make in a single solver, or 0 to use a heuristic")
+        , "Number of AppmcGen calls to make in a single solver, or 0 to use a heuristic")
     ;
 
     help_options.add(appmc_options);
@@ -422,14 +422,14 @@ int main(int argc, char** argv)
     } else {
         if (conf.samples == 0 || conf.startiter == 0) {
             if (conf.samples > 0) {
-                cout << "Using appmc to compute startiter for ScalGen" << endl;
+                cout << "Using appmc to compute startiter for AppmcGen" << endl;
                 if (!vm["thresholdAC"].defaulted() || !vm["measurements"].defaulted()) {
                     cout << "WARNING: manually-specified thresholdAC and/or measurements may"
-                         << " not be large enough to guarantee correctness of ScalGen." << endl
+                         << " not be large enough to guarantee correctness of AppmcGen." << endl
                          << "Omit those arguments to use safe default values." << endl;
                 } else {
                     /* Fill in here the best parameters for appmc achieving
-                     * epsilon=0.8 and delta=0.177 as required by ScalGen */
+                     * epsilon=0.8 and delta=0.177 as required by AppmcGen */
                     conf.threshold = 73;
                     conf.measurements = 11;
                 }

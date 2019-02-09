@@ -1,5 +1,5 @@
 /*
- ApproxMC and ScalGen
+ ApproxMC and AppmcGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
@@ -66,14 +66,14 @@ public:
     uint32_t SolutionsToReturn(uint32_t numSolutions);
     void generate_samples();
     bool gen_rhs();
-    uint32_t ScalGen(
+    uint32_t AppmcGen(
         uint32_t samples
         , uint32_t sampleCounter
         , std::map<string, uint32_t>& solutionMap
         , uint32_t* lastSuccessfulHashOffset
         , double timeReference
     );
-    int ScalGenCall(
+    int AppmcGenCall(
         uint32_t samples
         , uint32_t sampleCounter
         , std::map<string, uint32_t>& solutionMap
@@ -89,7 +89,7 @@ public:
 private:
     AppMCConfig conf;
     bool count(SATCount& count);
-    void add_scalmc_options();
+    void add_appmc_options();
     bool ScalAppMC(SATCount& count);
     bool add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes);
     void SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);

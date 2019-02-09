@@ -1,5 +1,5 @@
 /*
- ApproxMC and ScalGen
+ ApproxMC and AppmcGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
@@ -320,7 +320,7 @@ int AppMC::solve(AppMCConfig _conf)
          << " x 2^" << solCount.hashCount << endl;
     } else {
         if (conf.startiter > conf.sampling_set.size()) {
-            cerr << "ERROR: Manually-specified startiter for ScalGen"
+            cerr << "ERROR: Manually-specified startiter for AppmcGen"
                  "is larger than the size of the independent set.\n" << endl;
             return -1;
         }
@@ -330,7 +330,7 @@ int AppMC::solve(AppMCConfig _conf)
 
         if (conf.startiter == 0) {
             SATCount solCount;
-            cout << "[appmc] ScalGen starting from iteration " << conf.startiter << endl;
+            cout << "[appmc] AppmcGen starting from iteration " << conf.startiter << endl;
 
             bool finished = false;
             finished = count(solCount);
@@ -356,7 +356,7 @@ int AppMC::solve(AppMCConfig _conf)
             else
                 conf.startiter = 0;   /* Indicate ideal sampling case */
         } else {
-            cout << "Using manually-specified startiter for ScalGen" << endl;
+            cout << "Using manually-specified startiter for AppmcGen" << endl;
         }
         generate_samples();
         output_samples();
@@ -594,7 +594,7 @@ int AppMC::correctReturnValue(const lbool ret) const
 
 
 /////////////// scalgen ////////////////
-/* Number of solutions to return from one invocation of ScalGen. */
+/* Number of solutions to return from one invocation of AppmcGen. */
 uint32_t AppMC::SolutionsToReturn(uint32_t numSolutions)
 {
     if (conf.startiter == 0)   // TODO improve hack for ideal sampling case?
@@ -615,7 +615,7 @@ void AppMC::generate_samples()
     << ", hiThresh " << hiThresh
     << ", startiter " << conf.startiter << endl;
 
-    cout << "[appmc] Outputting " << samplesPerCall << " solutions from each ScalGen call" << endl;
+    cout << "[appmc] Outputting " << samplesPerCall << " solutions from each AppmcGen call" << endl;
 
     uint32_t numCallsInOneLoop = 0;
     if (conf.callsPerSolver == 0) {
@@ -644,17 +644,17 @@ void AppMC::generate_samples()
     uint32_t lastSuccessfulHashOffset = 0;
 
     if (conf.startiter > 0) {
-        ///Perform extra ScalGen calls that don't fit into the loops
+        ///Perform extra AppmcGen calls that don't fit into the loops
         if (remainingCalls > 0) {
-            sampleCounter = ScalGenCall(
+            sampleCounter = AppmcGenCall(
                 remainingCalls, sampleCounter
                 , threadSolutionMap
                 , &lastSuccessfulHashOffset, threadStartTime);
         }
 
-        // Perform main ScalGen call loops
+        // Perform main AppmcGen call loops
         for (uint32_t i = 0; i < numCallLoops; i++) {
-            sampleCounter = ScalGenCall(
+            sampleCounter = AppmcGenCall(
                 numCallsInOneLoop, sampleCounter, threadSolutionMap
                 , &lastSuccessfulHashOffset, threadStartTime);
         }
@@ -698,15 +698,15 @@ void AppMC::generate_samples()
 
     double timeTaken = cpuTimeTotal() - threadStartTime;
     allThreadsTime += timeTaken;
-    cout << "[appmc] Time for ScalGen: " << timeTaken << " s"
-    " -- Total time AppMC+ScalGen: " << cpuTimeTotal() << " s" << endl;
+    cout << "[appmc] Time for AppmcGen: " << timeTaken << " s"
+    " -- Total time AppMC+AppmcGen: " << cpuTimeTotal() << " s" << endl;
 
     // TODO put this back once multithreading is implemented
-    //cout << "Total time for all ScalGen calls: " << allThreadsTime << " s" << endl;
+    //cout << "Total time for all AppmcGen calls: " << allThreadsTime << " s" << endl;
     cout << "[appmc] Samples generated: " << allThreadsSampleCount << endl;
 }
 
-uint32_t AppMC::ScalGen(
+uint32_t AppMC::AppmcGen(
     uint32_t loc_samples
     , uint32_t sampleCounter
     , std::map<string, uint32_t>& solutionMap
@@ -785,7 +785,7 @@ uint32_t AppMC::ScalGen(
     return sampleCounter;
 }
 
-int AppMC::ScalGenCall(
+int AppMC::AppmcGenCall(
     uint32_t loc_samples
     , uint32_t sampleCounter
     , std::map<string, uint32_t>& solutionMap
@@ -798,11 +798,11 @@ int AppMC::ScalGenCall(
     //solverToInterrupt = solver;
 
     /* Heuristic: running solver once before adding any hashes
-     * tends to help performance (need to do this for ScalGen since
+     * tends to help performance (need to do this for AppmcGen since
      * we aren't necessarily starting from hashCount zero) */
     solver->solve();
 
-    sampleCounter = ScalGen(
+    sampleCounter = AppmcGen(
                         loc_samples
                         , sampleCounter
                         , solutionMap
