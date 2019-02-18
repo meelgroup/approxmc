@@ -281,7 +281,7 @@ void readInAFile(SATSolver* solver2, const string& filename)
         exit(-1);
     }
 
-    conf.sampling_set.swap(parser.independent_vars);
+    conf.sampling_set.swap(parser.sampling_vars);
 
     #ifndef USE_ZLIB
         fclose(in);
@@ -317,7 +317,7 @@ void readInStandardInput(SATSolver* solver2)
         exit(-1);
     }
 
-    conf.sampling_set.swap(parser.independent_vars);
+    conf.sampling_set.swap(parser.sampling_vars);
 
     #ifdef USE_ZLIB
         gzclose(in);
@@ -341,7 +341,7 @@ void set_sampling_vars()
         cout << v+1 << ", ";
     }
     cout << endl;
-    appmc->solver->set_independent_vars(&conf.sampling_set);
+    appmc->solver->set_sampling_vars(&conf.sampling_set);
 }
 
 int main(int argc, char** argv)
