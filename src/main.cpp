@@ -336,11 +336,17 @@ void set_sampling_vars()
         }
     }
     cout << "[appmc] Sampling set size: " << conf.sampling_set.size() << endl;
-    cout << "[appmc] Sampling set: ";
-    for (auto v: conf.sampling_set) {
-        cout << v+1 << ", ";
+    if (conf.sampling_set.size() > 100) {
+        cout
+        << "[appmc] Sampling var set contains over 100 variables, not displaying"
+        << endl;
+    } else {
+        cout << "[appmc] Sampling set: ";
+        for (auto v: conf.sampling_set) {
+            cout << v+1 << ", ";
+        }
+        cout << endl;
     }
-    cout << endl;
     appmc->solver->set_sampling_vars(&conf.sampling_set);
 }
 
