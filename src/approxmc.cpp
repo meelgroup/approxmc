@@ -458,9 +458,11 @@ bool AppMC::count(SATCount& count)
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
 
         uint64_t numExplored = 0;
-        uint64_t lowerFib = 0, upperFib = conf.sampling_set.size();
+        uint64_t lowerFib = 0;
+        uint64_t total_max_xors = std::ceil((double)conf.sampling_set.size()*1.5);
+        uint64_t upperFib = total_max_xors;
 
-        while (numExplored < conf.sampling_set.size()) {
+        while (numExplored < total_max_xors) {
             cout << "[appmc] Explored: " << std::setw(4) << numExplored
                  << " ind set size: " << std::setw(6) << conf.sampling_set.size() << endl;
             myTime = cpuTimeTotal();
@@ -479,7 +481,8 @@ bool AppMC::count(SATCount& count)
             }
 
             if (currentNumSolutions < conf.threshold + 1) {
-                numExplored = lowerFib+conf.sampling_set.size()-hashCount;
+                numExplored = lowerFib + total_max_xors - hashCount;
+
                 if (succRecord.find(hashCount-1) != succRecord.end()
                     && succRecord[hashCount-1] == 1
                 ) {
@@ -506,8 +509,8 @@ bool AppMC::count(SATCount& count)
                 }
             } else {
                 assert(currentNumSolutions == conf.threshold+1);
+                numExplored = hashCount + total_max_xors - upperFib;
 
-                numExplored = hashCount + conf.sampling_set.size()-upperFib;
                 if (succRecord.find(hashCount+1) != succRecord.end()
                     && succRecord[hashCount+1] == 0
                 ) {
