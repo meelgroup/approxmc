@@ -459,7 +459,7 @@ bool AppMC::count(SATCount& count)
 
         uint64_t numExplored = 0;
         uint64_t lowerFib = 0;
-        uint64_t total_max_xors = std::ceil((double)conf.sampling_set.size()*1.5);
+        uint64_t total_max_xors = std::ceil((double)conf.sampling_set.size()*1.2)+5;
         uint64_t upperFib = total_max_xors;
 
         while (numExplored < total_max_xors) {
@@ -480,9 +480,10 @@ bool AppMC::count(SATCount& count)
                 << currentNumSolutions << endl;
             }
 
-            if (currentNumSolutions < conf.threshold + 1) {
+            if (currentNumSolutions <= conf.threshold) {
                 numExplored = lowerFib + total_max_xors - hashCount;
 
+                //check success record if it exists
                 if (succRecord.find(hashCount-1) != succRecord.end()
                     && succRecord[hashCount-1] == 1
                 ) {
@@ -492,9 +493,13 @@ bool AppMC::count(SATCount& count)
                     //less than threshold solutions
                     break;
                 }
+
+                //No success record
                 succRecord[hashCount] = 0;
                 countRecord[hashCount] = currentNumSolutions;
-                if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) <= 2 && mPrev != 0) {
+                if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) <= 2
+                    && mPrev != 0
+                ) {
                     upperFib = hashCount;
                     hashCount--;
                 } else {
@@ -511,6 +516,7 @@ bool AppMC::count(SATCount& count)
                 assert(currentNumSolutions == conf.threshold+1);
                 numExplored = hashCount + total_max_xors - upperFib;
 
+                //Check if success record for +1 hashcount exists and is 0
                 if (succRecord.find(hashCount+1) != succRecord.end()
                     && succRecord[hashCount+1] == 0
                 ) {
@@ -519,8 +525,12 @@ bool AppMC::count(SATCount& count)
                     mPrev = hashCount+1;
                     break;
                 }
+
+                //No success record of hashCount+1 or it's not 0
                 succRecord[hashCount] = 1;
-                if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) < 2 && mPrev!=0) {
+                if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) < 2
+                    && mPrev!=0
+                ) {
                     lowerFib = hashCount;
                     hashCount ++;
                 } else if (lowerFib + (hashCount - lowerFib)*2 >= upperFib-1) {
@@ -534,7 +544,7 @@ bool AppMC::count(SATCount& count)
             hashPrev = swapVar;
         }
         assumps.clear();
-        hashCount =mPrev;
+        hashCount = mPrev;
     }
     if (numHashList.size() == 0) {
         //UNSAT
