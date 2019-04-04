@@ -124,9 +124,11 @@ std::array<double,256> iterationConfidences = {{
 void add_appmc_options()
 {
 
-    std::ostringstream my_kappa;
+    std::ostringstream my_kappa, my_epsilon, my_delta;
     my_kappa << std::setprecision(8) << conf.kappa;
-
+    my_epsilon << std::setprecision(8) << conf.epsilon;
+    my_delta << std::setprecision(8) << conf.delta;
+    
     appmc_options.add_options()
     ("help,h", "Prints help")
     ("version", "Print version info")
@@ -135,12 +137,12 @@ void add_appmc_options()
     ("seed,s", po::value(&conf.seed)->default_value(conf.seed), "Seed")
     //("threshold", po::value(&conf.threshold)->default_value(conf.threshold)
     //    , "Number of solutions to check for -- used to be 'pivotAC'")
-    ("epsilon", po::value(&conf.epsilon)->default_value(conf.epsilon)
-        , "tolerance (supersedes threshold if changed)")
+    ("epsilon", po::value(&conf.epsilon)->default_value(conf.epsilon, my_epsilon.str())
+        , "epsilon parameter as per PAC guarantees")
     //("measure", po::value(&conf.measurements)->default_value(conf.measurements)
     //    , "Number of measurements -- used to be 'samplingT' or 'tApproxMC'")
-    ("delta", po::value(&conf.delta)->default_value(conf.delta)
-        , "provide value of 1-confidence(supersedes measure if changed)")
+    ("delta", po::value(&conf.delta)->default_value(conf.delta, my_delta.str())
+        , "delta parameter as per PAC guarantees; 1-delta is the confidence")
     ("start", po::value(&conf.start_iter)->default_value(conf.start_iter),
          "Start at this many XORs")
     ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
@@ -409,7 +411,7 @@ int main(int argc, char** argv)
         conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
         for (int count = 0; count < 256; count++)
             if(iterationConfidences[count] >= 1 - conf.delta){
-                conf.measurements = count + 1;
+                conf.measurements = count*2+1;
                 break;
             }
     }

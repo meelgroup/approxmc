@@ -326,7 +326,6 @@ bool AppMC::count(SATCount& count)
         }
         hashCount++;
     }
-    cout << conf.measurements << endl;
     for (uint32_t j = 0; j < conf.measurements; j++) {
         map<uint64_t,int64_t> countRecord;
         map<uint64_t,uint32_t> succRecord;
