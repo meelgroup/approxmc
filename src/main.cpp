@@ -49,7 +49,7 @@ using std::endl;
 AppMC* appmc = NULL;
 
 AppMCConfig conf;
-po::options_description appmc_options = po::options_description("AppMC options");
+po::options_description appmc_options = po::options_description("ApproxMC options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
@@ -146,15 +146,15 @@ void add_appmc_options()
     ("start", po::value(&conf.start_iter)->default_value(conf.start_iter),
          "Start at this many XORs")
     ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
-         "Log of ApproxMC iterations.")
+         "Logs of ApproxMC execution")
     ("th", po::value(&conf.num_threads)->default_value(conf.num_threads),
          "How many solving threads to use per solver call")
     ("vcl", po::value(&conf.verb_appmc_cls)->default_value(conf.verb_appmc_cls)
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
         , "Generate sparse XORs when possible")
-    ("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
-        , "Uniformity parameter (see TACAS-15 paper)")
+    //("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
+    //    , "Uniformity parameter (see TACAS-15 paper)")
     ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)
         , "If positive, use instead of startiter computed by AppMC")
     ;
@@ -172,10 +172,10 @@ void add_supported_options(int argc, char** argv)
         if (vm.count("help"))
         {
             cout
-            << "Approximate counter" << endl;
+            << "Probably Approximate counter" << endl;
 
             cout
-            << "appmc [options] inputfile" << endl << endl;
+            << "approxmc [options] inputfile" << endl << endl;
 
             cout << help_options << endl;
             std::exit(0);
@@ -395,7 +395,7 @@ int main(int argc, char** argv)
     }
 
 
-    if (conf.epsilon >= 1.0 || conf.epsilon < 0.0) {
+    if (conf.epsilon < 0.0) {
         cout << "[appmc] ERROR: invalid epsilon" << endl;
         return -1;    
     } else {
