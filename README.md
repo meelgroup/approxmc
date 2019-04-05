@@ -93,7 +93,7 @@ c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 ```
 ApproxMC reports that we have approximately `96 (=48*2)` solutions to the CNF's independent support. This is because for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
 
-### Guarantees
+### Probility and Approximation Guarantees
 The default epsilon and delta values are set to 0.8 and 0.2 respectively. Both the values are configurable. ApproxMC return an estimate of the exact count within (1+epsilon) factor with confidence at least (1-delta), i.e., in more fancy words ApproxMC provides PAC(Probably Approximately Correct) guarantees.
 
 ### Issues, questions, bugs, etc.
