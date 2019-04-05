@@ -135,12 +135,8 @@ void add_appmc_options()
     ("input", po::value< vector<string> >(), "file(s) to read")
     ("verb,v", po::value(&conf.verb)->default_value(conf.verb), "verbosity")
     ("seed,s", po::value(&conf.seed)->default_value(conf.seed), "Seed")
-    //("threshold", po::value(&conf.threshold)->default_value(conf.threshold)
-    //    , "Number of solutions to check for -- used to be 'pivotAC'")
     ("epsilon", po::value(&conf.epsilon)->default_value(conf.epsilon, my_epsilon.str())
         , "epsilon parameter as per PAC guarantees")
-    //("measure", po::value(&conf.measurements)->default_value(conf.measurements)
-    //    , "Number of measurements -- used to be 'samplingT' or 'tApproxMC'")
     ("delta", po::value(&conf.delta)->default_value(conf.delta, my_delta.str())
         , "delta parameter as per PAC guarantees; 1-delta is the confidence")
     ("start", po::value(&conf.start_iter)->default_value(conf.start_iter),
@@ -280,7 +276,7 @@ void readInAFile(SATSolver* solver2, const string& filename)
         << filename
         << "' for reading: " << strerror(errno) << endl;
 
-        std::exit(1);
+        std::exit(-1);
     }
 
     if (!parser.parse_DIMACS(in, false)) {
@@ -397,23 +393,20 @@ int main(int argc, char** argv)
 
     if (conf.epsilon < 0.0) {
         cout << "[appmc] ERROR: invalid epsilon" << endl;
-        return -1;    
-    } else {
-        conf.threshold = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+        exit(-1);
     }
-    
-
+    conf.threshold = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
 
     if (conf.delta <= 0.0 || conf.delta > 1.0) {
         cout << "[appmc] ERROR: invalid delta" << endl;
-        return -1;
-    } else {
-        conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
-        for (int count = 0; count < 256; count++)
-            if(iterationConfidences[count] >= 1 - conf.delta){
-                conf.measurements = count*2+1;
-                break;
-            }
+        exit(-1);
+    }
+    conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
+    for (int count = 0; count < 256; count++) {
+        if(iterationConfidences[count] >= 1 - conf.delta){
+            conf.measurements = count*2+1;
+            break;
+        }
     }
 
     //parsing the input
@@ -431,7 +424,7 @@ int main(int argc, char** argv)
     if (conf.start_iter > conf.sampling_set.size()) {
         cout << "[appmc] ERROR: Manually-specified start_iter"
              "is larger than the size of the sampling set.\n" << endl;
-        return -1;
+        exit(-1);
     }
 
     return appmc->solve(conf);
