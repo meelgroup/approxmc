@@ -126,9 +126,11 @@ void add_appmc_options()
 {
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;
+    std::ostringstream my_kappa;
+
     my_epsilon << std::setprecision(8) << conf.epsilon;
     my_delta << std::setprecision(8) << conf.delta;
-
+    my_kappa << std::setprecision(8) << conf.kappa;
 
     appmc_options.add_options()
     ("help,h", "Prints help")
@@ -167,6 +169,9 @@ void add_appmc_options()
         , "Don't extend solution by SAT solver")
     ("callsPerSolver", po::value(&conf.callsPerSolver)->default_value(conf.callsPerSolver)
         , "Number of AppmcGen calls to make in a single solver, or 0 to use a heuristic")
+    ("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
+        , "Uniformity parameter (see TACAS-15 paper)")
+
     ;
 
     help_options.add(appmc_options);
