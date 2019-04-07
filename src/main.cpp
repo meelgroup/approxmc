@@ -49,7 +49,7 @@ using std::endl;
 AppMC* appmc = NULL;
 
 AppMCConfig conf;
-po::options_description appmc_options = po::options_description("AppMC options");
+po::options_description appmc_options = po::options_description("ApproxMC options");
 po::options_description appmcgen_options = po::options_description("AppmcGen options");
 po::options_description help_options;
 po::variables_map vm;
@@ -430,8 +430,6 @@ int main(int argc, char** argv)
             break;
         }
     }
-
-
 
     //parsing the input
     if (vm.count("input") != 0) {
