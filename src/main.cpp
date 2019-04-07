@@ -124,10 +124,13 @@ std::array<double,256> iterationConfidences = {{
 void add_appmc_options()
 {
 
-    std::ostringstream my_kappa, my_epsilon, my_delta;
+    std::ostringstream my_kappa;
+    std::ostringstream my_epsilon;
+    std::ostringstream my_delta;
     my_kappa << std::setprecision(8) << conf.kappa;
     my_epsilon << std::setprecision(8) << conf.epsilon;
     my_delta << std::setprecision(8) << conf.delta;
+
 
     appmc_options.add_options()
     ("help,h", "Prints help")
@@ -149,8 +152,6 @@ void add_appmc_options()
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
         , "Generate sparse XORs when possible")
-    //("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
-    //    , "Uniformity parameter (see TACAS-15 paper)")
     ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)
         , "If positive, use instead of startiter computed by AppMC")
     ;
@@ -389,7 +390,6 @@ int main(int argc, char** argv)
     if (conf.num_threads > 1) {
         appmc->solver->set_num_threads(conf.num_threads);
     }
-
 
     if (conf.epsilon < 0.0) {
         cout << "[appmc] ERROR: invalid epsilon" << endl;
