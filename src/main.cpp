@@ -124,11 +124,8 @@ std::array<double,256> iterationConfidences = {{
 
 void add_appmc_options()
 {
-
-    std::ostringstream my_kappa;
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;
-    my_kappa << std::setprecision(8) << conf.kappa;
     my_epsilon << std::setprecision(8) << conf.epsilon;
     my_delta << std::setprecision(8) << conf.delta;
 
