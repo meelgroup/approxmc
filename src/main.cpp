@@ -126,7 +126,12 @@ void add_appmc_options()
 {
 
     std::ostringstream my_kappa;
+    std::ostringstream my_epsilon;
+    std::ostringstream my_delta;
     my_kappa << std::setprecision(8) << conf.kappa;
+    my_epsilon << std::setprecision(8) << conf.epsilon;
+    my_delta << std::setprecision(8) << conf.delta;
+
 
     appmc_options.add_options()
     ("help,h", "Prints help")
@@ -134,22 +139,20 @@ void add_appmc_options()
     ("input", po::value< vector<string> >(), "file(s) to read")
     ("verb,v", po::value(&conf.verb)->default_value(conf.verb), "verbosity")
     ("seed,s", po::value(&conf.seed)->default_value(conf.seed), "Seed")
-    ("threshold", po::value(&conf.threshold)->default_value(conf.threshold)
-        , "Number of solutions to check for -- used to be 'pivotAC'")
-    ("measure", po::value(&conf.measurements)->default_value(conf.measurements)
-        , "Number of measurements -- used to be 'samplingT' or 'tApproxMC'")
+    ("epsilon", po::value(&conf.epsilon)->default_value(conf.epsilon, my_epsilon.str())
+        , "epsilon parameter as per PAC guarantees")
+    ("delta", po::value(&conf.delta)->default_value(conf.delta, my_delta.str())
+        , "delta parameter as per PAC guarantees; 1-delta is the confidence")
     ("start", po::value(&conf.start_iter)->default_value(conf.start_iter),
          "Start at this many XORs")
     ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
-         "Log of ApproxMC iterations.")
+         "Logs of ApproxMC execution")
     ("th", po::value(&conf.num_threads)->default_value(conf.num_threads),
          "How many solving threads to use per solver call")
     ("vcl", po::value(&conf.verb_appmc_cls)->default_value(conf.verb_appmc_cls)
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
         , "Generate sparse XORs when possible")
-    ("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
-        , "Uniformity parameter (see TACAS-15 paper)")
     ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)
         , "If positive, use instead of startiter computed by AppMC")
     ;
@@ -183,10 +186,10 @@ void add_supported_options(int argc, char** argv)
         if (vm.count("help"))
         {
             cout
-            << "Approximate counter" << endl;
+            << "Probably Approximate counter" << endl;
 
             cout
-            << "appmc [options] inputfile" << endl << endl;
+            << "approxmc [options] inputfile" << endl << endl;
 
             cout << help_options << endl;
             std::exit(0);
@@ -291,7 +294,7 @@ void readInAFile(SATSolver* solver2, const string& filename)
         << filename
         << "' for reading: " << strerror(errno) << endl;
 
-        std::exit(1);
+        std::exit(-1);
     }
 
     if (!parser.parse_DIMACS(in, false)) {
@@ -410,6 +413,26 @@ int main(int argc, char** argv)
         appmc->solver->set_num_threads(conf.num_threads);
     }
 
+    if (conf.epsilon < 0.0) {
+        cout << "[appmc] ERROR: invalid epsilon" << endl;
+        exit(-1);
+    }
+    conf.threshold = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+
+    if (conf.delta <= 0.0 || conf.delta > 1.0) {
+        cout << "[appmc] ERROR: invalid delta" << endl;
+        exit(-1);
+    }
+    conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
+    for (int count = 0; count < 256; count++) {
+        if(iterationConfidences[count] >= 1 - conf.delta){
+            conf.measurements = count*2+1;
+            break;
+        }
+    }
+
+
+
     //parsing the input
     if (vm.count("input") != 0) {
         vector<string> inp = vm["input"].as<vector<string> >();
@@ -478,7 +501,7 @@ int main(int argc, char** argv)
     if (conf.start_iter > conf.sampling_set.size()) {
         cout << "[appmc] ERROR: Manually-specified start_iter"
              "is larger than the size of the sampling set.\n" << endl;
-        return -1;
+        exit(-1);
     }
 
     return appmc->solve(conf);
