@@ -47,7 +47,7 @@ sudo make install
 ## How to Use
 First, you must translate your problem to CNF and just pass your file as input to ApproxMC. Voila -- and it will print the number of solutions of the given CNF formula.
 
-ApproxMC handles CNF formulas. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC][https://gitlab.com/Shrotri/DNF_Counting]. 
+ApproxMC handles CNF formulas. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting). 
 
 ### Sampling Set
 For some applications, one is not interested in solutions over all the variables and instead interested in counting the number of unique solutions to a subset of variables, called sampling set. ApproxMC allows you to specify the sampling set using the following modified version of DIMACS format:
