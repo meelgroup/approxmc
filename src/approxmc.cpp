@@ -721,7 +721,6 @@ void AppMC::generate_samples()
             ,assumps //assumps
             , 0 //number of hahes
             , &threadSolutionMap //return sols here
-            , 1 //minsol
         );
         assert(count > 0);
 
