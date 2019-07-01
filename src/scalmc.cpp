@@ -531,7 +531,7 @@ bool ScalMC::count(SATCount& count)
             hashPrev = swapVar;
         }
         assumps.clear();
-        hashCount =mPrev;
+        hashCount = mPrev;
     }
     if (numHashList.size() == 0) {
         //UNSAT
@@ -702,7 +702,6 @@ void ScalMC::generate_samples()
             ,assumps //assumps
             , 0 //number of hahes
             , &threadSolutionMap //return sols here
-            , 1 //minsol
         );
         assert(count > 0);
 
