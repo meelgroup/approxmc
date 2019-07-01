@@ -136,12 +136,33 @@ bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total
     return true;
 }
 
+///adding banning clauses for repeating solutions
+void ScalMC::add_glob_banning_cls(
+    const vector<vector<lbool>>* glob_model
+    , const uint32_t act_var)
+{
+    if (glob_model == NULL)
+        return;
+
+    vector<Lit> lits;
+    for (uint32_t i = 0; i < glob_model->size(); i++)
+    {
+        lits.clear();
+        lits.push_back(Lit(act_var, false));
+        for (const uint32_t var: conf.independent_vars) {
+            lits.push_back(Lit(var, (*glob_model)[i][var] == l_True));
+        }
+        solver->add_clause(lits);
+    }
+}
+
 int64_t ScalMC::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>& assumps,
         const uint32_t hashCount,
         std::map<std::string, uint32_t>* solutionMap,
-        uint32_t minSolutions
+        uint32_t minSolutions,
+        vector<vector<lbool>>* glob_model
 ) {
     cout << "[scalmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
@@ -160,6 +181,8 @@ int64_t ScalMC::bounded_sol_count(
     if (hashCount > 2) {
         solver->simplify(&new_assumps);
     }
+
+    add_glob_banning_cls(glob_model, act_var);
 
     uint64_t solutions = 0;
     lbool ret;
@@ -221,6 +244,14 @@ int64_t ScalMC::bounded_sol_count(
         for (uint32_t i = 0; i < numSolutionsToReturn; i++) {
             model = modelsSet.at(modelIndices.at(i));
             add_solution_to_map(model, solutionMap);
+        }
+    }
+
+    // only these solutions are repeating
+    if (glob_model && solutions < maxSolutions){
+        // which are found in cells with less than thresh sols
+        for (uint32_t i = 0; i < modelsSet.size(); i++) {
+            glob_model->push_back(modelsSet[i]);
         }
     }
 
@@ -456,9 +487,10 @@ bool ScalMC::count(SATCount& count)
         map<uint64_t,int64_t> countRecord;
         map<uint64_t,uint32_t> succRecord;
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
-
         uint64_t numExplored = 0;
         uint64_t lowerFib = 0, upperFib = conf.independent_vars.size();
+        vector<vector<lbool>> glob_model; //global table storring models
+        int64_t repeat = 0; //repeatable solutions
 
         while (numExplored < conf.independent_vars.size()) {
             cout << "[scalmc] Explored: " << std::setw(4) << numExplored
@@ -467,7 +499,10 @@ bool ScalMC::count(SATCount& count)
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
             cout << "[scalmc] hashes active: " << std::setw(6) << hashCount << endl;
-            int64_t currentNumSolutions = bounded_sol_count(conf.threshold + 1, assumps, hashCount);
+
+            assert(conf.threshold + 1 >= repeat);
+            int64_t currentNumSolutions = bounded_sol_count(
+                conf.threshold + 1 - repeat, assumps, hashCount, NULL, 1, &glob_model);
 
             //cout << currentNumSolutions << ", " << threshold << endl;
             if (!conf.logfilename.empty()) {
@@ -478,19 +513,20 @@ bool ScalMC::count(SATCount& count)
                 << currentNumSolutions << endl;
             }
 
-            if (currentNumSolutions < conf.threshold + 1) {
+            if (currentNumSolutions < conf.threshold + 1 - repeat) {
+                repeat += currentNumSolutions;
                 numExplored = lowerFib+conf.independent_vars.size()-hashCount;
                 if (succRecord.find(hashCount-1) != succRecord.end()
                     && succRecord[hashCount-1] == 1
                 ) {
                     numHashList.push_back(hashCount);
-                    numCountList.push_back(currentNumSolutions);
+                    numCountList.push_back(repeat);
                     mPrev = hashCount;
                     //less than threshold solutions
                     break;
                 }
                 succRecord[hashCount] = 0;
-                countRecord[hashCount] = currentNumSolutions;
+                countRecord[hashCount] = repeat;
                 if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) <= 2 && mPrev != 0) {
                     upperFib = hashCount;
                     hashCount--;
@@ -505,7 +541,7 @@ bool ScalMC::count(SATCount& count)
                     hashCount = (upperFib+lowerFib)/2;
                 }
             } else {
-                assert(currentNumSolutions == conf.threshold+1);
+                assert(currentNumSolutions == conf.threshold+1-repeat);
 
                 numExplored = hashCount + conf.independent_vars.size()-upperFib;
                 if (succRecord.find(hashCount+1) != succRecord.end()

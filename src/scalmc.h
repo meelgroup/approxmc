@@ -107,12 +107,17 @@ private:
         const vector<lbool>& model
         , std::map<std::string, uint32_t>* solutionMap) const;
 
+    void add_glob_banning_cls(
+        const vector<vector<lbool>>* glob_model
+        , const uint32_t act_var);
+
     int64_t bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>& assumps,
         const uint32_t hashCount,
         std::map<std::string, uint32_t>* solutionMap = NULL,
-        uint32_t minSolutions = 1
+        uint32_t minSolutions = 1,
+        std::vector<vector<lbool>>* glob_model = NULL
     );
 
     void readInAFile(SATSolver* solver2, const string& filename);
