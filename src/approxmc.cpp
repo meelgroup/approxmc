@@ -136,12 +136,33 @@ bool AppMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_
     return true;
 }
 
+///adding banning clauses for repeating solutions
+void AppMC::add_glob_banning_cls(
+    const vector<vector<lbool>>* glob_model
+    , const uint32_t act_var)
+{
+    if (glob_model == NULL)
+        return;
+
+    vector<Lit> lits;
+    for (uint32_t i = 0; i < glob_model->size(); i++)
+    {
+        lits.clear();
+        lits.push_back(Lit(act_var, false));
+        for (const uint32_t var: conf.independent_vars) {
+            lits.push_back(Lit(var, (*glob_model)[i][var] == l_True));
+        }
+        solver->add_clause(lits);
+    }
+}
+
 int64_t AppMC::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>& assumps,
         const uint32_t hashCount,
         std::map<std::string, uint32_t>* solutionMap,
-        uint32_t minSolutions
+        uint32_t minSolutions,
+        vector<vector<lbool>>* glob_model
 ) {
     cout << "[appmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
@@ -160,6 +181,8 @@ int64_t AppMC::bounded_sol_count(
     if (hashCount > 2) {
         solver->simplify(&new_assumps);
     }
+
+    add_glob_banning_cls(glob_model, act_var);
 
     uint64_t solutions = 0;
     lbool ret;
@@ -221,6 +244,14 @@ int64_t AppMC::bounded_sol_count(
         for (uint32_t i = 0; i < numSolutionsToReturn; i++) {
             model = modelsSet.at(modelIndices.at(i));
             add_solution_to_map(model, solutionMap);
+        }
+    }
+
+    // only these solutions are repeating
+    if (glob_model && solutions < maxSolutions){
+        // which are found in cells with less than thresh sols
+        for (uint32_t i = 0; i < modelsSet.size(); i++) {
+            glob_model->push_back(modelsSet[i]);
         }
     }
 
@@ -456,7 +487,8 @@ bool AppMC::count(SATCount& count)
         map<uint64_t,int64_t> countRecord;
         map<uint64_t,uint32_t> succRecord;
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
-
+        vector<vector<lbool>> glob_model; //global table storring models
+        int64_t repeat = 0; //repeatable solutions
 
         //Note, the rank of a random NxN matrix is not N of course. It has an expected
         //rank that is of course lower than N. So we need to shoot higher.
@@ -464,7 +496,6 @@ bool AppMC::count(SATCount& count)
         //Apparently this question is analyzed in Kolchin's book Random Graphs in sect. 3.2.
         //Thanks to Yash Pote to digging this one out. Very helpful.
         uint64_t total_max_xors = std::ceil((double)conf.sampling_set.size()*1.2)+5;
-
         uint64_t numExplored = 0;
         uint64_t lowerFib = 0;
         uint64_t upperFib = total_max_xors;
@@ -475,8 +506,11 @@ bool AppMC::count(SATCount& count)
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
+
+            assert(conf.threshold + 1 >= repeat);
             cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
-            int64_t currentNumSolutions = bounded_sol_count(conf.threshold + 1, assumps, hashCount);
+            int64_t currentNumSolutions = bounded_sol_count(
+                conf.threshold + 1 - repeat, assumps, hashCount, NULL, 1, &glob_model);
 
             //cout << currentNumSolutions << ", " << threshold << endl;
             if (!conf.logfilename.empty()) {
@@ -487,7 +521,8 @@ bool AppMC::count(SATCount& count)
                 << currentNumSolutions << endl;
             }
 
-            if (currentNumSolutions <= conf.threshold) {
+            if (currentNumSolutions < conf.threshold + 1 - repeat) {
+                repeat += currentNumSolutions;
                 numExplored = lowerFib + total_max_xors - hashCount;
 
                 //check success record if it exists
@@ -495,7 +530,7 @@ bool AppMC::count(SATCount& count)
                     && succRecord[hashCount-1] == 1
                 ) {
                     numHashList.push_back(hashCount);
-                    numCountList.push_back(currentNumSolutions);
+                    numCountList.push_back(repeat);
                     mPrev = hashCount;
                     //less than threshold solutions
                     break;
@@ -503,7 +538,7 @@ bool AppMC::count(SATCount& count)
 
                 //No success record
                 succRecord[hashCount] = 0;
-                countRecord[hashCount] = currentNumSolutions;
+                countRecord[hashCount] = repeat;
                 if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) <= 2
                     && mPrev != 0
                 ) {
@@ -520,7 +555,7 @@ bool AppMC::count(SATCount& count)
                     hashCount = (upperFib+lowerFib)/2;
                 }
             } else {
-                assert(currentNumSolutions == conf.threshold+1);
+                assert(currentNumSolutions == conf.threshold+1-repeat);
                 numExplored = hashCount + total_max_xors - upperFib;
 
                 //Check if success record for +1 hashcount exists and is 0
