@@ -506,13 +506,11 @@ bool AppMC::count(SATCount& count)
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
-            cout << "[scalmc] hashes active: " << std::setw(6) << hashCount << endl;
 
             assert(conf.threshold + 1 >= repeat);
+            cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
             int64_t currentNumSolutions = bounded_sol_count(
                 conf.threshold + 1 - repeat, assumps, hashCount, NULL, 1, &glob_model);
-            cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
-            int64_t currentNumSolutions = bounded_sol_count(conf.threshold + 1, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << threshold << endl;
             if (!conf.logfilename.empty()) {
