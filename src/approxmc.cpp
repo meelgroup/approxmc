@@ -149,7 +149,7 @@ void AppMC::add_glob_banning_cls(
     {
         lits.clear();
         lits.push_back(Lit(act_var, false));
-        for (const uint32_t var: conf.independent_vars) {
+        for (const uint32_t var: conf.sampling_set) {
             lits.push_back(Lit(var, (*glob_model)[i][var] == l_True));
         }
         solver->add_clause(lits);
