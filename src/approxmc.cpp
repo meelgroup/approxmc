@@ -1,10 +1,10 @@
 /*
- ScalMC and ScalGen
+ ApproxMC and AppmcGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
- Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
  Kuldeep S. Meel, Sanjit A. Seshia, Moshe Y. Vardi
+ Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@
 #include <cmath>
 #include <complex>
 
-#include "scalmc.h"
+#include "approxmc.h"
 #include "time_mem.h"
 #include "cryptominisat5/cryptominisat.h"
 #include "cryptominisat5/solvertypesmini.h"
@@ -57,7 +57,7 @@ using std::map;
 
 void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
-    cout << "[scalmc] Added XOR ";
+    cout << "[appmc] Added XOR ";
     for (size_t i = 0; i < vars.size(); i++) {
         cout << vars[i]+1;
         if (i < vars.size()-1) {
@@ -67,12 +67,12 @@ void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
     cout << " = " << (rhs ? "True" : "False") << endl;
 }
 
-void ScalMC::openLogFile()
+void AppMC::openLogFile()
 {
     if (!conf.logfilename.empty()) {
         logfile.open(conf.logfilename.c_str());
         if (!logfile.is_open()) {
-            cout << "[scalmc] Cannot open ScalMC log file '" << conf.logfilename
+            cout << "[appmc] Cannot open AppMC log file '" << conf.logfilename
                  << "' for writing." << endl;
             exit(1);
         }
@@ -105,10 +105,10 @@ inline T findMin(vector<T>& numList)
     return min;
 }
 
-bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
+bool AppMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
 {
     const string randomBits =
-        GenerateRandomBits(conf.independent_vars.size() * num_xor_cls, total_num_hashes);
+        GenerateRandomBits(conf.sampling_set.size() * num_xor_cls, total_num_hashes);
 
     bool rhs;
     vector<uint32_t> vars;
@@ -123,13 +123,13 @@ bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total
         vars.push_back(act_var);
         rhs = gen_rhs();
 
-        for (uint32_t j = 0; j < conf.independent_vars.size(); j++) {
-            if (randomBits.at(conf.independent_vars.size() * i + j) == '1') {
-                vars.push_back(conf.independent_vars[j]);
+        for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
+            if (randomBits.at(conf.sampling_set.size() * i + j) == '1') {
+                vars.push_back(conf.sampling_set[j]);
             }
         }
         solver->add_xor_clause(vars, rhs);
-        if (conf.verb_scalmc_cls) {
+        if (conf.verb_appmc_cls) {
             print_xor(vars, rhs);
         }
     }
@@ -137,7 +137,7 @@ bool ScalMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total
 }
 
 ///adding banning clauses for repeating solutions
-void ScalMC::add_glob_banning_cls(
+void AppMC::add_glob_banning_cls(
     const vector<vector<lbool>>* glob_model
     , const uint32_t act_var)
 {
@@ -156,7 +156,7 @@ void ScalMC::add_glob_banning_cls(
     }
 }
 
-int64_t ScalMC::bounded_sol_count(
+int64_t AppMC::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>& assumps,
         const uint32_t hashCount,
@@ -164,7 +164,7 @@ int64_t ScalMC::bounded_sol_count(
         uint32_t minSolutions,
         vector<vector<lbool>>* glob_model
 ) {
-    cout << "[scalmc] "
+    cout << "[appmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
     << (cpuTimeTotal()-total_runtime)
     << " ]"
@@ -188,11 +188,11 @@ int64_t ScalMC::bounded_sol_count(
     lbool ret;
     double last_found_time = cpuTimeTotal();
     while (solutions < maxSolutions) {
-        ret = solver->solve(&new_assumps, conf.cms_indep_only);
+        ret = solver->solve(&new_assumps);
         assert(ret == l_False || ret == l_True);
 
         if (conf.verb >=2 ) {
-            cout << "[scalmc] bounded_sol_count ret: " << std::setw(7) << ret;
+            cout << "[appmc] bounded_sol_count ret: " << std::setw(7) << ret;
             if (ret == l_True) {
                 cout << " sol no.  " << std::setw(3) << solutions;
             } else {
@@ -216,22 +216,22 @@ int64_t ScalMC::bounded_sol_count(
         if (solutions < maxSolutions) {
             vector<Lit> lits;
             lits.push_back(Lit(act_var, false));
-            for (const uint32_t var: conf.independent_vars) {
+            for (const uint32_t var: conf.sampling_set) {
                 if (solver->get_model()[var] != l_Undef) {
                     lits.push_back(Lit(var, solver->get_model()[var] == l_True));
                 } else {
                     assert(false);
                 }
             }
-            if (conf.verb_scalmc_cls) {
-                cout << "[scalmc] Adding banning clause: " << lits << endl;
+            if (conf.verb_appmc_cls) {
+                cout << "[appmc] Adding banning clause: " << lits << endl;
             }
             solver->add_clause(lits);
         }
         solutions++;
     }
 
-    //we have all solutions now, scalgen variant
+    //we have all solutions now, appmcgen variant
     if (solutions < maxSolutions && solutions >= minSolutions && solutionMap) {
         assert(minSolutions > 0);
         std::vector<int> modelIndices;
@@ -264,7 +264,7 @@ int64_t ScalMC::bounded_sol_count(
     return solutions;
 }
 
-void ScalMC::add_solution_to_map(
+void AppMC::add_solution_to_map(
     const vector<lbool>& model
     , std::map<std::string, uint32_t>* solutionMap
 ) const {
@@ -272,8 +272,8 @@ void ScalMC::add_solution_to_map(
 
     std::stringstream  solution;
     if (conf.only_indep_samples) {
-        for (uint32_t j = 0; j < conf.independent_vars.size(); j++) {
-            uint32_t var = conf.independent_vars[j];
+        for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
+            uint32_t var = conf.sampling_set[j];
             assert(model[var] != l_Undef);
             solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
         }
@@ -293,7 +293,7 @@ void ScalMC::add_solution_to_map(
     (*solutionMap)[sol_str] += 1;
 }
 
-bool ScalMC::gen_rhs()
+bool AppMC::gen_rhs()
 {
     std::uniform_int_distribution<uint32_t> dist{0, 1};
     bool rhs = dist(randomEngine);
@@ -301,7 +301,7 @@ bool ScalMC::gen_rhs()
     return rhs;
 }
 
-string ScalMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes)
+string AppMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes)
 {
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
@@ -310,7 +310,7 @@ string ScalMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes
         double probability = 13.46*std::log(num_hashes)/num_hashes;
         assert(probability < 0.5);
         cutoff = std::ceil(1000.0*probability);
-        cout << "[scalmc] sparse hashing used, cutoff: " << cutoff << endl;
+        cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
     }
 
     while (randomBits.size() < size) {
@@ -323,7 +323,7 @@ string ScalMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes
     return randomBits;
 }
 
-int ScalMC::solve(ScalMCConfig _conf)
+int AppMC::solve(AppMCConfig _conf)
 {
     conf = _conf;
 
@@ -331,63 +331,63 @@ int ScalMC::solve(ScalMCConfig _conf)
     randomEngine.seed(conf.seed);
     total_runtime = cpuTimeTotal();
     if (conf.samples == 0) {
-        cout << "[scalmc] Using start iteration " << conf.start_iter << endl;
+        cout << "[appmc] Using start iteration " << conf.start_iter << endl;
 
         SATCount solCount;
         bool finished = count(solCount);
         assert(finished);
 
-        cout << "[scalmc] FINISHED ScalMC T: " << (cpuTimeTotal() - startTime) << " s" << endl;
+        cout << "[appmc] FINISHED AppMC T: " << (cpuTimeTotal() - startTime) << " s" << endl;
         if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-            cout << "[scalmc] Formula was UNSAT " << endl;
+            cout << "[appmc] Formula was UNSAT " << endl;
         }
 
         if (conf.verb > 2) {
             solver->print_stats();
         }
 
-        cout << "[scalmc] Number of solutions is: "
+        cout << "[appmc] Number of solutions is: "
         << solCount.cellSolCount
          << " x 2^" << solCount.hashCount << endl;
     } else {
-        if (conf.startiter > conf.independent_vars.size()) {
-            cerr << "ERROR: Manually-specified startiter for ScalGen"
+        if (conf.startiter > conf.sampling_set.size()) {
+            cerr << "ERROR: Manually-specified startiter for AppmcGen"
                  "is larger than the size of the independent set.\n" << endl;
             return -1;
         }
 
         /* Compute threshold via formula from TACAS-15 paper */
-        threshold_scalgen = ceil(4.03 * (1 + (1/conf.kappa)) * (1 + (1/conf.kappa)));
+        threshold_appmcgen = ceil(4.03 * (1 + (1/conf.kappa)) * (1 + (1/conf.kappa)));
 
         if (conf.startiter == 0) {
             SATCount solCount;
-            cout << "[scalmc] ScalGen starting from iteration " << conf.startiter << endl;
+            cout << "[appmc] AppmcGen starting from iteration " << conf.startiter << endl;
 
             bool finished = false;
             finished = count(solCount);
             assert(finished);
-            cout << "[scalmc] finished counting solutions in " << (cpuTimeTotal() - startTime) << " s" << endl;
+            cout << "[appmc] finished counting solutions in " << (cpuTimeTotal() - startTime) << " s" << endl;
 
             if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-                cout << "[scalmc] The input formula is unsatisfiable." << endl;
+                cout << "[appmc] The input formula is unsatisfiable." << endl;
                 return correctReturnValue(l_False);
             }
 
-            if (satconf.verbosity) {
+            if (conf.verb) {
                 solver->print_stats();
             }
 
-            cout << "[scalmc] Number of solutions is: "
+            cout << "[appmc] Number of solutions is: "
             << solCount.cellSolCount << " x 2^" << solCount.hashCount << endl;
 
             double si = round(solCount.hashCount + log2(solCount.cellSolCount)
-                + log2(1.8) - log2(threshold_scalgen)) - 2;
+                + log2(1.8) - log2(threshold_appmcgen)) - 2;
             if (si > 0)
                 conf.startiter = si;
             else
                 conf.startiter = 0;   /* Indicate ideal sampling case */
         } else {
-            cout << "Using manually-specified startiter for ScalGen" << endl;
+            cout << "Using manually-specified startiter for AppmcGen" << endl;
         }
         generate_samples();
         output_samples();
@@ -396,7 +396,7 @@ int ScalMC::solve(ScalMCConfig _conf)
     return correctReturnValue(l_True);
 }
 
-void ScalMC::output_samples()
+void AppMC::output_samples()
 {
     /* Output samples */
     std::ostream* os;
@@ -426,7 +426,7 @@ void ScalMC::output_samples()
     delete sampleFile;
 }
 
-void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps)
+void AppMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps)
 {
     if (clausNum < assumps.size()) {
         uint64_t numberToRemove = assumps.size()- clausNum;
@@ -448,7 +448,7 @@ void ScalMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector
     }
 }
 
-bool ScalMC::count(SATCount& count)
+bool AppMC::count(SATCount& count)
 {
     count.clear();
     vector<uint64_t> numHashList;
@@ -460,11 +460,11 @@ bool ScalMC::count(SATCount& count)
     uint64_t mPrev = 0;
 
     double myTime = cpuTimeTotal();
-    cout << "[scalmc] Starting up, initial measurement" << endl;
+    cout << "[appmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
         int64_t currentNumSolutions = bounded_sol_count(conf.threshold+1, assumps, count.hashCount);
         if (!conf.logfilename.empty()) {
-            logfile << "scalmc:"
+            logfile << "appmc:"
             <<"0:0:"
             << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
             << (int)(currentNumSolutions == (conf.threshold + 1)) << ":"
@@ -473,7 +473,7 @@ bool ScalMC::count(SATCount& count)
 
         //Din't find at least threshold+1
         if (currentNumSolutions <= conf.threshold) {
-            cout << "[scalmc] Did not find at least threshold+1 (" << conf.threshold << ") we found only " << currentNumSolutions << ", exiting ScalMC" << endl;
+            cout << "[appmc] Did not find at least threshold+1 (" << conf.threshold << ") we found only " << currentNumSolutions << ", exiting AppMC" << endl;
             output_samples();
 
             count.cellSolCount = currentNumSolutions;
@@ -487,14 +487,22 @@ bool ScalMC::count(SATCount& count)
         map<uint64_t,int64_t> countRecord;
         map<uint64_t,uint32_t> succRecord;
         map<uint64_t,Lit> hashVars; //map assumption var to XOR hash
-        uint64_t numExplored = 0;
-        uint64_t lowerFib = 0, upperFib = conf.independent_vars.size();
         vector<vector<lbool>> glob_model; //global table storring models
         int64_t repeat = 0; //repeatable solutions
 
-        while (numExplored < conf.independent_vars.size()) {
-            cout << "[scalmc] Explored: " << std::setw(4) << numExplored
-                 << " ind set size: " << std::setw(6) << conf.independent_vars.size() << endl;
+        //Note, the rank of a random NxN matrix is not N of course. It has an expected
+        //rank that is of course lower than N. So we need to shoot higher.
+        //https://math.stackexchange.com/questions/324150/expected-rank-of-a-random-binary-matrix
+        //Apparently this question is analyzed in Kolchin's book Random Graphs in sect. 3.2.
+        //Thanks to Yash Pote to digging this one out. Very helpful.
+        uint64_t total_max_xors = std::ceil((double)conf.sampling_set.size()*1.2)+5;
+        uint64_t numExplored = 0;
+        uint64_t lowerFib = 0;
+        uint64_t upperFib = total_max_xors;
+
+        while (numExplored < total_max_xors) {
+            cout << "[appmc] Explored: " << std::setw(4) << numExplored
+                 << " ind set size: " << std::setw(6) << conf.sampling_set.size() << endl;
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
             SetHash(hashCount,hashVars,assumps);
@@ -503,10 +511,12 @@ bool ScalMC::count(SATCount& count)
             assert(conf.threshold + 1 >= repeat);
             int64_t currentNumSolutions = bounded_sol_count(
                 conf.threshold + 1 - repeat, assumps, hashCount, NULL, 1, &glob_model);
+            cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
+            int64_t currentNumSolutions = bounded_sol_count(conf.threshold + 1, assumps, hashCount);
 
             //cout << currentNumSolutions << ", " << threshold << endl;
             if (!conf.logfilename.empty()) {
-                logfile << "scalmc:"
+                logfile << "appmc:"
                 << j << ":" << hashCount << ":"
                 << std::fixed << std::setprecision(2) << (cpuTimeTotal() - myTime) << ":"
                 << (int)(currentNumSolutions == (conf.threshold + 1)) << ":"
@@ -515,7 +525,9 @@ bool ScalMC::count(SATCount& count)
 
             if (currentNumSolutions < conf.threshold + 1 - repeat) {
                 repeat += currentNumSolutions;
-                numExplored = lowerFib+conf.independent_vars.size()-hashCount;
+                numExplored = lowerFib + total_max_xors - hashCount;
+
+                //check success record if it exists
                 if (succRecord.find(hashCount-1) != succRecord.end()
                     && succRecord[hashCount-1] == 1
                 ) {
@@ -525,9 +537,13 @@ bool ScalMC::count(SATCount& count)
                     //less than threshold solutions
                     break;
                 }
+
+                //No success record
                 succRecord[hashCount] = 0;
                 countRecord[hashCount] = repeat;
-                if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) <= 2 && mPrev != 0) {
+                if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) <= 2
+                    && mPrev != 0
+                ) {
                     upperFib = hashCount;
                     hashCount--;
                 } else {
@@ -542,8 +558,9 @@ bool ScalMC::count(SATCount& count)
                 }
             } else {
                 assert(currentNumSolutions == conf.threshold+1-repeat);
+                numExplored = hashCount + total_max_xors - upperFib;
 
-                numExplored = hashCount + conf.independent_vars.size()-upperFib;
+                //Check if success record for +1 hashcount exists and is 0
                 if (succRecord.find(hashCount+1) != succRecord.end()
                     && succRecord[hashCount+1] == 0
                 ) {
@@ -552,8 +569,12 @@ bool ScalMC::count(SATCount& count)
                     mPrev = hashCount+1;
                     break;
                 }
+
+                //No success record of hashCount+1 or it's not 0
                 succRecord[hashCount] = 1;
-                if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) < 2 && mPrev!=0) {
+                if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) < 2
+                    && mPrev!=0
+                ) {
                     lowerFib = hashCount;
                     hashCount ++;
                 } else if (lowerFib + (hashCount - lowerFib)*2 >= upperFib-1) {
@@ -567,7 +588,7 @@ bool ScalMC::count(SATCount& count)
             hashPrev = swapVar;
         }
         assumps.clear();
-        hashCount =mPrev;
+        hashCount = mPrev;
     }
     if (numHashList.size() == 0) {
         //UNSAT
@@ -589,65 +610,29 @@ bool ScalMC::count(SATCount& count)
     return true;
 }
 
-/*void ScalMC::check_confidence()
-{
-    std::ifstream probmapfile;
-    probmapfile.open("./ProbMapFile_36.txt");
-    if (probmapfile.is_open()){
-     while (getline(probmapfile, line)) {
-       pch = strtok(strdup(line.c_str()), ":");
-       val = std::atoi(pch);
-       pch = strtok(NULL, ":");
-       if (std::atof(pch) > (1 - conf.delta))
-	        break;
-     }
-   }
-   probmapfile.close();
-   if (val == 0) {
-     std::cerr << "Probmapfile failed, delta is " << conf.delta << std::endl;
-     exit(-1);
-   }
-   conf.tscalmc = val;
-   std::cout<<"t scalmc:"<<conf.tscalmc<<std::endl;
-     confidence = (float *) malloc(sizeof(float)*(2+conf.tscalmc));
-   if(confidence == NULL){
-     cout << "Out of memory, could not allocate confidence list" << endl;
-     exit(-1);
-   }
-
-   // user gives: delta, epsilon
-   // experiments to run: delta = 0.1 (t=21)
-   //                     epsilon = 0.8 (71 maybe?)
-
-   // confidece = 1-delta
-   // 1+epsilon = desired distance from the ground truth
-   conf.threshold = = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
-}*/
-
 ///////////
 // Useful helper functions
 ///////////
 
-void printVersionInfoScalMC()
+void printVersionInfoAppMC()
 {
-    cout << "c ScalMC SHA revision " << ::get_version_sha1() << endl;
-    cout << "c ScalMC compilation env " << ::get_compilation_env() << endl;
+    cout << "c AppMC SHA revision " << ::get_version_sha1() << endl;
+    cout << "c AppMC version " << ::get_version_tag() << endl;
+    cout << "c AppMC compilation env " << ::get_compilation_env() << endl;
     #ifdef __GNUC__
-    cout << "c ScalMC compiled with gcc version " << __VERSION__ << endl;
+    cout << "c AppMC compiled with gcc version " << __VERSION__ << endl;
     #else
-    cout << "c ScalMC compiled with non-gcc compiler" << endl;
+    cout << "c AppMC compiled with non-gcc compiler" << endl;
     #endif
 }
 
-void ScalMC::printVersionInfo() const
+void AppMC::printVersionInfo() const
 {
-    ::printVersionInfoScalMC();
-    cout << "c CryptoMiniSat version " << solver->get_version() << endl;
-    cout << "c CryptoMiniSat SHA revision " << solver->get_version_sha1() << endl;
-    cout << "c CryptoMiniSat compilation env " << solver->get_compilation_env() << endl;
+    ::printVersionInfoAppMC();
+    cout << solver->get_text_version_info();
 }
 
-int ScalMC::correctReturnValue(const lbool ret) const
+int AppMC::correctReturnValue(const lbool ret) const
 {
     int retval = -1;
     if (ret == l_True) {
@@ -665,9 +650,9 @@ int ScalMC::correctReturnValue(const lbool ret) const
 }
 
 
-/////////////// scalgen ////////////////
-/* Number of solutions to return from one invocation of ScalGen. */
-uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
+/////////////// appmcgen ////////////////
+/* Number of solutions to return from one invocation of AppmcGen. */
+uint32_t AppMC::SolutionsToReturn(uint32_t numSolutions)
 {
     if (conf.startiter == 0)   // TODO improve hack for ideal sampling case?
         return numSolutions;
@@ -677,17 +662,17 @@ uint32_t ScalMC::SolutionsToReturn(uint32_t numSolutions)
         return 1;
 }
 
-void ScalMC::generate_samples()
+void AppMC::generate_samples()
 {
-    hiThresh = ceil(1 + (1.4142136 * (1 + conf.kappa) * threshold_scalgen));
-    loThresh = floor(threshold_scalgen / (1.4142136 * (1 + conf.kappa)));
+    hiThresh = ceil(1 + (1.4142136 * (1 + conf.kappa) * threshold_appmcgen));
+    loThresh = floor(threshold_appmcgen / (1.4142136 * (1 + conf.kappa)));
     uint32_t samplesPerCall = SolutionsToReturn(conf.samples);
     uint32_t callsNeeded = (conf.samples + samplesPerCall - 1) / samplesPerCall;
-    cout << "[scalmc] starting sample generation. loThresh " << loThresh
+    cout << "[appmc] starting sample generation. loThresh " << loThresh
     << ", hiThresh " << hiThresh
     << ", startiter " << conf.startiter << endl;
 
-    cout << "[scalmc] Outputting " << samplesPerCall << " solutions from each ScalGen call" << endl;
+    cout << "[appmc] Outputting " << samplesPerCall << " solutions from each AppmcGen call" << endl;
 
     uint32_t numCallsInOneLoop = 0;
     if (conf.callsPerSolver == 0) {
@@ -699,13 +684,13 @@ void ScalMC::generate_samples()
         }
     } else {
         numCallsInOneLoop = conf.callsPerSolver;
-        cout << "[scalmc] Using manually-specified callsPerSolver: " << conf.callsPerSolver << endl;
+        cout << "[appmc] Using manually-specified callsPerSolver: " << conf.callsPerSolver << endl;
     }
 
     uint32_t numCallLoops = callsNeeded / numCallsInOneLoop;
     uint32_t remainingCalls = callsNeeded % numCallsInOneLoop;
 
-    cout << "[scalmc] Making " << numCallLoops << " loops."
+    cout << "[appmc] Making " << numCallLoops << " loops."
          << " calls per loop: " << numCallsInOneLoop
          << " remaining: " << remainingCalls << endl;
     uint32_t sampleCounter = 0;
@@ -716,17 +701,17 @@ void ScalMC::generate_samples()
     uint32_t lastSuccessfulHashOffset = 0;
 
     if (conf.startiter > 0) {
-        ///Perform extra ScalGen calls that don't fit into the loops
+        ///Perform extra AppmcGen calls that don't fit into the loops
         if (remainingCalls > 0) {
-            sampleCounter = ScalGenCall(
+            sampleCounter = AppmcGenCall(
                 remainingCalls, sampleCounter
                 , threadSolutionMap
                 , &lastSuccessfulHashOffset, threadStartTime);
         }
 
-        // Perform main ScalGen call loops
+        // Perform main AppmcGen call loops
         for (uint32_t i = 0; i < numCallLoops; i++) {
-            sampleCounter = ScalGenCall(
+            sampleCounter = AppmcGenCall(
                 numCallsInOneLoop, sampleCounter, threadSolutionMap
                 , &lastSuccessfulHashOffset, threadStartTime);
         }
@@ -770,15 +755,15 @@ void ScalMC::generate_samples()
 
     double timeTaken = cpuTimeTotal() - threadStartTime;
     allThreadsTime += timeTaken;
-    cout << "[scalmc] Time for ScalGen: " << timeTaken << " s"
-    " -- Total time ScalMC+ScalGen: " << cpuTimeTotal() << " s" << endl;
+    cout << "[appmc] Time for AppmcGen: " << timeTaken << " s"
+    " -- Total time AppMC+AppmcGen: " << cpuTimeTotal() << " s" << endl;
 
     // TODO put this back once multithreading is implemented
-    //cout << "Total time for all ScalGen calls: " << allThreadsTime << " s" << endl;
-    cout << "[scalmc] Samples generated: " << allThreadsSampleCount << endl;
+    //cout << "Total time for all AppmcGen calls: " << allThreadsTime << " s" << endl;
+    cout << "[appmc] Samples generated: " << allThreadsSampleCount << endl;
 }
 
-uint32_t ScalMC::ScalGen(
+uint32_t AppMC::AppmcGen(
     uint32_t loc_samples
     , uint32_t sampleCounter
     , std::map<string, uint32_t>& solutionMap
@@ -821,7 +806,7 @@ uint32_t ScalMC::ScalGen(
             }
 
             if (!conf.logfilename.empty()) {
-                logfile << "scalgen:"
+                logfile << "appmcgen:"
                 << sampleCounter << ":" << currentHashCount << ":"
                 << std::fixed << std::setprecision(2) << (cpuTimeTotal() - timeReference) << ":"
                 << (int)(ret == l_False ? 1 : (ret == l_True ? 0 : 2)) << ":"
@@ -857,7 +842,7 @@ uint32_t ScalMC::ScalGen(
     return sampleCounter;
 }
 
-int ScalMC::ScalGenCall(
+int AppMC::AppmcGenCall(
     uint32_t loc_samples
     , uint32_t sampleCounter
     , std::map<string, uint32_t>& solutionMap
@@ -870,11 +855,11 @@ int ScalMC::ScalGenCall(
     //solverToInterrupt = solver;
 
     /* Heuristic: running solver once before adding any hashes
-     * tends to help performance (need to do this for ScalGen since
+     * tends to help performance (need to do this for AppmcGen since
      * we aren't necessarily starting from hashCount zero) */
     solver->solve();
 
-    sampleCounter = ScalGen(
+    sampleCounter = AppmcGen(
                         loc_samples
                         , sampleCounter
                         , solutionMap

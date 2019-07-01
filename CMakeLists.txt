@@ -47,7 +47,7 @@ endif()
 # -----------------------------------------------------------------------------
 # Provide scripts dir for included cmakes to use
 # -----------------------------------------------------------------------------
-set(SCALMCS_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
+set(APPROXMCS_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
 
 # -----------------------------------------------------------------------------
 # Make RelWithDebInfo the default build type if otherwise not set
@@ -84,7 +84,7 @@ foreach (build_config ${build_types})
     endforeach()
 endforeach()
 
-PROJECT(scalmc)
+PROJECT(approxmc)
 
 # contains some library search cmake scripts
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -324,7 +324,7 @@ if ((${CMAKE_SYSTEM_NAME} MATCHES "Windows") AND (STATICCOMPILE))
 endif()
 
 if(NOT MSVC)
-  set(DEF_INSTALL_CMAKE_DIR lib/cmake/scalmc)
+  set(DEF_INSTALL_CMAKE_DIR lib/cmake/approxmc)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -347,10 +347,10 @@ if (GIT_EXECUTABLE)
 else()
   set(GIT_SHA "GIT-hash-notfound")
 endif()
-set(SCALMC_FULL_VERSION "1.0.0")
+set(APPROXMC_FULL_VERSION "2.5.0")
 
-string(REPLACE "." ";" SCALMC_FULL_VERSION_LIST ${SCALMC_FULL_VERSION})
-SetVersionNumber("PROJECT" ${SCALMC_FULL_VERSION_LIST})
+string(REPLACE "." ";" APPROXMC_FULL_VERSION_LIST ${APPROXMC_FULL_VERSION})
+SetVersionNumber("PROJECT" ${APPROXMC_FULL_VERSION_LIST})
 MESSAGE(STATUS "PROJECT_VERSION: ${PROJECT_VERSION}")
 MESSAGE(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
 MESSAGE(STATUS "PROJECT_VERSION_MINOR: ${PROJECT_VERSION_MINOR}")
@@ -370,19 +370,19 @@ endif()
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT EMSCRIPTEN)
     find_program(HELP2MAN_FOUND help2man)
     if (HELP2MAN_FOUND)
-        ADD_CUSTOM_TARGET(man_scalmc
+        ADD_CUSTOM_TARGET(man_approxmc
             ALL
-            DEPENDS scalmc
+            DEPENDS approxmc
         )
 
         ADD_CUSTOM_COMMAND(
-            TARGET man_scalmc
+            TARGET man_approxmc
             COMMAND help2man
-            ARGS --version-string=${SCALMC_FULL_VERSION} --help-option="-h" $<TARGET_FILE:scalmc> -o ${CMAKE_CURRENT_BINARY_DIR}/scalmc.1
+            ARGS --version-string=${APPROXMC_FULL_VERSION} --help-option="-h" $<TARGET_FILE:approxmc> -o ${CMAKE_CURRENT_BINARY_DIR}/approxmc.1
         )
 
         INSTALL(
-            FILES ${CMAKE_CURRENT_BINARY_DIR}/scalmc.1
+            FILES ${CMAKE_CURRENT_BINARY_DIR}/approxmc.1
             DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
 
         message(STATUS "Manpage will be created and installed")
@@ -455,9 +455,9 @@ endif()
 # -----------------------------------------------------------------------------
 # Provide an export name to be used by targets that wish to export themselves.
 # -----------------------------------------------------------------------------
-set(SCALMC_EXPORT_NAME "scalmcTargets")
+set(APPROXMC_EXPORT_NAME "approxmcTargets")
 
-add_subdirectory(src scalmc-src)
+add_subdirectory(src approxmc-src)
 
 # -----------------------------------------------------------------------------
 # Add uninstall target for makefiles
@@ -489,42 +489,42 @@ endif()
 
 # -----------------------------------------------------------------------------
 # Export our targets so that other CMake based projects can interface with
-# the build of scalmc in the build-tree
+# the build of approxmc in the build-tree
 # -----------------------------------------------------------------------------
-set(SCALMC_TARGETS_FILENAME "scalmcTargets.cmake")
-set(SCALMC_CONFIG_FILENAME "scalmcConfig.cmake")
+set(APPROXMC_TARGETS_FILENAME "approxmcTargets.cmake")
+set(APPROXMC_CONFIG_FILENAME "approxmcConfig.cmake")
 
 # Export targets
-set(MY_TARGETS scalmc)
+set(MY_TARGETS approxmc)
 export(
     TARGETS ${MY_TARGETS}
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/${SCALMC_TARGETS_FILENAME}"
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/${APPROXMC_TARGETS_FILENAME}"
 )
 
-# Create scalmcConfig file
+# Create approxmcConfig file
 set(EXPORT_TYPE "Build-tree")
 set(CONF_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/include")
-configure_file(scalmcConfig.cmake.in
-    "${CMAKE_CURRENT_BINARY_DIR}/${SCALMC_CONFIG_FILENAME}" @ONLY
+configure_file(approxmcConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/${APPROXMC_CONFIG_FILENAME}" @ONLY
 )
 
-set(SCALMC_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
-    "Installation directory for scalmc CMake files")
+set(APPROXMC_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
+    "Installation directory for approxmc CMake files")
 
-# Create scalmcConfig file
+# Create approxmcConfig file
 set(EXPORT_TYPE "installed")
 set(CONF_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-configure_file(scalmcConfig.cmake.in
-   "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${SCALMC_CONFIG_FILENAME}" @ONLY
+configure_file(approxmcConfig.cmake.in
+   "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${APPROXMC_CONFIG_FILENAME}" @ONLY
 )
 
 install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${SCALMC_CONFIG_FILENAME}"
-    DESTINATION "${SCALMC_INSTALL_CMAKE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${APPROXMC_CONFIG_FILENAME}"
+    DESTINATION "${APPROXMC_INSTALL_CMAKE_DIR}"
 )
 
 # Install the export set for use with the install-tree
 install(
-    EXPORT ${SCALMC_EXPORT_NAME}
-    DESTINATION "${SCALMC_INSTALL_CMAKE_DIR}"
+    EXPORT ${APPROXMC_EXPORT_NAME}
+    DESTINATION "${APPROXMC_INSTALL_CMAKE_DIR}"
 )

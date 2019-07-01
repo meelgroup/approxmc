@@ -1,5 +1,5 @@
 /*
- ScalMC and ScalGen
+ ApproxMC and AppmcGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -25,34 +25,32 @@
  THE SOFTWARE.
  */
 
-#ifndef SCALMCCONFIG
-#define SCALMCCONFIG
+#ifndef APPMCCONFIG
+#define APPMCCONFIG
 
 #include <vector>
 
-struct ScalMCConfig {
+struct AppMCConfig {
     uint32_t start_iter = 0;
     uint32_t threshold = 72; //precision
+    double epsilon = 0.80;
     uint32_t measurements = 9; //confidence of 0.81
-    bool maple = 0; //BOTH scalgen and scalmc are SLOWER with this ON
+    double delta = 0.2;
     uint32_t num_threads = 1;
     uint32_t startiter = 0;
     bool sparse = false;
     unsigned verb = 1;
-    unsigned verb_scalmc_cls = 0;
-    int dosimp = 1;
+    unsigned verb_appmc_cls = 0;
     uint32_t seed = 1;
     bool only_indep_samples = true;
-    unsigned xor_cut = 4;
-    bool find_more_xors = 0;
     uint32_t multisample = 1;
     uint32_t samples = 0;
     bool cms_indep_only = false;
-    std::vector<uint32_t> independent_vars;
+    std::vector<uint32_t> sampling_set;
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     std::string sampleFilename;
     uint32_t callsPerSolver = 0;
     std::string logfilename = "";
 };
 
-#endif //SCALMCCONFIG
+#endif //APPMCCONFIG
