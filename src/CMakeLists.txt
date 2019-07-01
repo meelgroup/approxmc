@@ -45,20 +45,20 @@ include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" @ONLY)
 
 if (NOT EMSCRIPTEN)
-    add_executable(scalmc
-        scalmc.cpp
+    add_executable(approxmc
+        approxmc.cpp
         main.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
     )
 else()
-    add_executable(scalmc
-        scalmc.cpp
+    add_executable(approxmc
+        approxmc.cpp
         main_min.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
     )
 
     set_target_properties(
-      scalmc PROPERTIES LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
+      approxmc PROPERTIES LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
     )
 
 
@@ -68,42 +68,38 @@ else()
 endif()
 
 
-set(scalmc_exec_link_libs
+set(approxmc_exec_link_libs
     ${Boost_LIBRARIES}
 )
 
 IF (ZLIB_FOUND)
-    SET(scalmc_exec_link_libs ${scalmc_exec_link_libs} ${ZLIB_LIBRARY})
+    SET(approxmc_exec_link_libs ${approxmc_exec_link_libs} ${ZLIB_LIBRARY})
 ENDIF()
 
-target_link_libraries(scalmc
-    ${scalmc_exec_link_libs}
+target_link_libraries(approxmc
+    ${approxmc_exec_link_libs}
 )
 
 if (STATICCOMPILE)
-    SET_TARGET_PROPERTIES(scalmc PROPERTIES LINK_SEARCH_START_STATIC 1)
+    SET_TARGET_PROPERTIES(approxmc PROPERTIES LINK_SEARCH_START_STATIC 1)
     SET(cms_libs ${CRYPTOMINISAT5_STATIC_LIBRARIES})
     message(STATUS "bimm: ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
 else()
     SET(cms_libs ${CRYPTOMINISAT5_LIBRARIES})
 endif()
-set_target_properties(scalmc PROPERTIES
+set_target_properties(approxmc PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
     INSTALL_RPATH_USE_LINK_PATH TRUE)
 if (STATICCOMPILE)
-    SET_TARGET_PROPERTIES(scalmc PROPERTIES LINK_SEARCH_END_STATIC 1)
+    SET_TARGET_PROPERTIES(approxmc PROPERTIES LINK_SEARCH_END_STATIC 1)
 endif()
 
-target_link_libraries(scalmc
+target_link_libraries(approxmc
     ${cms_libs}
 )
 
-install(TARGETS scalmc
-    EXPORT ${SCALMC_EXPORT_NAME}
+install(TARGETS approxmc
+    EXPORT ${APPROXMC_EXPORT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-SET(CPACK_PACKAGE_EXECUTABLES "scalmc")
-
-# to compile statically:
-# /usr/lib/ccache/bin/c++   -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic    -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -static    CMakeFiles/scalmc.dir/signalcode.cpp.o CMakeFiles/scalmc.dir/scalmc.cpp.o  -o ../scalmc /usr/lib/libboost_program_options.a /usr/lib/libz.a /usr/local/lib/libcryptominisat5.a /usr/local/lib/libm4ri.a -pthread
-
+SET(CPACK_PACKAGE_EXECUTABLES "approxmc")

@@ -1,10 +1,10 @@
 /*
- ScalMC and ScalGen
+ ApproxMC and AppmcGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
- Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
  Kuldeep S. Meel, Sanjit A. Seshia, Moshe Y. Vardi
+ Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -35,11 +35,10 @@ using std::vector;
 #include <fenv.h>
 #endif
 
-#include "scalmcconfig.h"
+#include "approxmcconfig.h"
 #include "time_mem.h"
-#include "scalmc.h"
+#include "approxmc.h"
 #include <cryptominisat5/cryptominisat.h>
-#include <cryptominisat5/solverconf.h>
 #include "cryptominisat5/dimacsparser.h"
 #include "cryptominisat5/streambuffer.h"
 
@@ -47,11 +46,11 @@ using namespace CMSat;
 using std::cout;
 using std::cerr;
 using std::endl;
-ScalMC* scalmc = NULL;
+AppMC* appmc = NULL;
 
-SolverConf satconf;
-ScalMCConfig conf;
-po::options_description scalmc_options = po::options_description("ScalMC options");
+AppMCConfig conf;
+po::options_description appmc_options = po::options_description("ApproxMC options");
+po::options_description appmcgen_options = po::options_description("AppmcGen options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
@@ -123,60 +122,65 @@ std::array<double,256> iterationConfidences = {{
     0.999999999934, 0.999999999939, 0.999999999944, 0.999999999948
     }};
 
-void add_scalmc_options()
+void add_appmc_options()
 {
-    scalmc_options.add_options()
+    std::ostringstream my_epsilon;
+    std::ostringstream my_delta;
+    std::ostringstream my_kappa;
+
+    my_epsilon << std::setprecision(8) << conf.epsilon;
+    my_delta << std::setprecision(8) << conf.delta;
+    my_kappa << std::setprecision(8) << conf.kappa;
+
+    appmc_options.add_options()
     ("help,h", "Prints help")
     ("version", "Print version info")
     ("input", po::value< vector<string> >(), "file(s) to read")
     ("verb,v", po::value(&conf.verb)->default_value(conf.verb), "verbosity")
     ("seed,s", po::value(&conf.seed)->default_value(conf.seed), "Seed")
-    ("threshold", po::value(&conf.threshold)->default_value(conf.threshold)
-        , "Number of solutions to check for")
-    ("measure", po::value(&conf.measurements)->default_value(conf.measurements)
-        , "Number of measurements")
+    ("epsilon", po::value(&conf.epsilon)->default_value(conf.epsilon, my_epsilon.str())
+        , "epsilon parameter as per PAC guarantees")
+    ("delta", po::value(&conf.delta)->default_value(conf.delta, my_delta.str())
+        , "delta parameter as per PAC guarantees; 1-delta is the confidence")
     ("start", po::value(&conf.start_iter)->default_value(conf.start_iter),
          "Start at this many XORs")
     ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
-         "Log of SCALMC iterations.")
-    ("maple", po::value(&conf.maple)->default_value(conf.maple),
-         "Should Maple be enabled")
+         "Logs of ApproxMC execution")
     ("th", po::value(&conf.num_threads)->default_value(conf.num_threads),
          "How many solving threads to use per solver call")
-    ("simp", po::value(&conf.dosimp)->default_value(conf.dosimp),
-         "Perform simplifications in CMS")
-    ("vcl", po::value(&conf.verb_scalmc_cls)->default_value(conf.verb_scalmc_cls)
+    ("vcl", po::value(&conf.verb_appmc_cls)->default_value(conf.verb_appmc_cls)
         ,"Print banning clause + xor clauses. Highly verbose.")
+    ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
+        , "Generate sparse XORs when possible")
+    ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)
+        , "If positive, use instead of startiter computed by AppMC")
+    ;
+
+    appmcgen_options.add_options()
     ("samples", po::value(&conf.samples)->default_value(conf.samples)
         , "Number of random samples to generate")
     ("indepsamples", po::value(&conf.only_indep_samples)->default_value(conf.only_indep_samples)
         , "Should only output the independent vars from the samples")
-    ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
-        , "Generate sparse XORs when possible")
-    ("kappa", po::value(&conf.kappa)->default_value(conf.kappa)
-        , "Uniformity parameter (see TACAS-15 paper)")
     ("multisample", po::value(&conf.multisample)->default_value(conf.multisample)
         , "Return multiple samples from each call")
     ("sampleout", po::value(&conf.sampleFilename)
         , "Write samples to this file")
     ("cmsindeponly", po::value(&conf.cms_indep_only)->default_value(conf.cms_indep_only)
         , "Don't extend solution by SAT solver")
-    ("cutting", po::value(&conf.xor_cut)->default_value(conf.xor_cut)
-        , "Cut XORs to sizes this big or smaller")
-    ("findmorexors", po::value(&conf.find_more_xors)->default_value(conf.find_more_xors)
-        , "Find more xors through cache usage in CMS")
-    ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)
-        , "If positive, use instead of startiter computed by ScalMC")
     ("callsPerSolver", po::value(&conf.callsPerSolver)->default_value(conf.callsPerSolver)
-        , "Number of ScalGen calls to make in a single solver, or 0 to use a heuristic")
+        , "Number of AppmcGen calls to make in a single solver, or 0 to use a heuristic")
+    ("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
+        , "Uniformity parameter (see TACAS-15 paper)")
+
     ;
 
-    help_options.add(scalmc_options);
+    help_options.add(appmc_options);
+    help_options.add(appmcgen_options);
 }
 
 void add_supported_options(int argc, char** argv)
 {
-    add_scalmc_options();
+    add_appmc_options();
     p.add("input", 1);
 
     try {
@@ -184,17 +188,17 @@ void add_supported_options(int argc, char** argv)
         if (vm.count("help"))
         {
             cout
-            << "Approximate counter" << endl;
+            << "Probably Approximate counter" << endl;
 
             cout
-            << "scalmc [options] inputfile" << endl << endl;
+            << "approxmc [options] inputfile" << endl << endl;
 
             cout << help_options << endl;
             std::exit(0);
         }
 
         if (vm.count("version")) {
-            scalmc->printVersionInfo();
+            appmc->printVersionInfo();
             std::exit(0);
         }
 
@@ -283,7 +287,7 @@ void readInAFile(SATSolver* solver2, const string& filename)
     DimacsParser<StreamBuffer<FILE*, FN> > parser(solver, NULL, 2);
     #else
     gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ> > parser(scalmc->solver, NULL, 2);
+    DimacsParser<StreamBuffer<gzFile, GZ> > parser(appmc->solver, NULL, 2);
     #endif
 
     if (in == NULL) {
@@ -292,14 +296,14 @@ void readInAFile(SATSolver* solver2, const string& filename)
         << filename
         << "' for reading: " << strerror(errno) << endl;
 
-        std::exit(1);
+        std::exit(-1);
     }
 
     if (!parser.parse_DIMACS(in, false)) {
         exit(-1);
     }
 
-    conf.independent_vars.swap(parser.independent_vars);
+    conf.sampling_set.swap(parser.sampling_vars);
 
     #ifndef USE_ZLIB
         fclose(in);
@@ -335,29 +339,37 @@ void readInStandardInput(SATSolver* solver2)
         exit(-1);
     }
 
+    conf.sampling_set.swap(parser.sampling_vars);
+
     #ifdef USE_ZLIB
         gzclose(in);
     #endif
 }
 
-void set_indep_vars()
+void set_sampling_vars()
 {
-    if (conf.independent_vars.empty()) {
+    if (conf.sampling_set.empty()) {
         cout
-        << "[scalmc] WARNING! No independent vars were set using 'c ind var1 [var2 var3 ..] 0'"
-        "notation in the CNF." << endl
-        << "[scalmc] we may work substantially worse!" << endl;
-        for (size_t i = 0; i < scalmc->solver->nVars(); i++) {
-            conf.independent_vars.push_back(i);
+        << "[appmc] WARNING! Sampling set was not declared with 'c ind var1 [var2 var3 ..] 0'"
+        " notation in the CNF." << endl
+        << "[appmc] we may work substantially worse!" << endl;
+        for (size_t i = 0; i < appmc->solver->nVars(); i++) {
+            conf.sampling_set.push_back(i);
         }
     }
-    cout << "[scalmc] Num independent vars: " << conf.independent_vars.size() << endl;
-    cout << "[scalmc] Independent vars: ";
-    for (auto v: conf.independent_vars) {
-        cout << v+1 << ", ";
+    cout << "[appmc] Sampling set size: " << conf.sampling_set.size() << endl;
+    if (conf.sampling_set.size() > 100) {
+        cout
+        << "[appmc] Sampling var set contains over 100 variables, not displaying"
+        << endl;
+    } else {
+        cout << "[appmc] Sampling set: ";
+        for (auto v: conf.sampling_set) {
+            cout << v+1 << ", ";
+        }
+        cout << endl;
     }
-    cout << endl;
-    scalmc->solver->set_independent_vars(&conf.independent_vars);
+    appmc->solver->set_sampling_vars(&conf.sampling_set);
 }
 
 int main(int argc, char** argv)
@@ -369,18 +381,18 @@ int main(int argc, char** argv)
                   );
     #endif
 
-    scalmc = new ScalMC;
+    appmc = new AppMC;
     add_supported_options(argc, argv);
-    scalmc->printVersionInfo();
+    appmc->printVersionInfo();
 
-    cout << "[scalmc] using seed: " << conf.seed << endl;
+    cout << "[appmc] using seed: " << conf.seed << endl;
 
     if (vm.count("log") == 0) {
         if (vm.count("input") != 0) {
             conf.logfilename = vm["input"].as<vector<string> >()[0] + ".log";
-            cout << "[scalmc] Logfile name not given, assumed to be " << conf.logfilename << endl;
+            cout << "[appmc] Logfile name not given, assumed to be " << conf.logfilename << endl;
         } else {
-            std::cerr << "[scalmc] ERROR: You must provide the logfile name" << endl;
+            std::cerr << "[appmc] ERROR: You must provide the logfile name" << endl;
             exit(-1);
         }
     }
@@ -391,69 +403,73 @@ int main(int argc, char** argv)
     }
 
     //startTime = cpuTimeTotal();
-
-    CMSat::GaussConf gconf;
-    satconf.gaussconf.max_num_matrixes = 2;
-    satconf.gaussconf.autodisable = false;
-    satconf.global_multiplier_multiplier_max = 3;
-    satconf.global_timeout_multiplier_multiplier = 1.5;
-    assert(conf.xor_cut >= 3);
-    satconf.xor_var_per_cut = conf.xor_cut-2;
-
-    satconf.simplify_at_startup = 1;
-    satconf.varElimRatioPerIter = 1;
-    satconf.restartType = Restart::geom;
-    satconf.polarity_mode = CMSat::PolarityMode::polarmode_neg;
-    satconf.maple = conf.maple;        //1113
-    satconf.do_simplify_problem = conf.dosimp;
-
-    scalmc->solver = new SATSolver((void*)&satconf);
+    appmc->solver = new SATSolver();
+    appmc->solver->set_up_for_scalmc();
 
     if (conf.verb > 2) {
-        scalmc->solver->set_verbosity(conf.verb-2);
+        appmc->solver->set_verbosity(conf.verb-2);
     }
-    scalmc->solver->set_allow_otf_gauss();
+    appmc->solver->set_allow_otf_gauss();
 
     if (conf.num_threads > 1) {
-        scalmc->solver->set_num_threads(conf.num_threads);
+        appmc->solver->set_num_threads(conf.num_threads);
+    }
+
+    if (conf.epsilon < 0.0) {
+        cout << "[appmc] ERROR: invalid epsilon" << endl;
+        exit(-1);
+    }
+    conf.threshold = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+
+    if (conf.delta <= 0.0 || conf.delta > 1.0) {
+        cout << "[appmc] ERROR: invalid delta" << endl;
+        exit(-1);
+    }
+    conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
+    for (int count = 0; count < 256; count++) {
+        if(iterationConfidences[count] >= 1 - conf.delta){
+            conf.measurements = count*2+1;
+            break;
+        }
     }
 
     //parsing the input
     if (vm.count("input") != 0) {
         vector<string> inp = vm["input"].as<vector<string> >();
         if (inp.size() > 1) {
-            cout << "[scalmc] ERROR: can only parse in one file" << endl;
+            cout << "[appmc] ERROR: can only parse in one file" << endl;
         }
-        readInAFile(scalmc->solver, inp[0].c_str());
+        readInAFile(appmc->solver, inp[0].c_str());
     } else {
-        readInStandardInput(scalmc->solver);
+        readInStandardInput(appmc->solver);
     }
-    set_indep_vars();
+    set_sampling_vars();
 
 
-    //ScalMC or scalgen????
+    //AppMC only
     if (conf.samples == 0) {
         if (vm.count("sampleout")){
             cerr << "ERROR: You did not give the '--samples N' option, but you gave the '--sampleout FNAME' option." << endl;
             cout << "ERROR: This is confusing. Please give '--samples N' if you give '--sampleout FNAME'" << endl;
             exit(-1);
         }
+    //AppmcGen
     } else {
         if (conf.samples == 0 || conf.startiter == 0) {
             if (conf.samples > 0) {
-                cout << "Using scalmc to compute startiter for ScalGen" << endl;
+                cout << "Using appmc to compute startiter for AppmcGen" << endl;
                 if (!vm["thresholdAC"].defaulted() || !vm["measurements"].defaulted()) {
                     cout << "WARNING: manually-specified thresholdAC and/or measurements may"
-                         << " not be large enough to guarantee correctness of ScalGen." << endl
+                         << " not be large enough to guarantee correctness of AppmcGen." << endl
                          << "Omit those arguments to use safe default values." << endl;
                 } else {
-                    /* Fill in here the best parameters for scalmc achieving
-                     * epsilon=0.8 and delta=0.177 as required by ScalGen */
+                    /* Fill in here the best parameters for appmc achieving
+                     * epsilon=0.8 and delta=0.177 as required by AppmcGen */
                     conf.threshold = 73;
                     conf.measurements = 11;
                 }
             } else if(vm["measurements"].defaulted()) {
-                /* Compute tscalmc */
+                /* Compute tappmc */
                 double delta = 0.2;
                 double confidence = 1.0 - delta;
                 int bestIteration = iterationConfidences.size() - 1;
@@ -482,11 +498,11 @@ int main(int argc, char** argv)
         }
     }
 
-    if (conf.start_iter > conf.independent_vars.size()) {
-        cout << "[scalmc] ERROR: Manually-specified start_iter"
-             "is larger than the size of the independent set.\n" << endl;
-        return -1;
+    if (conf.start_iter > conf.sampling_set.size()) {
+        cout << "[appmc] ERROR: Manually-specified start_iter"
+             "is larger than the size of the sampling set.\n" << endl;
+        exit(-1);
     }
 
-    return scalmc->solve(conf);
+    return appmc->solve(conf);
 }
