@@ -456,7 +456,7 @@ endif()
 # -----------------------------------------------------------------------------
 set(APPROXMC_EXPORT_NAME "approxmcTargets")
 
-add_subdirectory(src approxmc-src)
+add_subdirectory(src apx-src)
 
 # -----------------------------------------------------------------------------
 # Add uninstall target for makefiles
