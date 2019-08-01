@@ -366,7 +366,8 @@ int AppMC::solve(AppMCConfig _conf)
             bool finished = false;
             finished = count(solCount);
             assert(finished);
-            cout << "[appmc] finished counting solutions in " << (cpuTimeTotal() - startTime) << " s" << endl;
+            cout << "[appmc] finished counting solutions in "
+            << (cpuTimeTotal() - startTime) << " s" << endl;
 
             if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
                 cout << "[appmc] The input formula is unsatisfiable." << endl;
@@ -473,8 +474,9 @@ bool AppMC::count(SATCount& count)
 
         //Din't find at least threshold+1
         if (currentNumSolutions <= conf.threshold) {
-            cout << "[appmc] Did not find at least threshold+1 (" << conf.threshold << ") we found only " << currentNumSolutions << ", exiting AppMC" << endl;
-            output_samples();
+            cout << "[appmc] Did not find at least threshold+1 ("
+            << conf.threshold << ") we found only " << currentNumSolutions
+            << ", exiting AppMC" << endl;
 
             count.cellSolCount = currentNumSolutions;
             count.hashCount = 0;
