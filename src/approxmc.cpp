@@ -243,8 +243,8 @@ int64_t AppMC::bounded_sol_count(
         }
         std::shuffle(modelIndices.begin(), modelIndices.end(), randomEngine);
 
-        uint32_t numSolutionsToReturn = SolutionsToReturn(solutions);
-        for (uint32_t i = 0; i < numSolutionsToReturn; i++) {
+        uint32_t numsols_to_return = sols_to_return(solutions);
+        for (uint32_t i = 0; i < numsols_to_return; i++) {
             model = modelsSet.at(modelIndices.at(i));
             (*samples_out) << get_solution_str(model) << endl << std::flush;
         }
@@ -627,7 +627,7 @@ int AppMC::correctReturnValue(const lbool ret) const
 
 /////////////// appmcgen ////////////////
 /* Number of solutions to return from one invocation of AppmcGen. */
-uint32_t AppMC::SolutionsToReturn(uint32_t numSolutions)
+uint32_t AppMC::sols_to_return(uint32_t numSolutions)
 {
     if (conf.startiter == 0)   // TODO improve hack for ideal sampling case?
         return numSolutions;
@@ -642,7 +642,7 @@ void AppMC::generate_samples()
     assert(samples_out != NULL);
     hiThresh = ceil(1 + (1.4142136 * (1 + conf.kappa) * threshold_appmcgen));
     loThresh = floor(threshold_appmcgen / (1.4142136 * (1 + conf.kappa)));
-    uint32_t samplesPerCall = SolutionsToReturn(conf.samples);
+    uint32_t samplesPerCall = sols_to_return(conf.samples);
     uint32_t callsNeeded = (conf.samples + samplesPerCall - 1) / samplesPerCall;
     cout << "[appmc] starting sample generation. loThresh " << loThresh
     << ", hiThresh " << hiThresh

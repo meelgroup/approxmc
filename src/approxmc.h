@@ -63,7 +63,7 @@ public:
     int solve(AppMCConfig _conf);
     string GenerateRandomBits(const uint32_t size, const uint32_t numhashes);
     string binary(const uint32_t x, const uint32_t length);
-    uint32_t SolutionsToReturn(uint32_t numSolutions);
+    uint32_t sols_to_return(uint32_t numSolutions);
     void generate_samples();
     bool gen_rhs();
     uint32_t AppmcGen(
