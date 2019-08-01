@@ -108,7 +108,7 @@ inline T findMin(vector<T>& numList)
 bool AppMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
 {
     const string randomBits =
-        GenerateRandomBits(conf.sampling_set.size() * num_xor_cls, total_num_hashes);
+        gen_rnd_bits(conf.sampling_set.size() * num_xor_cls, total_num_hashes);
 
     bool rhs;
     vector<uint32_t> vars;
@@ -296,7 +296,7 @@ bool AppMC::gen_rhs()
     return rhs;
 }
 
-string AppMC::GenerateRandomBits(const uint32_t size, const uint32_t num_hashes)
+string AppMC::gen_rnd_bits(const uint32_t size, const uint32_t num_hashes)
 {
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
