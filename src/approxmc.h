@@ -69,14 +69,12 @@ public:
     uint32_t AppmcGen(
         uint32_t samples
         , uint32_t sampleCounter
-        , std::map<string, uint32_t>& solutionMap
         , uint32_t* lastSuccessfulHashOffset
         , double timeReference
     );
     int AppmcGenCall(
         uint32_t samples
         , uint32_t sampleCounter
-        , std::map<string, uint32_t>& solutionMap
         , uint32_t* lastSuccessfulHashOffset
         , double timeReference
     );
@@ -85,6 +83,7 @@ public:
     uint32_t threshold_appmcgen;
     SATSolver* solver = NULL;
     void printVersionInfo() const;
+    void set_samples_file(std::ostream* os);
 
 private:
     AppMCConfig conf;
@@ -95,11 +94,7 @@ private:
     void SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);
 
     int correctReturnValue(const lbool ret) const;
-    void output_samples();
-
-    void add_solution_to_map(
-        const vector<lbool>& model
-        , std::map<std::string, uint32_t>* solutionMap) const;
+    std::string get_solution_str(const vector<lbool>& model);
 
     void add_glob_banning_cls(
         const vector<vector<lbool>>* glob_model
@@ -109,9 +104,9 @@ private:
         uint32_t maxSolutions,
         const vector<Lit>& assumps,
         const uint32_t hashCount,
-        std::map<std::string, uint32_t>* solutionMap = NULL,
         uint32_t minSolutions = 1,
-        std::vector<vector<lbool>>* glob_model = NULL
+        std::vector<vector<lbool>>* glob_model = NULL,
+        vector<string>* out_solutions = NULL
     );
 
     void readInAFile(SATSolver* solver2, const string& filename);
@@ -119,7 +114,7 @@ private:
 
 
     double startTime;
-    std::map< std::string, std::vector<uint32_t>> globalSolutionMap;
+    std::ostream* samples_out = NULL;
     void openLogFile();
     void call_after_parse();
 

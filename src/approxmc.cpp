@@ -160,9 +160,9 @@ int64_t AppMC::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>& assumps,
         const uint32_t hashCount,
-        std::map<std::string, uint32_t>* solutionMap,
         uint32_t minSolutions,
-        vector<vector<lbool>>* glob_model
+        vector<vector<lbool>>* glob_model,
+        vector<string>* out_solutions
 ) {
     cout << "[appmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
@@ -212,6 +212,9 @@ int64_t AppMC::bounded_sol_count(
         }
         model = solver->get_model();
         modelsSet.push_back(model);
+        if (out_solutions) {
+            out_solutions->push_back(get_solution_str(model));
+        }
 
         if (solutions < maxSolutions) {
             vector<Lit> lits;
@@ -232,7 +235,7 @@ int64_t AppMC::bounded_sol_count(
     }
 
     //we have all solutions now, appmcgen variant
-    if (solutions < maxSolutions && solutions >= minSolutions && solutionMap) {
+    if (solutions < maxSolutions && solutions >= minSolutions && samples_out != NULL) {
         assert(minSolutions > 0);
         std::vector<int> modelIndices;
         for (uint32_t i = 0; i < modelsSet.size(); i++) {
@@ -243,7 +246,7 @@ int64_t AppMC::bounded_sol_count(
         uint32_t numSolutionsToReturn = SolutionsToReturn(solutions);
         for (uint32_t i = 0; i < numSolutionsToReturn; i++) {
             model = modelsSet.at(modelIndices.at(i));
-            add_solution_to_map(model, solutionMap);
+            (*samples_out) << get_solution_str(model) << endl;
         }
     }
 
@@ -264,11 +267,9 @@ int64_t AppMC::bounded_sol_count(
     return solutions;
 }
 
-void AppMC::add_solution_to_map(
-    const vector<lbool>& model
-    , std::map<std::string, uint32_t>* solutionMap
-) const {
-    assert(solutionMap != NULL);
+std::string AppMC::get_solution_str(const vector<lbool>& model)
+{
+    assert(samples_out != NULL);
 
     std::stringstream  solution;
     if (conf.only_indep_samples) {
@@ -284,13 +285,7 @@ void AppMC::add_solution_to_map(
         }
     }
     solution << "0";
-
-    std::string sol_str = solution.str();
-    std::map<string, uint32_t>::iterator it = solutionMap->find(sol_str);
-    if (it == solutionMap->end()) {
-        (*solutionMap)[sol_str] = 0;
-    }
-    (*solutionMap)[sol_str] += 1;
+    return solution.str();
 }
 
 bool AppMC::gen_rhs()
@@ -391,40 +386,14 @@ int AppMC::solve(AppMCConfig _conf)
             cout << "Using manually-specified startiter for AppmcGen" << endl;
         }
         generate_samples();
-        output_samples();
     }
 
     return correctReturnValue(l_True);
 }
 
-void AppMC::output_samples()
+void AppMC::set_samples_file(std::ostream* out)
 {
-    /* Output samples */
-    std::ostream* os;
-    std::ofstream* sampleFile = NULL;
-    if (!conf.sampleFilename.empty())
-    {
-        sampleFile = new std::ofstream;
-        sampleFile->open(conf.sampleFilename.c_str());
-        if (!(*sampleFile)) {
-            cout
-            << "ERROR: Couldn't open file '"
-            << conf.sampleFilename
-            << "' for writing!"
-            << endl;
-            std::exit(-1);
-        }
-        os = sampleFile;
-    } else {
-        os = &cout;
-    }
-
-    for (const auto& sol: globalSolutionMap) {
-        std::vector<uint32_t> counts = sol.second;
-        // TODO this will need to be changed once multithreading is implemented
-        *os << std::setw(5) << std::left << counts[0] << " : "  << sol.first.c_str() << endl;
-    }
-    delete sampleFile;
+    samples_out = out;
 }
 
 void AppMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps)
@@ -463,7 +432,9 @@ bool AppMC::count(SATCount& count)
     double myTime = cpuTimeTotal();
     cout << "[appmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
-        int64_t currentNumSolutions = bounded_sol_count(conf.threshold+1, assumps, count.hashCount);
+        int64_t currentNumSolutions = bounded_sol_count(
+            conf.threshold+1, assumps, count.hashCount);
+
         if (!conf.logfilename.empty()) {
             logfile << "appmc:"
             <<"0:0:"
@@ -512,7 +483,7 @@ bool AppMC::count(SATCount& count)
             assert(conf.threshold + 1 >= repeat);
             cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
             int64_t currentNumSolutions = bounded_sol_count(
-                conf.threshold + 1 - repeat, assumps, hashCount, NULL, 1, &glob_model);
+                conf.threshold + 1 - repeat, assumps, hashCount, 1, &glob_model);
 
             //cout << currentNumSolutions << ", " << threshold << endl;
             if (!conf.logfilename.empty()) {
@@ -642,7 +613,8 @@ int AppMC::correctReturnValue(const lbool ret) const
     } else if (ret == l_Undef) {
         retval = 15;
     } else {
-        std::cerr << "Something is very wrong, output is neither l_Undef, nor l_False, nor l_True" << endl;
+        std::cerr << "Something is very wrong, output is neither "
+        "l_Undef, nor l_False, nor l_True" << endl;
         exit(-1);
     }
 
@@ -664,6 +636,7 @@ uint32_t AppMC::SolutionsToReturn(uint32_t numSolutions)
 
 void AppMC::generate_samples()
 {
+    assert(samples_out != NULL);
     hiThresh = ceil(1 + (1.4142136 * (1 + conf.kappa) * threshold_appmcgen));
     loThresh = floor(threshold_appmcgen / (1.4142136 * (1 + conf.kappa)));
     uint32_t samplesPerCall = SolutionsToReturn(conf.samples);
@@ -694,7 +667,6 @@ void AppMC::generate_samples()
          << " calls per loop: " << numCallsInOneLoop
          << " remaining: " << remainingCalls << endl;
     uint32_t sampleCounter = 0;
-    std::map<string, uint32_t> threadSolutionMap;
     double allThreadsTime = 0;
     uint32_t allThreadsSampleCount = 0;
     double threadStartTime = cpuTimeTotal();
@@ -705,51 +677,38 @@ void AppMC::generate_samples()
         if (remainingCalls > 0) {
             sampleCounter = AppmcGenCall(
                 remainingCalls, sampleCounter
-                , threadSolutionMap
                 , &lastSuccessfulHashOffset, threadStartTime);
         }
 
         // Perform main AppmcGen call loops
         for (uint32_t i = 0; i < numCallLoops; i++) {
             sampleCounter = AppmcGenCall(
-                numCallsInOneLoop, sampleCounter, threadSolutionMap
+                numCallsInOneLoop, sampleCounter
                 , &lastSuccessfulHashOffset, threadStartTime);
         }
     } else {
         /* Ideal sampling case; enumerate all solutions */
         vector<Lit> assumps;
+        vector<string> out_solutions;
         const uint32_t count = bounded_sol_count(
             std::numeric_limits<uint32_t>::max() //maxsol
-            ,assumps //assumps
+            , assumps
             , 0 //number of hahes
-            , &threadSolutionMap //return sols here
+            , 1
+            , NULL
+            , &out_solutions
         );
         assert(count > 0);
 
-        for(auto&x : threadSolutionMap) {
-            x.second = 0;
-        }
-
         std::uniform_int_distribution<unsigned> uid {0, count-1};
         for (uint32_t i = 0; i < conf.samples; ++i) {
-            map<string, uint32_t>::iterator it = threadSolutionMap.begin();
+            vector<string>::iterator it = out_solutions.begin();
             for (uint32_t j = uid(randomEngine); j > 0; --j)    // TODO improve hack
+            {
                 ++it;
-            it->second += 1;
+            }
+            (*samples_out) << *it << endl;
         }
-    }
-
-    for (map<string, uint32_t>::iterator itt = threadSolutionMap.begin()
-            ; itt != threadSolutionMap.end()
-            ; itt++
-    ) {
-        string solution = itt->first;
-        map<string, std::vector<uint32_t>>::iterator itg = globalSolutionMap.find(solution);
-        if (itg == globalSolutionMap.end()) {
-            globalSolutionMap[solution] = std::vector<uint32_t>(1, 0);
-        }
-        globalSolutionMap[solution][0] += itt->second;
-        allThreadsSampleCount += itt->second;
     }
 
     double timeTaken = cpuTimeTotal() - threadStartTime;
@@ -765,7 +724,6 @@ void AppMC::generate_samples()
 uint32_t AppMC::AppmcGen(
     uint32_t loc_samples
     , uint32_t sampleCounter
-    , std::map<string, uint32_t>& solutionMap
     , uint32_t* lastSuccessfulHashOffset
     , double timeReference
 )
@@ -795,7 +753,6 @@ uint32_t AppMC::AppmcGen(
                 hiThresh
                 , assumps
                 , currentHashCount
-                , &solutionMap
                 , loThresh);
 
             if (solutionCount < hiThresh && solutionCount >= loThresh) {
@@ -844,7 +801,6 @@ uint32_t AppMC::AppmcGen(
 int AppMC::AppmcGenCall(
     uint32_t loc_samples
     , uint32_t sampleCounter
-    , std::map<string, uint32_t>& solutionMap
     , uint32_t* lastSuccessfulHashOffset
     , double timeReference
 )
@@ -861,7 +817,6 @@ int AppMC::AppmcGenCall(
     sampleCounter = AppmcGen(
                         loc_samples
                         , sampleCounter
-                        , solutionMap
                         , lastSuccessfulHashOffset
                         , timeReference
                     );

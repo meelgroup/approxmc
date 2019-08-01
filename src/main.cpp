@@ -277,6 +277,12 @@ void add_supported_options(int argc, char** argv)
         ;
         std::exit(-1);
     }
+
+     if (conf.samples == 0 && vm.count("sampleout")){
+        cerr << "ERROR: You did not give the '--samples N' option, but you gave the '--sampleout FNAME' option." << endl;
+        cout << "ERROR: This is confusing. Please give '--samples N' if you give '--sampleout FNAME'" << endl;
+        exit(-1);
+     }
 }
 
 void readInAFile(SATSolver* solver2, const string& filename)
@@ -372,6 +378,30 @@ void set_sampling_vars()
     appmc->solver->set_sampling_vars(&conf.sampling_set);
 }
 
+std::ostream* open_samples_file()
+{
+    std::ostream* os;
+    std::ofstream* sampleFile = NULL;
+    if (conf.sampleFilename.length() != 0)
+    {
+        sampleFile = new std::ofstream;
+        sampleFile->open(conf.sampleFilename.c_str());
+        if (!(*sampleFile)) {
+            cout
+            << "ERROR: Couldn't open sample file '"
+            << conf.sampleFilename
+            << "' for writing!"
+            << endl;
+            std::exit(-1);
+        }
+        os = sampleFile;
+    } else {
+        os = &cout;
+    }
+
+    return os;
+}
+
 int main(int argc, char** argv)
 {
     #if defined(__GNUC__) && defined(__linux__)
@@ -444,58 +474,14 @@ int main(int argc, char** argv)
         readInStandardInput(appmc->solver);
     }
     set_sampling_vars();
+    std::ostream* out = open_samples_file();
+    if (conf.samples > 0) {
+        appmc->set_samples_file(out);
+    }
 
-
-    //AppMC only
-    if (conf.samples == 0) {
-        if (vm.count("sampleout")){
-            cerr << "ERROR: You did not give the '--samples N' option, but you gave the '--sampleout FNAME' option." << endl;
-            cout << "ERROR: This is confusing. Please give '--samples N' if you give '--sampleout FNAME'" << endl;
-            exit(-1);
-        }
-    //AppmcGen
-    } else {
-        if (conf.samples == 0 || conf.startiter == 0) {
-            if (conf.samples > 0) {
-                cout << "Using appmc to compute startiter for AppmcGen" << endl;
-                if (!vm["thresholdAC"].defaulted() || !vm["measurements"].defaulted()) {
-                    cout << "WARNING: manually-specified thresholdAC and/or measurements may"
-                         << " not be large enough to guarantee correctness of AppmcGen." << endl
-                         << "Omit those arguments to use safe default values." << endl;
-                } else {
-                    /* Fill in here the best parameters for appmc achieving
-                     * epsilon=0.8 and delta=0.177 as required by AppmcGen */
-                    conf.threshold = 73;
-                    conf.measurements = 11;
-                }
-            } else if(vm["measurements"].defaulted()) {
-                /* Compute tappmc */
-                double delta = 0.2;
-                double confidence = 1.0 - delta;
-                int bestIteration = iterationConfidences.size() - 1;
-                int worstIteration = 0;
-                int currentIteration = (worstIteration + bestIteration) / 2;
-                if (iterationConfidences[bestIteration] >= confidence)
-                {
-                    while (currentIteration != worstIteration)
-                    {
-                        if (iterationConfidences[currentIteration] >= confidence)
-                        {
-                            bestIteration = currentIteration;
-                            currentIteration = (worstIteration + currentIteration) / 2;
-                        }
-                        else
-                        {
-                            worstIteration = currentIteration;
-                            currentIteration = (currentIteration + bestIteration) / 2;
-                        }
-                    }
-                    conf.measurements = (2 * bestIteration) + 1;
-                }
-                else
-                    conf.measurements = ceil(17 * log2(3.0 / delta));
-            }
-        }
+    //Counting
+    if (conf.samples > 0 && conf.startiter == 0) {
+        cout << "[appmc] Using appmc to compute startiter for AppmcGen" << endl;
     }
 
     if (conf.start_iter > conf.sampling_set.size()) {
@@ -504,5 +490,10 @@ int main(int argc, char** argv)
         exit(-1);
     }
 
-    return appmc->solve(conf);
+    auto ret = appmc->solve(conf);
+    if (out != &cout) {
+        delete out;
+    }
+
+    return ret;
 }
