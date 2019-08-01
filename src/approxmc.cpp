@@ -355,11 +355,12 @@ int AppMC::solve(AppMCConfig _conf)
         threshold_appmcgen = ceil(4.03 * (1 + (1/conf.kappa)) * (1 + (1/conf.kappa)));
 
         if (conf.startiter == 0) {
-            SATCount solCount;
             cout << "[appmc] AppmcGen starting from iteration " << conf.startiter << endl;
+            SATCount solCount;
+            std::ostream* backup = samples_out;
+            samples_out = NULL;
 
-            bool finished = false;
-            finished = count(solCount);
+            bool finished = count(solCount);
             assert(finished);
             cout << "[appmc] finished counting solutions in "
             << (cpuTimeTotal() - startTime) << " s" << endl;
@@ -378,10 +379,12 @@ int AppMC::solve(AppMCConfig _conf)
 
             double si = round(solCount.hashCount + log2(solCount.cellSolCount)
                 + log2(1.8) - log2(threshold_appmcgen)) - 2;
-            if (si > 0)
+            if (si > 0) {
                 conf.startiter = si;
-            else
+            } else {
                 conf.startiter = 0;   /* Indicate ideal sampling case */
+            }
+            samples_out = backup;
         } else {
             cout << "Using manually-specified startiter for AppmcGen" << endl;
         }
