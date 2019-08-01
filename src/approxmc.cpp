@@ -246,7 +246,7 @@ int64_t AppMC::bounded_sol_count(
         uint32_t numSolutionsToReturn = SolutionsToReturn(solutions);
         for (uint32_t i = 0; i < numSolutionsToReturn; i++) {
             model = modelsSet.at(modelIndices.at(i));
-            (*samples_out) << get_solution_str(model) << endl;
+            (*samples_out) << get_solution_str(model) << endl << std::flush;
         }
     }
 
@@ -707,7 +707,7 @@ void AppMC::generate_samples()
             {
                 ++it;
             }
-            (*samples_out) << *it << endl;
+            (*samples_out) << *it << endl << std::flush;
         }
     }
 
