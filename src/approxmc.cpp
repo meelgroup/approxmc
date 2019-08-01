@@ -386,7 +386,7 @@ int AppMC::solve(AppMCConfig _conf)
             }
             samples_out = backup;
         } else {
-            cout << "Using manually-specified startiter for AppmcGen" << endl;
+            cout << "Using manually-specified startiter for sample generation" << endl;
         }
         generate_samples();
     }
