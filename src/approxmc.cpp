@@ -348,7 +348,7 @@ int AppMC::solve(AppMCConfig _conf)
         if (conf.startiter > conf.sampling_set.size()) {
             cerr << "ERROR: Manually-specified startiter for AppmcGen"
                  "is larger than the size of the independent set.\n" << endl;
-            return -1;
+            exit(-1);
         }
 
         /* Compute threshold via formula from TACAS-15 paper */
