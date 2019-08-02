@@ -121,6 +121,7 @@ private:
     std::ofstream logfile;
     std::mt19937 randomEngine;
     double total_runtime; //runTime
+    uint32_t orig_num_vars;
 
     int argc;
     char** argv;

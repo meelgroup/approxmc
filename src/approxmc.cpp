@@ -279,7 +279,7 @@ std::string AppMC::get_solution_str(const vector<lbool>& model)
             solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
         }
     } else {
-        for(uint32_t var = 0; var < model.size(); var++) {
+        for(uint32_t var = 0; var < orig_num_vars; var++) {
             assert(model[var] != l_Undef);
             solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
         }
@@ -321,6 +321,7 @@ string AppMC::gen_rnd_bits(const uint32_t size, const uint32_t num_hashes)
 int AppMC::solve(AppMCConfig _conf)
 {
     conf = _conf;
+    orig_num_vars = solver->nVars();
 
     openLogFile();
     randomEngine.seed(conf.seed);
