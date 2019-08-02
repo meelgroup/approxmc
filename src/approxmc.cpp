@@ -671,7 +671,6 @@ void AppMC::generate_samples()
          << " remaining: " << remainingCalls << endl;
     uint32_t sampleCounter = 0;
     double allThreadsTime = 0;
-    uint32_t allThreadsSampleCount = 0;
     double threadStartTime = cpuTimeTotal();
     uint32_t lastSuccessfulHashOffset = 0;
 
@@ -719,9 +718,8 @@ void AppMC::generate_samples()
     cout << "[appmc] Time for AppmcGen: " << timeTaken << " s"
     " -- Total time AppMC+AppmcGen: " << cpuTimeTotal() << " s" << endl;
 
-    // TODO put this back once multithreading is implemented
-    //cout << "Total time for all AppmcGen calls: " << allThreadsTime << " s" << endl;
-    cout << "[appmc] Samples generated: " << allThreadsSampleCount << endl;
+
+    cout << "[appmc] Samples generated: " << sampleCounter << endl;
 }
 
 uint32_t AppMC::AppmcGen(
