@@ -142,7 +142,7 @@ void add_appmc_options()
         , "epsilon parameter as per PAC guarantees")
     ("delta", po::value(&conf.delta)->default_value(conf.delta, my_delta.str())
         , "delta parameter as per PAC guarantees; 1-delta is the confidence")
-    ("start", po::value(&conf.start_iter)->default_value(conf.start_iter),
+    ("start", po::value(&conf.startiter)->default_value(conf.startiter),
          "Start at this many XORs")
     ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
          "Logs of ApproxMC execution")
@@ -152,8 +152,6 @@ void add_appmc_options()
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
         , "Generate sparse XORs when possible")
-    ("startiter", po::value(&conf.startiter)->default_value(conf.startiter)
-        , "If positive, use instead of startiter computed by AppMC")
     ;
 
     appmcgen_options.add_options()
@@ -484,7 +482,7 @@ int main(int argc, char** argv)
         cout << "[appmc] Using appmc to compute startiter for AppmcGen" << endl;
     }
 
-    if (conf.start_iter > conf.sampling_set.size()) {
+    if (conf.startiter > conf.sampling_set.size()) {
         cout << "[appmc] ERROR: Manually-specified start_iter"
              "is larger than the size of the sampling set.\n" << endl;
         exit(-1);

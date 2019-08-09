@@ -327,7 +327,7 @@ int AppMC::solve(AppMCConfig _conf)
     randomEngine.seed(conf.seed);
     total_runtime = cpuTimeTotal();
     if (conf.samples == 0) {
-        cout << "[appmc] Using start iteration " << conf.start_iter << endl;
+        cout << "[appmc] Using start iteration " << conf.startiter << endl;
 
         SATCount solCount;
         bool finished = count(solCount);
@@ -429,7 +429,7 @@ bool AppMC::count(SATCount& count)
     vector<int64_t> numCountList;
     vector<Lit> assumps;
 
-    uint64_t hashCount = conf.start_iter;
+    uint64_t hashCount = conf.startiter;
     uint64_t hashPrev = 0;
     uint64_t mPrev = 0;
 
