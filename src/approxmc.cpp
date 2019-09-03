@@ -505,24 +505,6 @@ void AppMC::printVersionInfo() const
     cout << solver->get_text_version_info();
 }
 
-int AppMC::correctReturnValue(const lbool ret) const
-{
-    int retval = -1;
-    if (ret == l_True) {
-        retval = 10;
-    } else if (ret == l_False) {
-        retval = 20;
-    } else if (ret == l_Undef) {
-        retval = 15;
-    } else {
-        std::cerr << "Something is very wrong, output is neither "
-        "l_Undef, nor l_False, nor l_True" << endl;
-        exit(-1);
-    }
-
-    return retval;
-}
-
 /////////////// appmcgen ////////////////
 /* Number of solutions to return from one invocation of AppmcGen. */
 uint32_t AppMC::sols_to_return(uint32_t numSolutions)
@@ -829,4 +811,22 @@ inline T AppMC::findMin(vector<T>& numList)
         }
     }
     return min;
+}
+
+int AppMC::correctReturnValue(const lbool ret) const
+{
+    int retval = -1;
+    if (ret == l_True) {
+        retval = 10;
+    } else if (ret == l_False) {
+        retval = 20;
+    } else if (ret == l_Undef) {
+        retval = 15;
+    } else {
+        std::cerr << "Something is very wrong, output is neither "
+        "l_Undef, nor l_False, nor l_True" << endl;
+        exit(-1);
+    }
+
+    return retval;
 }
