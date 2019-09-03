@@ -149,10 +149,12 @@ int64_t AppMC::bounded_sol_count(
                 cout << " No more. " << std::setw(3) << "";
             }
             cout << " T: "
-            << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-total_runtime)
+            << std::setw(7) << std::setprecision(2) << std::fixed
+            << (cpuTimeTotal()-total_runtime)
             << " -- hashes act: " << hashCount
             << " -- T since last: "
-            << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-last_found_time)
+            << std::setw(7) << std::setprecision(2) << std::fixed
+            << (cpuTimeTotal()-last_found_time)
             << endl;
             last_found_time = cpuTimeTotal();
         }
@@ -519,7 +521,6 @@ int AppMC::correctReturnValue(const lbool ret) const
     return retval;
 }
 
-
 /////////////// appmcgen ////////////////
 /* Number of solutions to return from one invocation of AppmcGen. */
 uint32_t AppMC::sols_to_return(uint32_t numSolutions)
@@ -543,7 +544,8 @@ void AppMC::generate_samples()
     << ", hiThresh " << hiThresh
     << ", startiter " << conf.startiter << endl;
 
-    cout << "[appmc] Outputting " << samplesPerCall << " solutions from each AppmcGen call" << endl;
+    cout << "[appmc] Outputting " << samplesPerCall
+    << " solutions from each AppmcGen call" << endl;
 
     uint32_t numCallsInOneLoop = 0;
     if (conf.callsPerSolver == 0) {
@@ -555,7 +557,8 @@ void AppMC::generate_samples()
         }
     } else {
         numCallsInOneLoop = conf.callsPerSolver;
-        cout << "[appmc] Using manually-specified callsPerSolver: " << conf.callsPerSolver << endl;
+        cout << "[appmc] Using manually-specified callsPerSolver: "
+        << conf.callsPerSolver << endl;
     }
 
     uint32_t numCallLoops = callsNeeded / numCallsInOneLoop;
@@ -660,7 +663,8 @@ uint32_t AppMC::AppmcGen(
             if (!conf.logfilename.empty()) {
                 logfile << "appmcgen:"
                 << sampleCounter << ":" << currentHashCount << ":"
-                << std::fixed << std::setprecision(2) << (cpuTimeTotal() - timeReference) << ":"
+                << std::fixed << std::setprecision(2)
+                << (cpuTimeTotal() - timeReference) << ":"
                 << (int)(ret == l_False ? 1 : (ret == l_True ? 0 : 2)) << ":"
                 << solutionCount << endl;
             }
