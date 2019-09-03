@@ -775,7 +775,7 @@ string AppMC::gen_rnd_bits(const uint32_t size, const uint32_t num_hashes)
     return randomBits;
 }
 
-void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
+void AppMC::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
     cout << "[appmc] Added XOR ";
     for (size_t i = 0; i < vars.size(); i++) {
@@ -800,7 +800,7 @@ void AppMC::openLogFile()
 }
 
 template<class T>
-inline T findMedian(vector<T>& numList)
+inline T AppMC::findMedian(vector<T>& numList)
 {
     std::sort(numList.begin(), numList.end());
     size_t medIndex = (numList.size() + 1) / 2;
@@ -814,7 +814,7 @@ inline T findMedian(vector<T>& numList)
 }
 
 template<class T>
-inline T findMin(vector<T>& numList)
+inline T AppMC::findMin(vector<T>& numList)
 {
     T min = std::numeric_limits<T>::max();
     for (const auto a: numList) {
