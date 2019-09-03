@@ -55,56 +55,6 @@ using std::endl;
 using std::list;
 using std::map;
 
-void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
-{
-    cout << "[appmc] Added XOR ";
-    for (size_t i = 0; i < vars.size(); i++) {
-        cout << vars[i]+1;
-        if (i < vars.size()-1) {
-            cout << " + ";
-        }
-    }
-    cout << " = " << (rhs ? "True" : "False") << endl;
-}
-
-void AppMC::openLogFile()
-{
-    if (!conf.logfilename.empty()) {
-        logfile.open(conf.logfilename.c_str());
-        if (!logfile.is_open()) {
-            cout << "[appmc] Cannot open AppMC log file '" << conf.logfilename
-                 << "' for writing." << endl;
-            exit(1);
-        }
-    }
-}
-
-template<class T>
-inline T findMedian(vector<T>& numList)
-{
-    std::sort(numList.begin(), numList.end());
-    size_t medIndex = (numList.size() + 1) / 2;
-    size_t at = 0;
-    if (medIndex >= numList.size()) {
-        at += numList.size() - 1;
-        return numList[at];
-    }
-    at += medIndex;
-    return numList[at];
-}
-
-template<class T>
-inline T findMin(vector<T>& numList)
-{
-    T min = std::numeric_limits<T>::max();
-    for (const auto a: numList) {
-        if (a < min) {
-            min = a;
-        }
-    }
-    return min;
-}
-
 bool AppMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes)
 {
     const string randomBits =
@@ -265,57 +215,6 @@ int64_t AppMC::bounded_sol_count(
 
     assert(ret != l_Undef);
     return solutions;
-}
-
-std::string AppMC::get_solution_str(const vector<lbool>& model)
-{
-    assert(samples_out != NULL);
-
-    std::stringstream  solution;
-    if (conf.only_indep_samples) {
-        for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
-            uint32_t var = conf.sampling_set[j];
-            assert(model[var] != l_Undef);
-            solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
-        }
-    } else {
-        for(uint32_t var = 0; var < orig_num_vars; var++) {
-            assert(model[var] != l_Undef);
-            solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
-        }
-    }
-    solution << "0";
-    return solution.str();
-}
-
-bool AppMC::gen_rhs()
-{
-    std::uniform_int_distribution<uint32_t> dist{0, 1};
-    bool rhs = dist(randomEngine);
-    //cout << "rnd rhs:" << (int)rhs << endl;
-    return rhs;
-}
-
-string AppMC::gen_rnd_bits(const uint32_t size, const uint32_t num_hashes)
-{
-    string randomBits;
-    std::uniform_int_distribution<uint32_t> dist{0, 1000};
-    uint32_t cutoff = 500;
-    if (conf.sparse && num_hashes > 132) {
-        double probability = 13.46*std::log(num_hashes)/num_hashes;
-        assert(probability < 0.5);
-        cutoff = std::ceil(1000.0*probability);
-        cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
-    }
-
-    while (randomBits.size() < size) {
-        bool val = dist(randomEngine) < cutoff;
-        randomBits += '0' + val;
-    }
-    assert(randomBits.size() >= size);
-
-    //cout << "rnd bits: " << randomBits << endl;
-    return randomBits;
 }
 
 int AppMC::solve(AppMCConfig _conf)
@@ -818,4 +717,110 @@ int AppMC::AppmcGenCall(
                         , timeReference
                     );
     return sampleCounter;
+}
+
+
+////////////////////
+//Helper functions
+////////////////////
+
+std::string AppMC::get_solution_str(const vector<lbool>& model)
+{
+    assert(samples_out != NULL);
+
+    std::stringstream  solution;
+    if (conf.only_indep_samples) {
+        for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
+            uint32_t var = conf.sampling_set[j];
+            assert(model[var] != l_Undef);
+            solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
+        }
+    } else {
+        for(uint32_t var = 0; var < orig_num_vars; var++) {
+            assert(model[var] != l_Undef);
+            solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
+        }
+    }
+    solution << "0";
+    return solution.str();
+}
+
+bool AppMC::gen_rhs()
+{
+    std::uniform_int_distribution<uint32_t> dist{0, 1};
+    bool rhs = dist(randomEngine);
+    //cout << "rnd rhs:" << (int)rhs << endl;
+    return rhs;
+}
+
+string AppMC::gen_rnd_bits(const uint32_t size, const uint32_t num_hashes)
+{
+    string randomBits;
+    std::uniform_int_distribution<uint32_t> dist{0, 1000};
+    uint32_t cutoff = 500;
+    if (conf.sparse && num_hashes > 132) {
+        double probability = 13.46*std::log(num_hashes)/num_hashes;
+        assert(probability < 0.5);
+        cutoff = std::ceil(1000.0*probability);
+        cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
+    }
+
+    while (randomBits.size() < size) {
+        bool val = dist(randomEngine) < cutoff;
+        randomBits += '0' + val;
+    }
+    assert(randomBits.size() >= size);
+
+    //cout << "rnd bits: " << randomBits << endl;
+    return randomBits;
+}
+
+void print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
+{
+    cout << "[appmc] Added XOR ";
+    for (size_t i = 0; i < vars.size(); i++) {
+        cout << vars[i]+1;
+        if (i < vars.size()-1) {
+            cout << " + ";
+        }
+    }
+    cout << " = " << (rhs ? "True" : "False") << endl;
+}
+
+void AppMC::openLogFile()
+{
+    if (!conf.logfilename.empty()) {
+        logfile.open(conf.logfilename.c_str());
+        if (!logfile.is_open()) {
+            cout << "[appmc] Cannot open AppMC log file '" << conf.logfilename
+                 << "' for writing." << endl;
+            exit(1);
+        }
+    }
+}
+
+template<class T>
+inline T findMedian(vector<T>& numList)
+{
+    std::sort(numList.begin(), numList.end());
+    size_t medIndex = (numList.size() + 1) / 2;
+    size_t at = 0;
+    if (medIndex >= numList.size()) {
+        at += numList.size() - 1;
+        return numList[at];
+    }
+    at += medIndex;
+    return numList[at];
+}
+
+template<class T>
+inline T findMin(vector<T>& numList)
+{
+    T min = std::numeric_limits<T>::max();
+    for (const auto a: numList) {
+        if (a < min) {
+            min = a;
+        }
+    }
+    return min;
 }
