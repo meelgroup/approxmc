@@ -483,28 +483,6 @@ bool AppMC::count(SATCount& ret_count)
     return true;
 }
 
-///////////
-// Useful helper functions
-///////////
-
-void printVersionInfoAppMC()
-{
-    cout << "c AppMC SHA revision " << ::get_version_sha1() << endl;
-    cout << "c AppMC version " << ::get_version_tag() << endl;
-    cout << "c AppMC compilation env " << ::get_compilation_env() << endl;
-    #ifdef __GNUC__
-    cout << "c AppMC compiled with gcc version " << __VERSION__ << endl;
-    #else
-    cout << "c AppMC compiled with non-gcc compiler" << endl;
-    #endif
-}
-
-void AppMC::printVersionInfo() const
-{
-    ::printVersionInfoAppMC();
-    cout << solver->get_text_version_info();
-}
-
 /////////////// appmcgen ////////////////
 /* Number of solutions to return from one invocation of AppmcGen. */
 uint32_t AppMC::sols_to_return(uint32_t numSolutions)
@@ -829,4 +807,22 @@ int AppMC::correctReturnValue(const lbool ret) const
     }
 
     return retval;
+}
+
+void printVersionInfoAppMC()
+{
+    cout << "c AppMC SHA revision " << ::get_version_sha1() << endl;
+    cout << "c AppMC version " << ::get_version_tag() << endl;
+    cout << "c AppMC compilation env " << ::get_compilation_env() << endl;
+    #ifdef __GNUC__
+    cout << "c AppMC compiled with gcc version " << __VERSION__ << endl;
+    #else
+    cout << "c AppMC compiled with non-gcc compiler" << endl;
+    #endif
+}
+
+void AppMC::printVersionInfo() const
+{
+    ::printVersionInfoAppMC();
+    cout << solver->get_text_version_info();
 }
