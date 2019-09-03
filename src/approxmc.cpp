@@ -64,7 +64,6 @@ bool AppMC::add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_
     vector<uint32_t> vars;
 
     for (uint32_t i = 0; i < num_xor_cls; i++) {
-        //new activation variable
         solver->new_var();
         uint32_t act_var = solver->nVars()-1;
         assumps.push_back(Lit(act_var, true));
@@ -318,9 +317,9 @@ void AppMC::setHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<
     }
 }
 
-bool AppMC::count(SATCount& count)
+bool AppMC::count(SATCount& ret_count)
 {
-    count.clear();
+    ret_count.clear();
     vector<uint64_t> numHashList;
     vector<int64_t> numCountList;
     vector<Lit> assumps;
@@ -332,8 +331,9 @@ bool AppMC::count(SATCount& count)
     double myTime = cpuTimeTotal();
     cout << "[appmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
+        cout << "[appmc] Starting hash count not given, trying to find out..." << endl;
         int64_t currentNumSolutions = bounded_sol_count(
-            conf.threshold+1, assumps, count.hashCount);
+            conf.threshold+1, assumps, ret_count.hashCount);
 
         if (!conf.logfilename.empty()) {
             logfile << "appmc:"
@@ -349,11 +349,13 @@ bool AppMC::count(SATCount& count)
             << conf.threshold << ") we found only " << currentNumSolutions
             << ", exiting AppMC" << endl;
 
-            count.cellSolCount = currentNumSolutions;
-            count.hashCount = 0;
+            ret_count.cellSolCount = currentNumSolutions;
+            ret_count.hashCount = 0;
             return true;
         }
         hashCount++;
+    } else {
+        cout << "[appmc] Starting hash count given: " << hashCount << endl;
     }
 
     for (uint32_t j = 0; j < conf.measurements; j++) {
@@ -476,8 +478,8 @@ bool AppMC::count(SATCount& count)
     }
     int medSolCount = findMedian(numCountList);
 
-    count.cellSolCount = medSolCount;
-    count.hashCount = minHash;
+    ret_count.cellSolCount = medSolCount;
+    ret_count.hashCount = minHash;
     return true;
 }
 
