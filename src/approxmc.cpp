@@ -395,12 +395,7 @@ int AppMC::solve(AppMCConfig _conf)
     return correctReturnValue(l_True);
 }
 
-void AppMC::set_samples_file(std::ostream* out)
-{
-    samples_out = out;
-}
-
-void AppMC::SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps)
+void AppMC::setHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps)
 {
     if (clausNum < assumps.size()) {
         uint64_t numberToRemove = assumps.size()- clausNum;
@@ -482,7 +477,7 @@ bool AppMC::count(SATCount& count)
                  << " ind set size: " << std::setw(6) << conf.sampling_set.size() << endl;
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
-            SetHash(hashCount,hashVars,assumps);
+            setHash(hashCount,hashVars,assumps);
 
             assert(conf.threshold + 1 >= repeat);
             cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
@@ -749,7 +744,7 @@ uint32_t AppMC::AppmcGen(
         for (uint32_t j = 0; j < 3; j++) {
             currentHashOffset = hashOffsets[j];
             currentHashCount = currentHashOffset + conf.startiter;
-            SetHash(currentHashCount, hashVars, assumps);
+            setHash(currentHashCount, hashVars, assumps);
 
             const uint64_t solutionCount = bounded_sol_count(
                 hiThresh

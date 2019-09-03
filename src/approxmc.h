@@ -91,7 +91,7 @@ private:
     void add_appmc_options();
     bool ScalAppMC(SATCount& count);
     bool add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes);
-    void SetHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);
+    void setHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);
 
     int correctReturnValue(const lbool ret) const;
     std::string get_solution_str(const vector<lbool>& model);
@@ -126,6 +126,11 @@ private:
     int argc;
     char** argv;
 };
+
+inline void AppMC::set_samples_file(std::ostream* out)
+{
+    samples_out = out;
+}
 
 
 #endif //AppMC_H_
