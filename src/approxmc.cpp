@@ -380,7 +380,7 @@ bool AppMC::count(SATCount& ret_count)
                  << " ind set size: " << std::setw(6) << conf.sampling_set.size() << endl;
             myTime = cpuTimeTotal();
             uint64_t swapVar = hashCount;
-            setHash(hashCount,hashVars,assumps);
+            setHash(hashCount, hashVars, assumps);
 
             assert(conf.threshold + 1 >= repeat);
             cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
