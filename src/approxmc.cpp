@@ -356,14 +356,13 @@ void AppMC::count(SATCount& ret_count)
     vector<uint64_t> numHashList;
     vector<int64_t> numCountList;
     uint64_t hashPrev = 0;
-    uint64_t mPrev = 0;
+    uint64_t mPrev = hashCount;
     for (uint32_t j = 0; j < conf.measurements; j++) {
         one_measurement_count(
             numHashList
             , numCountList
             , hashPrev
             , mPrev
-            , hashCount
             , j
         );
     }
@@ -391,7 +390,6 @@ void AppMC::one_measurement_count(
     vector<int64_t>& numCountList,
     uint64_t& hashPrev,
     uint64_t& mPrev,
-    uint64_t& hashCount,
     const uint32_t iter
 )
 {
@@ -421,6 +419,7 @@ void AppMC::one_measurement_count(
     uint64_t lowerFib = 0;
     uint64_t upperFib = total_max_xors;
 
+    uint64_t hashCount = mPrev;
     while (numExplored < total_max_xors) {
         cout << "[appmc] Explored: " << std::setw(4) << numExplored
              << " ind set size: " << std::setw(6) << conf.sampling_set.size() << endl;
