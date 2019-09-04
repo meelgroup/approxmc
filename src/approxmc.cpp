@@ -369,6 +369,10 @@ void AppMC::count(SATCount& ret_count)
         mPrev = std::max<int64_t>(0, mPrev);
         mPrev++;
     }
+
+    //See Algorithm 1 in paper "Algorithmic Improvements in Approximate Counting
+    //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
+    //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
     for (uint32_t j = 0; j < conf.measurements; j++) {
         one_measurement_count(
             numHashList
@@ -380,9 +384,8 @@ void AppMC::count(SATCount& ret_count)
     }
     assert(numHashList.size() > 0 && "UNSAT should not be possible");
 
+    //Median
     auto minHash = findMin(numHashList);
-
-    //What is this doing??
     auto cnt_it = numCountList.begin();
     for (auto hash_it = numHashList.begin()
         ; hash_it != numHashList.end() && cnt_it != numCountList.end()
@@ -390,13 +393,15 @@ void AppMC::count(SATCount& ret_count)
     ) {
         *cnt_it *= pow(2, (*hash_it) - minHash);
     }
-
     int medSolCount = findMedian(numCountList);
     ret_count.cellSolCount = medSolCount;
     ret_count.hashCount = minHash;
     return;
 }
 
+//See Algorithm 2+3 in paper "Algorithmic Improvements in Approximate Counting
+//for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
+//https://www.ijcai.org/Proceedings/16/Papers/503.pdf
 void AppMC::one_measurement_count(
     vector<uint64_t>& numHashList,
     vector<int64_t>& numCountList,
