@@ -137,7 +137,7 @@ int64_t AppMC::bounded_sol_count(
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
     while (solutions < maxSolutions) {
-        lbool ret = solver->solve(&new_assumps);
+        lbool ret = solver->solve(&new_assumps, true);
         assert(ret == l_False || ret == l_True);
 
         if (conf.verb >= 2) {
