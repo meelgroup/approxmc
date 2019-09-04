@@ -405,11 +405,10 @@ void AppMC::one_measurement_count(
     vector<vector<lbool>> glob_model; //global table storing models
     int64_t repeat = 0; //repeatable solutions
 
-    //Note, the rank of a random NxN matrix is not N of course. It has an expected
-    //rank that is of course lower than N. So we need to shoot higher.
+    //Note, the rank of a random NxN matrix is not N. It has an expected
+    //rank that is lower than N. So we need to shoot higher.
     //https://math.stackexchange.com/questions/324150/expected-rank-of-a-random-binary-matrix
     //Apparently this question is analyzed in Kolchin's book Random Graphs in sect. 3.2.
-    //Thanks to Yash Pote to digging this one out. Very helpful.
     uint64_t total_max_xors = std::ceil((double)conf.sampling_set.size()*1.2)+5;
     uint64_t numExplored = 0;
     uint64_t lowerFib = 0;
