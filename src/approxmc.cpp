@@ -133,6 +133,11 @@ int64_t AppMC::bounded_sol_count(
     new_assumps.push_back(Lit(sol_ban_var, true));
     add_glob_banning_cls(glob_model, sol_ban_var);
 
+    //Bit of a hack around CMS not doing simp scheduling
+    if (hashCount > 2) {
+        solver->simplify(&new_assumps);
+    }
+
     uint64_t solutions = 0;
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
