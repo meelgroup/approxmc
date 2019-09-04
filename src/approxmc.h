@@ -49,6 +49,11 @@ struct SATCount {
     }
     uint32_t hashCount = 0;
     uint32_t cellSolCount = 0;
+
+    void print_num_solutions() {
+        std::cout << "[appmc] Number of solutions is: "
+        << cellSolCount << "*2**" << hashCount << std::endl;
+    }
 };
 
 class AppMC {

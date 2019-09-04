@@ -242,9 +242,7 @@ int AppMC::solve(AppMCConfig _conf)
             solver->print_stats();
         }
 
-        cout << "[appmc] Number of solutions is: "
-        << solCount.cellSolCount
-         << " x 2^" << solCount.hashCount << endl;
+        solCount.print_num_solutions();
     } else {
         if (conf.startiter > conf.sampling_set.size()) {
             cerr << "ERROR: Manually-specified startiter for gen_n_samples"
@@ -273,9 +271,7 @@ int AppMC::solve(AppMCConfig _conf)
             if (conf.verb) {
                 solver->print_stats();
             }
-
-            cout << "[appmc] Number of solutions is: "
-            << solCount.cellSolCount << " x 2^" << solCount.hashCount << endl;
+            solCount.print_num_solutions();
 
             double si = round(solCount.hashCount + log2(solCount.cellSolCount)
                 + log2(1.8) - log2(threshold_appmcgen)) - 2;
