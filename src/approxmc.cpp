@@ -335,7 +335,9 @@ void AppMC::count(SATCount& ret_count)
             hashCount
         );
 
-        write_log(0, 0, currentNumSolutions == (conf.threshold + 1), currentNumSolutions);
+        write_log(0, 0,
+                  currentNumSolutions == (conf.threshold + 1),
+                  currentNumSolutions, 0);
 
         //Din't find at least threshold+1
         if (currentNumSolutions <= conf.threshold) {
@@ -436,7 +438,7 @@ void AppMC::one_measurement_count(
         );
         assert(num_sols <= conf.threshold + 1 - repeat);
         bool found_full = (num_sols == conf.threshold + 1 - repeat);
-        write_log(iter, hashCount, found_full, num_sols);
+        write_log(iter, hashCount, found_full, num_sols + repeat, repeat);
 
         if (num_sols < conf.threshold + 1 - repeat) {
             repeat += num_sols;
@@ -606,7 +608,7 @@ uint32_t AppMC::gen_n_samples(
                 , loThresh //min number of solutions (samples not output otherwise)
             );
             ok = (solutionCount < hiThresh && solutionCount >= loThresh);
-            write_log(i, currentHashCount, solutionCount == hiThresh, solutionCount);
+            write_log(i, currentHashCount, solutionCount == hiThresh, solutionCount, 0);
 
             if (ok) {
                 num_samples += sols_to_return(conf.samples);
@@ -793,6 +795,7 @@ void AppMC::openLogFile()
         << " " << std::setw(4) << "hash"
         << " " << std::setw(4) << "full"
         << " " << std::setw(4) << "sols"
+        << " " << std::setw(4) << "rep"
         << " " << std::setw(7) << "time"
         << endl;
 
@@ -803,7 +806,8 @@ void AppMC::write_log(
     uint32_t iter,
     uint32_t hashCount,
     int found_full,
-    uint32_t num_sols
+    uint32_t num_sols,
+    uint32_t repeat_sols
 )
 {
     if (!conf.logfilename.empty()) {
@@ -814,6 +818,7 @@ void AppMC::write_log(
         << " " << std::setw(4) << hashCount
         << " " << std::setw(4) << found_full
         << " " << std::setw(4) << num_sols
+        << " " << std::setw(4) << repeat_sols
         << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpuTimeTotal() - startTime)
         << endl;
     }

@@ -112,14 +112,14 @@ private:
         vector<int64_t>& numCountList,
         uint64_t& hashPrev,
         uint64_t& mPrev,
-        uint64_t& hashCount,
         const uint32_t iter
     );
     void write_log(
         uint32_t iter,
         uint32_t hashCount,
         int found_full,
-        uint32_t num_sols
+        uint32_t num_sols,
+        uint32_t repeat_sols
     );
     void openLogFile();
     void call_after_parse();
