@@ -220,6 +220,7 @@ int AppMC::solve(AppMCConfig _conf)
     conf = _conf;
     orig_num_vars = solver->nVars();
     startTime = cpuTimeTotal();
+    sampling = false;
 
     openLogFile();
     randomEngine.seed(conf.seed);
@@ -334,13 +335,7 @@ void AppMC::count(SATCount& ret_count)
             hashCount
         );
 
-        if (!conf.logfilename.empty()) {
-            logfile << "appmc:"
-            <<"0:0:"
-            << std::fixed << std::setprecision(2) << (cpuTimeTotal() - startTime) << ":"
-            << (int)(currentNumSolutions == (conf.threshold + 1)) << ":"
-            << currentNumSolutions << endl;
-        }
+        write_log(0, 0, currentNumSolutions == (conf.threshold + 1), currentNumSolutions);
 
         //Din't find at least threshold+1
         if (currentNumSolutions <= conf.threshold) {
@@ -442,16 +437,7 @@ void AppMC::one_measurement_count(
         );
         assert(num_sols <= conf.threshold + 1 - repeat);
         bool found_full = (num_sols == conf.threshold + 1 - repeat);
-
-        if (!conf.logfilename.empty()) {
-            logfile
-            << "appmc"
-            << ":" << iter
-            << ":" << hashCount
-            << ":" << std::fixed << std::setprecision(2) << (cpuTimeTotal() - startTime)
-            << ":" << found_full
-            << ":" << num_sols << endl;
-        }
+        write_log(iter, hashCount, found_full, num_sols);
 
         if (num_sols < conf.threshold + 1 - repeat) {
             repeat += num_sols;
@@ -522,6 +508,7 @@ void AppMC::one_measurement_count(
 
 void AppMC::generate_samples()
 {
+    sampling = true;
     assert(samples_out != NULL);
     double genStartTime = cpuTimeTotal();
 
@@ -622,15 +609,7 @@ uint32_t AppMC::gen_n_samples(
                 , loThresh //min number of solutions (samples not output otherwise)
             );
             ok = (solutionCount < hiThresh && solutionCount >= loThresh);
-
-            if (!conf.logfilename.empty()) {
-                logfile << "appmcgen:"
-                << i << ":" << currentHashCount << ":"
-                << std::fixed << std::setprecision(2)
-                << (cpuTimeTotal() - start_time) << ":"
-                << (int)(ok ? 0 : 1) << ":"
-                << solutionCount << endl;
-            }
+            write_log(i, currentHashCount, solutionCount == hiThresh, solutionCount);
 
             if (ok) {
                 num_samples += sols_to_return(conf.samples);
@@ -728,18 +707,6 @@ void AppMC::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
     cout << " = " << (rhs ? "True" : "False") << endl;
 }
 
-void AppMC::openLogFile()
-{
-    if (!conf.logfilename.empty()) {
-        logfile.open(conf.logfilename.c_str());
-        if (!logfile.is_open()) {
-            cout << "[appmc] Cannot open AppMC log file '" << conf.logfilename
-                 << "' for writing." << endl;
-            exit(1);
-        }
-    }
-}
-
 template<class T>
 inline T AppMC::findMedian(vector<T>& numList)
 {
@@ -811,4 +778,46 @@ uint32_t AppMC::sols_to_return(uint32_t numSolutions)
         return loThresh;
     else
         return 1;
+}
+
+void AppMC::openLogFile()
+{
+    if (!conf.logfilename.empty()) {
+        logfile.open(conf.logfilename.c_str());
+        if (!logfile.is_open()) {
+            cout << "[appmc] Cannot open AppMC log file '" << conf.logfilename
+                 << "' for writing." << endl;
+            exit(1);
+        }
+
+        logfile << std::left
+        << std::setw(5) << "sampl"
+        << " " << std::setw(4) << "iter"
+        << " " << std::setw(4) << "hash"
+        << " " << std::setw(4) << "full"
+        << " " << std::setw(4) << "sols"
+        << " " << std::setw(7) << "time"
+        << endl;
+
+    }
+}
+
+void AppMC::write_log(
+    uint32_t iter,
+    uint32_t hashCount,
+    int found_full,
+    uint32_t num_sols
+)
+{
+    if (!conf.logfilename.empty()) {
+        logfile
+        << std::left
+        << std::setw(5) << sampling
+        << " " << std::setw(4) << iter
+        << " " << std::setw(4) << hashCount
+        << " " << std::setw(4) << found_full
+        << " " << std::setw(4) << num_sols
+        << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpuTimeTotal() - startTime)
+        << endl;
+    }
 }

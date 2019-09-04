@@ -53,14 +53,6 @@ struct SATCount {
 
 class AppMC {
 public:
-    AppMC()
-    {
-    }
-
-    ~AppMC()
-    {
-    }
-
     int solve(AppMCConfig _conf);
     string gen_rnd_bits(const uint32_t size, const uint32_t numhashes);
     string binary(const uint32_t x, const uint32_t length);
@@ -83,16 +75,28 @@ private:
     void count(SATCount& count);
     void add_appmc_options();
     bool ScalAppMC(SATCount& count);
-    void add_hash(uint32_t num_xor_cls,
-                  vector<Lit>& assumps,
-                  uint32_t total_num_hashes);
+    void add_hash(
+        uint32_t num_xor_cls,
+        vector<Lit>& assumps,
+        uint32_t total_num_hashes
+    );
+    int64_t bounded_sol_count(
+        uint32_t maxSolutions,
+        const vector<Lit>* assumps,
+        const uint32_t hashCount,
+        uint32_t minSolutions = 1,
+        std::vector<vector<lbool>>* glob_model = NULL,
+        vector<string>* out_solutions = NULL
+    );
     void set_num_hashes(
         uint32_t num_wanted,
         map<uint64_t,Lit>& hashVars,
         vector<Lit>& assumps
     );
 
+    ////////////////
     //Helper functions
+    ////////////////
     template<class T> T findMedian(vector<T>& numList);
     template<class T> T findMin(vector<T>& numList);
     void print_xor(const vector<uint32_t>& vars, const uint32_t rhs);
@@ -106,33 +110,32 @@ private:
         uint64_t& hashCount,
         const uint32_t iter
     );
-
+    void write_log(
+        uint32_t iter,
+        uint32_t hashCount,
+        int found_full,
+        uint32_t num_sols
+    );
+    void openLogFile();
+    void call_after_parse();
     void add_glob_banning_cls(
         const vector<vector<lbool>>* glob_model
         , const uint32_t act_var);
-
-    int64_t bounded_sol_count(
-        uint32_t maxSolutions,
-        const vector<Lit>* assumps,
-        const uint32_t hashCount,
-        uint32_t minSolutions = 1,
-        std::vector<vector<lbool>>* glob_model = NULL,
-        vector<string>* out_solutions = NULL
-    );
 
     void readInAFile(SATSolver* solver2, const string& filename);
     void readInStandardInput(SATSolver* solver2);
 
 
+    ////////////////
+    // internal data
+    ////////////////
     double startTime;
     std::ostream* samples_out = NULL;
-    void openLogFile();
-    void call_after_parse();
-
+    bool sampling = false;
     std::ofstream logfile;
     std::mt19937 randomEngine;
-    double total_runtime; //runTime
     uint32_t orig_num_vars;
+    double total_runtime; //TODO do we need this??
 
     int argc;
     char** argv;
