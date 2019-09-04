@@ -135,7 +135,6 @@ private:
     std::ofstream logfile;
     std::mt19937 randomEngine;
     uint32_t orig_num_vars;
-    double total_runtime; //TODO do we need this??
 
     int argc;
     char** argv;

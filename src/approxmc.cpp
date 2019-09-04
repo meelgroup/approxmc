@@ -118,7 +118,7 @@ int64_t AppMC::bounded_sol_count(
 ) {
     cout << "[appmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
-    << (cpuTimeTotal()-total_runtime)
+    << (cpuTimeTotal()-startTime)
     << " ]"
     << " bounded_sol_count looking for " << std::setw(4) << maxSolutions << " solutions"
     << " -- hashes active: " << hashCount << endl;
@@ -149,7 +149,7 @@ int64_t AppMC::bounded_sol_count(
             }
             cout << " T: "
             << std::setw(7) << std::setprecision(2) << std::fixed
-            << (cpuTimeTotal()-total_runtime)
+            << (cpuTimeTotal()-startTime)
             << " -- hashes act: " << hashCount
             << " -- T since last: "
             << std::setw(7) << std::setprecision(2) << std::fixed
@@ -224,7 +224,6 @@ int AppMC::solve(AppMCConfig _conf)
 
     openLogFile();
     randomEngine.seed(conf.seed);
-    total_runtime = cpuTimeTotal();
     if (conf.samples == 0) {
         cout << "[appmc] Using start iteration " << conf.startiter << endl;
 
@@ -578,8 +577,6 @@ uint32_t AppMC::gen_n_samples(
     , uint32_t* lastSuccessfulHashOffset)
 {
     uint32_t num_samples = 0;
-    double start_time = cpuTimeTotal();
-
     uint32_t i = 0;
     while(i < num_calls) {
         uint32_t hashOffsets[3];
