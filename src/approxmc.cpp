@@ -155,6 +155,9 @@ int64_t AppMC::bounded_sol_count(
             << std::setw(7) << std::setprecision(2) << std::fixed
             << (cpuTimeTotal()-last_found_time)
             << endl;
+            if (conf.verb >= 3) {
+                solver->print_stats();
+            }
             last_found_time = cpuTimeTotal();
         }
 
