@@ -1,5 +1,5 @@
 /*
- ApproxMC and AppmcGen
+ ApproxMC and Unigen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -34,7 +34,6 @@ using std::vector;
 #include "time_mem.h"
 #include "approxmc.h"
 #include <cryptominisat5/cryptominisat.h>
-#include <cryptominisat5/solverconf.h>
 #include "cryptominisat5/dimacsparser.h"
 #include "cryptominisat5/streambuffer.h"
 

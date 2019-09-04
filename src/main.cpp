@@ -1,5 +1,5 @@
 /*
- ApproxMC and AppmcGen
+ ApproxMC and gen_n_samples
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
@@ -50,7 +50,7 @@ AppMC* appmc = NULL;
 
 AppMCConfig conf;
 po::options_description appmc_options = po::options_description("ApproxMC options");
-po::options_description appmcgen_options = po::options_description("AppmcGen options");
+po::options_description appmcgen_options = po::options_description("gen_n_samples options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
@@ -165,8 +165,6 @@ void add_appmc_options()
         , "Write samples to this file")
     ("cmsindeponly", po::value(&conf.cms_indep_only)->default_value(conf.cms_indep_only)
         , "Don't extend solution by SAT solver")
-    ("callsPerSolver", po::value(&conf.callsPerSolver)->default_value(conf.callsPerSolver)
-        , "Number of AppmcGen calls to make in a single solver, or 0 to use a heuristic")
     ("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
         , "Uniformity parameter (see TACAS-15 paper)")
 
@@ -479,7 +477,7 @@ int main(int argc, char** argv)
 
     //Counting
     if (conf.samples > 0 && conf.startiter == 0) {
-        cout << "[appmc] Using appmc to compute startiter for AppmcGen" << endl;
+        cout << "[appmc] Using appmc to compute startiter for gen_n_samples" << endl;
     }
 
     if (conf.startiter > conf.sampling_set.size()) {

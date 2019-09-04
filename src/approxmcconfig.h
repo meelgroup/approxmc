@@ -1,5 +1,5 @@
 /*
- ApproxMC and AppmcGen
+ ApproxMC and gen_n_samples
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -48,7 +48,6 @@ struct AppMCConfig {
     std::vector<uint32_t> sampling_set;
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     std::string sampleFilename;
-    uint32_t callsPerSolver = 0;
     std::string logfilename = "";
 };
 

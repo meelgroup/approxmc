@@ -1,5 +1,5 @@
 /*
- ApproxMC and AppmcGen
+ ApproxMC and gen_n_samples
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
@@ -38,6 +38,7 @@
 
 using std::string;
 using std::vector;
+using std::map;
 using namespace CMSat;
 
 struct SATCount {
@@ -66,17 +67,9 @@ public:
     uint32_t sols_to_return(uint32_t numSolutions);
     void generate_samples();
     bool gen_rhs();
-    uint32_t AppmcGen(
-        uint32_t samples
-        , uint32_t sampleCounter
+    uint32_t gen_n_samples(
+        const uint32_t samples
         , uint32_t* lastSuccessfulHashOffset
-        , double timeReference
-    );
-    int AppmcGenCall(
-        uint32_t samples
-        , uint32_t sampleCounter
-        , uint32_t* lastSuccessfulHashOffset
-        , double timeReference
     );
     uint32_t loThresh;
     uint32_t hiThresh;
@@ -87,11 +80,17 @@ public:
 
 private:
     AppMCConfig conf;
-    bool count(SATCount& count);
+    void count(SATCount& count);
     void add_appmc_options();
     bool ScalAppMC(SATCount& count);
-    bool add_hash(uint32_t num_xor_cls, vector<Lit>& assumps, uint32_t total_num_hashes);
-    void setHash(uint32_t clausNum, std::map<uint64_t,Lit>& hashVars, vector<Lit>& assumps);
+    void add_hash(uint32_t num_xor_cls,
+                  vector<Lit>& assumps,
+                  uint32_t total_num_hashes);
+    void set_num_hashes(
+        uint32_t num_wanted,
+        map<uint64_t,Lit>& hashVars,
+        vector<Lit>& assumps
+    );
 
     //Helper functions
     template<class T> T findMedian(vector<T>& numList);
@@ -99,6 +98,14 @@ private:
     void print_xor(const vector<uint32_t>& vars, const uint32_t rhs);
     int correctReturnValue(const lbool ret) const;
     std::string get_solution_str(const vector<lbool>& model);
+    void one_measurement_count(
+        vector<uint64_t>& numHashList,
+        vector<int64_t>& numCountList,
+        uint64_t& hashPrev,
+        uint64_t& mPrev,
+        uint64_t& hashCount,
+        const uint32_t iter
+    );
 
     void add_glob_banning_cls(
         const vector<vector<lbool>>* glob_model
@@ -106,7 +113,7 @@ private:
 
     int64_t bounded_sol_count(
         uint32_t maxSolutions,
-        const vector<Lit>& assumps,
+        const vector<Lit>* assumps,
         const uint32_t hashCount,
         uint32_t minSolutions = 1,
         std::vector<vector<lbool>>* glob_model = NULL,
