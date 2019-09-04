@@ -470,9 +470,10 @@ void AppMC::one_measurement_count(
 
             threshold_sols[hashCount] = 0;
             sols_for_hash[hashCount] = repeat + num_sols;
-            if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) <= 2
-                && mPrev != 0
+            if (iter > 0 &&
+                std::abs(hashCount - mPrev) <= 2
             ) {
+                //Doing linear, this is a re-count
                 upperFib = hashCount;
                 hashCount--;
             } else {
@@ -522,9 +523,10 @@ void AppMC::one_measurement_count(
 
             threshold_sols[hashCount] = 1;
             sols_for_hash[hashCount] = conf.threshold+1;
-            if (std::abs(hashCount - mPrev) < 2
-                && mPrev != 0
+            if (iter > 0
+                && std::abs(hashCount - mPrev) < 2
             ) {
+                //Doing linear, this is a re-count
                 lowerFib = hashCount;
                 hashCount++;
             } else if (lowerFib + (hashCount-lowerFib)*2 >= upperFib-1) {
