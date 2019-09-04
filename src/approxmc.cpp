@@ -323,8 +323,7 @@ void AppMC::set_num_hashes(
 void AppMC::count(SATCount& ret_count)
 {
     ret_count.clear();
-
-    uint64_t hashCount = conf.startiter;
+    int64_t hashCount = conf.startiter;
 
     cout << "[appmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
@@ -355,15 +354,28 @@ void AppMC::count(SATCount& ret_count)
 
     vector<uint64_t> numHashList;
     vector<int64_t> numCountList;
-    uint64_t hashPrev = 0;
-    uint64_t mPrev = 0;
+    int64_t mPrev = 0;
+    if (false) {
+        uint32_t threshold_prev = conf.threshold;
+        conf.threshold = 1;
+        one_measurement_count(
+            numHashList
+            , numCountList
+            , mPrev
+            , -1
+        );
+        numHashList.clear();
+        numCountList.clear();
+        conf.threshold = threshold_prev;
+        mPrev -= log2(conf.threshold);
+        mPrev = std::max<int64_t>(0, mPrev);
+        mPrev++;
+    }
     for (uint32_t j = 0; j < conf.measurements; j++) {
         one_measurement_count(
             numHashList
             , numCountList
-            , hashPrev
             , mPrev
-            , hashCount
             , j
         );
     }
@@ -389,10 +401,8 @@ void AppMC::count(SATCount& ret_count)
 void AppMC::one_measurement_count(
     vector<uint64_t>& numHashList,
     vector<int64_t>& numCountList,
-    uint64_t& hashPrev,
-    uint64_t& mPrev,
-    uint64_t& hashCount,
-    const uint32_t iter
+    int64_t& mPrev,
+    const int iter
 )
 {
     vector<Lit> assumps;
@@ -416,14 +426,17 @@ void AppMC::one_measurement_count(
     //rank that is lower than N. So we need to shoot higher.
     //https://math.stackexchange.com/questions/324150/expected-rank-of-a-random-binary-matrix
     //Apparently this question is analyzed in Kolchin's book Random Graphs in sect. 3.2.
-    uint64_t total_max_xors = std::ceil((double)conf.sampling_set.size()*1.2)+5;
-    uint64_t numExplored = 0;
-    uint64_t lowerFib = 0;
-    uint64_t upperFib = total_max_xors;
+    int64_t total_max_xors = std::ceil((double)conf.sampling_set.size()*1.2)+5;
+    int64_t numExplored = 0;
+    int64_t lowerFib = 0;
+    int64_t upperFib = total_max_xors;
 
+    int64_t hashCount = mPrev;
+    if (hashCount == 0) {
+        hashCount = 1;
+    }
+    int64_t hashPrev = hashCount;
     while (numExplored < total_max_xors) {
-        cout << "[appmc] Explored: " << std::setw(4) << numExplored
-             << " ind set size: " << std::setw(6) << conf.sampling_set.size() << endl;
         uint64_t cur_hash_count = hashCount;
         set_num_hashes(hashCount, hashVars, assumps);
         assert(conf.threshold + 1 >= repeat);
@@ -457,7 +470,6 @@ void AppMC::one_measurement_count(
 
             threshold_sols[hashCount] = 0;
             sols_for_hash[hashCount] = repeat + num_sols;
-            repeat += num_sols;
             if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) <= 2
                 && mPrev != 0
             ) {
@@ -471,8 +483,27 @@ void AppMC::one_measurement_count(
                 if (hashPrev > lowerFib) {
                     lowerFib = hashPrev;
                 }
-                hashCount = (upperFib+lowerFib)/2;
+
+                //Fast hit
+                if (false) {
+                    //Trying to hit the right place in case
+                    //we got some solutions here -- calculate the right place
+                    int64_t diff_delta = 0;
+                    if (repeat+num_sols > 0) {
+                        diff_delta = log2(conf.threshold/(repeat+num_sols));
+                        if (diff_delta == 0){
+                            diff_delta = 1;
+                        }
+                        hashCount -= diff_delta;
+                    } else {
+                        hashCount = (upperFib+lowerFib)/2;
+                    }
+                } else {
+                    //Slow hit
+                    hashCount = (upperFib+lowerFib)/2;
+                }
             }
+            repeat += num_sols;
         } else {
             assert(num_sols == conf.threshold + 1 - repeat);
             numExplored = hashCount + total_max_xors - upperFib;
@@ -491,16 +522,16 @@ void AppMC::one_measurement_count(
 
             threshold_sols[hashCount] = 1;
             sols_for_hash[hashCount] = conf.threshold+1;
-            if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) < 2
-                && mPrev !=0
+            if (std::abs(hashCount - mPrev) < 2
+                && mPrev != 0
             ) {
                 lowerFib = hashCount;
-                hashCount ++;
-            } else if (lowerFib + (hashCount - lowerFib)*2 >= upperFib-1) {
+                hashCount++;
+            } else if (lowerFib + (hashCount-lowerFib)*2 >= upperFib-1) {
                 lowerFib = hashCount;
                 hashCount = (lowerFib+upperFib)/2;
             } else {
-                hashCount = lowerFib + (hashCount -lowerFib)*2;
+                hashCount = lowerFib + (hashCount-lowerFib)*2;
             }
         }
         hashPrev = cur_hash_count;
@@ -804,7 +835,7 @@ void AppMC::openLogFile()
 }
 
 void AppMC::write_log(
-    uint32_t iter,
+    int iter,
     uint32_t hashCount,
     int found_full,
     uint32_t num_sols,

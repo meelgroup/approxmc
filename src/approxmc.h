@@ -110,12 +110,11 @@ private:
     void one_measurement_count(
         vector<uint64_t>& numHashList,
         vector<int64_t>& numCountList,
-        uint64_t& hashPrev,
-        uint64_t& mPrev,
-        const uint32_t iter
+        int64_t& mPrev,
+        const int iter
     );
     void write_log(
-        uint32_t iter,
+        int iter,
         uint32_t hashCount,
         int found_full,
         uint32_t num_sols,
