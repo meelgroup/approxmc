@@ -440,7 +440,6 @@ void AppMC::one_measurement_count(
         write_log(iter, hashCount, found_full, num_sols + repeat, repeat);
 
         if (num_sols < conf.threshold + 1 - repeat) {
-            repeat += num_sols;
             numExplored = lowerFib + total_max_xors - hashCount;
 
             //one less hash count had threshold solutions
@@ -450,13 +449,14 @@ void AppMC::one_measurement_count(
                 && threshold_sols[hashCount-1] == 1
             ) {
                 numHashList.push_back(hashCount);
-                numCountList.push_back(repeat);
+                numCountList.push_back(num_sols+repeat);
                 mPrev = hashCount;
                 return;
             }
 
             threshold_sols[hashCount] = 0;
-            sols_for_hash[hashCount] = repeat;
+            sols_for_hash[hashCount] = repeat + num_sols;
+            repeat += num_sols;
             if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) <= 2
                 && mPrev != 0
             ) {
