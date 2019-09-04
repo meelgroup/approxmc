@@ -489,6 +489,7 @@ void AppMC::one_measurement_count(
             }
 
             threshold_sols[hashCount] = 1;
+            sols_for_hash[hashCount] = conf.threshold+1;
             if (std::abs<int64_t>((int64_t)hashCount - (int64_t)mPrev) < 2
                 && mPrev !=0
             ) {
