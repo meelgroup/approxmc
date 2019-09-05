@@ -118,7 +118,8 @@ private:
         uint32_t hashCount,
         int found_full,
         uint32_t num_sols,
-        uint32_t repeat_sols
+        uint32_t repeat_sols,
+        double used_time
     );
     void openLogFile();
     void call_after_parse();

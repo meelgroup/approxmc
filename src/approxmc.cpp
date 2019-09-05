@@ -334,15 +334,15 @@ void AppMC::count(SATCount& ret_count)
     cout << "[appmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
         cout << "[appmc] Checking if there are at least threshold+1 solutions..." << endl;
+        double myTime = cpuTime();
         int64_t currentNumSolutions = bounded_sol_count(
             conf.threshold+1, //max solutions
             NULL, // no assumptions
             hashCount
         );
-
         write_log(0, 0,
                   currentNumSolutions == (conf.threshold + 1),
-                  currentNumSolutions, 0);
+                  currentNumSolutions, 0, cpuTime() - myTime);
 
         //Din't find at least threshold+1
         if (currentNumSolutions <= conf.threshold) {
@@ -447,6 +447,7 @@ void AppMC::one_measurement_count(
         assert(conf.threshold + 1 >= repeat);
 
         cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
+        double myTime = cpuTime();
         int64_t num_sols = bounded_sol_count(
             conf.threshold + 1 - repeat, //max no. solutions
             &assumps, //assumptions to use
@@ -456,7 +457,9 @@ void AppMC::one_measurement_count(
         );
         assert(num_sols <= conf.threshold + 1 - repeat);
         bool found_full = (num_sols == conf.threshold + 1 - repeat);
-        write_log(iter, hashCount, found_full, num_sols + repeat, repeat);
+        write_log(iter, hashCount, found_full, num_sols + repeat, repeat,
+            cpuTime() - myTime
+        );
 
         if (num_sols < conf.threshold + 1 - repeat) {
             numExplored = lowerFib + total_max_xors - hashCount;
@@ -640,13 +643,15 @@ uint32_t AppMC::gen_n_samples(
             uint32_t currentHashCount = currentHashOffset + conf.startiter;
             set_num_hashes(currentHashCount, hashVars, assumps);
 
+            double myTime = cpuTime();
             const uint64_t solutionCount = bounded_sol_count(
                 hiThresh // max num solutions
                 , &assumps //assumptions to use
                 , loThresh //min number of solutions (samples not output otherwise)
             );
             ok = (solutionCount < hiThresh && solutionCount >= loThresh);
-            write_log(i, currentHashCount, solutionCount == hiThresh, solutionCount, 0);
+            write_log(i, currentHashCount, solutionCount == hiThresh,
+                      solutionCount, 0, cpuTime()-myTime);
 
             if (ok) {
                 num_samples += sols_to_return(conf.samples);
@@ -834,7 +839,8 @@ void AppMC::openLogFile()
         << " " << std::setw(4) << "full"
         << " " << std::setw(4) << "sols"
         << " " << std::setw(4) << "rep"
-        << " " << std::setw(7) << "time"
+        << " " << std::setw(7) << "T"
+        << " " << std::setw(7) << "total T"
         << endl;
 
     }
@@ -845,7 +851,8 @@ void AppMC::write_log(
     uint32_t hashCount,
     int found_full,
     uint32_t num_sols,
-    uint32_t repeat_sols
+    uint32_t repeat_sols,
+    double used_time
 )
 {
     if (!conf.logfilename.empty()) {
@@ -857,6 +864,7 @@ void AppMC::write_log(
         << " " << std::setw(4) << found_full
         << " " << std::setw(4) << num_sols
         << " " << std::setw(4) << repeat_sols
+        << " " << std::setw(7) << std::fixed << std::setprecision(2) << used_time
         << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpuTimeTotal() - startTime)
         << endl;
     }
