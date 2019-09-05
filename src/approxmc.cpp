@@ -360,7 +360,7 @@ void AppMC::count(SATCount& ret_count)
 
     vector<uint64_t> numHashList;
     vector<int64_t> numCountList;
-    int64_t mPrev = 0;
+    int64_t mPrev = hashCount;
     if (false) {
         uint32_t threshold_prev = conf.threshold;
         conf.threshold = 1;
@@ -440,9 +440,6 @@ void AppMC::one_measurement_count(
     int64_t upperFib = total_max_xors;
 
     int64_t hashCount = mPrev;
-    if (hashCount == 0) {
-        hashCount = 1;
-    }
     int64_t hashPrev = hashCount;
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
