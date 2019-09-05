@@ -123,6 +123,14 @@ int64_t AppMC::bounded_sol_count(
     << " bounded_sol_count looking for " << std::setw(4) << maxSolutions << " solutions"
     << " -- hashes active: " << hashCount << endl;
 
+    //Will we need to extend the solution?
+    bool must_extend = true;
+    if (!out_solutions) {
+        must_extend = false;
+    } else {
+        must_extend = !conf.only_indep_samples;
+    }
+
     //Set up things for adding clauses that can later be removed
     vector<Lit> new_assumps;
     if (assumps) {
@@ -137,7 +145,7 @@ int64_t AppMC::bounded_sol_count(
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
     while (solutions < maxSolutions) {
-        lbool ret = solver->solve(&new_assumps, true);
+        lbool ret = solver->solve(&new_assumps, must_extend);
         assert(ret == l_False || ret == l_True);
 
         if (conf.verb >= 2) {
