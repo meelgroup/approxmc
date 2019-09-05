@@ -89,31 +89,40 @@ void AppMC::add_hash(
 }
 
 ///adding banning clauses for repeating solutions
-void AppMC::add_glob_banning_cls(
-    const vector<vector<lbool>>* glob_model
-    , const uint32_t act_var)
+uint64_t AppMC::add_glob_banning_cls(
+    const vector<SavedModel>* glob_model
+    , const uint32_t act_var
+    , const uint32_t num_hashes)
 {
     if (glob_model == NULL)
-        return;
+        return 0;
 
+    assert(act_var != std::numeric_limits<uint32_t>::max());
+    assert(num_hashes != std::numeric_limits<uint32_t>::max());
+
+    uint64_t repeat = 0;
     vector<Lit> lits;
-    for (uint32_t i = 0; i < glob_model->size(); i++)
-    {
-        lits.clear();
-        lits.push_back(Lit(act_var, false));
-        for (const uint32_t var: conf.sampling_set) {
-            lits.push_back(Lit(var, (*glob_model)[i][var] == l_True));
+    for (uint32_t i = 0; i < glob_model->size(); i++) {
+        const SavedModel& sm = glob_model->at(i);
+        if (sm.hash_num >= num_hashes) {
+            lits.clear();
+            lits.push_back(Lit(act_var, false));
+            for (const uint32_t var: conf.sampling_set) {
+                lits.push_back(Lit(var, sm.model[var] == l_True));
+            }
+            solver->add_clause(lits);
+            repeat++;
         }
-        solver->add_clause(lits);
     }
+    return repeat;
 }
 
-int64_t AppMC::bounded_sol_count(
+SolNum AppMC::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
         const uint32_t hashCount,
         uint32_t minSolutions,
-        vector<vector<lbool>>* glob_model,
+        vector<SavedModel>* glob_model,
         vector<string>* out_solutions
 ) {
     cout << "[appmc] "
@@ -139,9 +148,9 @@ int64_t AppMC::bounded_sol_count(
     solver->new_var();
     const uint32_t sol_ban_var = solver->nVars()-1;
     new_assumps.push_back(Lit(sol_ban_var, true));
-    add_glob_banning_cls(glob_model, sol_ban_var);
 
-    uint64_t solutions = 0;
+    const uint64_t repeat = add_glob_banning_cls(glob_model, sol_ban_var, hashCount);
+    uint64_t solutions = repeat;
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
     while (solutions < maxSolutions) {
@@ -209,12 +218,12 @@ int64_t AppMC::bounded_sol_count(
                 (*samples_out) << get_solution_str(model) << endl << std::flush;
             }
         }
+    }
 
-        //Save global models
-        if (glob_model) {
-            for (const auto& model: models) {
-                glob_model->push_back(model);
-            }
+    //Save global models
+    if (glob_model) {
+        for (const auto& model: models) {
+            glob_model->push_back(SavedModel(hashCount, model));
         }
     }
 
@@ -223,7 +232,7 @@ int64_t AppMC::bounded_sol_count(
     cl_that_removes.push_back(Lit(sol_ban_var, false));
     solver->add_clause(cl_that_removes);
 
-    return solutions;
+    return SolNum(solutions, repeat);
 }
 
 int AppMC::solve(AppMCConfig _conf)
@@ -339,7 +348,7 @@ void AppMC::count(SATCount& ret_count)
             conf.threshold+1, //max solutions
             NULL, // no assumptions
             hashCount
-        );
+        ).solutions;
         write_log(0, 0,
                   currentNumSolutions == (conf.threshold + 1),
                   currentNumSolutions, 0, cpuTime() - myTime);
@@ -431,8 +440,7 @@ void AppMC::one_measurement_count(
     //if it's not set, we have no clue.
     map<uint64_t,bool> threshold_sols;
 
-    vector<vector<lbool>> glob_model; //global table storing models
-    int64_t repeat = 0; //repeatable solutions
+    vector<SavedModel> glob_model; //global table storing models
 
     int64_t total_max_xors = conf.sampling_set.size();
     int64_t numExplored = 0;
@@ -444,24 +452,24 @@ void AppMC::one_measurement_count(
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
         set_num_hashes(hashCount, hashVars, assumps);
-        assert(conf.threshold + 1 >= repeat);
 
         cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
         double myTime = cpuTime();
-        int64_t num_sols = bounded_sol_count(
-            conf.threshold + 1 - repeat, //max no. solutions
+        SolNum sols = bounded_sol_count(
+            conf.threshold + 1, //max no. solutions
             &assumps, //assumptions to use
             hashCount,
-            1, //ignored
+            1, //min num solutions -- ignored
             &glob_model //all solutions put here
         );
-        assert(num_sols <= conf.threshold + 1 - repeat);
-        bool found_full = (num_sols == conf.threshold + 1 - repeat);
-        write_log(iter, hashCount, found_full, num_sols + repeat, repeat,
+        const uint64_t num_sols = sols.solutions;
+        assert(num_sols <= conf.threshold + 1);
+        bool found_full = (num_sols == conf.threshold + 1);
+        write_log(iter, hashCount, found_full, num_sols, sols.repeated,
             cpuTime() - myTime
         );
 
-        if (num_sols < conf.threshold + 1 - repeat) {
+        if (num_sols < conf.threshold + 1) {
             numExplored = lowerFib + total_max_xors - hashCount;
 
             //one less hash count had threshold solutions
@@ -471,13 +479,13 @@ void AppMC::one_measurement_count(
                 && threshold_sols[hashCount-1] == 1
             ) {
                 numHashList.push_back(hashCount);
-                numCountList.push_back(num_sols+repeat);
+                numCountList.push_back(num_sols);
                 mPrev = hashCount;
                 return;
             }
 
             threshold_sols[hashCount] = 0;
-            sols_for_hash[hashCount] = repeat + num_sols;
+            sols_for_hash[hashCount] = num_sols;
             if (iter > 0 &&
                 std::abs(hashCount - mPrev) <= 2
             ) {
@@ -498,8 +506,8 @@ void AppMC::one_measurement_count(
                     //Trying to hit the right place in case
                     //we got some solutions here -- calculate the right place
                     int64_t diff_delta = 0;
-                    if (repeat+num_sols > 0) {
-                        diff_delta = log2(conf.threshold/(repeat+num_sols));
+                    if (num_sols > 0) {
+                        diff_delta = log2(conf.threshold/(num_sols));
                         if (diff_delta == 0){
                             diff_delta = 1;
                         }
@@ -512,9 +520,8 @@ void AppMC::one_measurement_count(
                     hashCount = (upperFib+lowerFib)/2;
                 }
             }
-            repeat += num_sols;
         } else {
-            assert(num_sols == conf.threshold + 1 - repeat);
+            assert(num_sols == conf.threshold + 1);
             numExplored = hashCount + total_max_xors - upperFib;
 
             //success record for +1 hashcount exists and is 0
@@ -591,7 +598,7 @@ void AppMC::generate_samples()
             , 1 //min num. solutions
             , NULL //gobal model (would be banned)
             , &out_solutions
-        );
+        ).solutions;
         assert(count > 0);
 
         std::uniform_int_distribution<unsigned> uid {0, count-1};
@@ -648,7 +655,7 @@ uint32_t AppMC::gen_n_samples(
                 hiThresh // max num solutions
                 , &assumps //assumptions to use
                 , loThresh //min number of solutions (samples not output otherwise)
-            );
+            ).solutions;
             ok = (solutionCount < hiThresh && solutionCount >= loThresh);
             write_log(i, currentHashCount, solutionCount == hiThresh,
                       solutionCount, 0, cpuTime()-myTime);

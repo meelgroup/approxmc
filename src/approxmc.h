@@ -56,6 +56,27 @@ struct SATCount {
     }
 };
 
+struct SavedModel
+{
+    SavedModel(uint32_t _hash_num, const vector<lbool>& _model) :
+        model(_model),
+        hash_num(_hash_num)
+    {
+    }
+
+    vector<lbool> model;
+    uint32_t hash_num;
+};
+
+struct SolNum {
+    SolNum(uint64_t _solutions, uint64_t _repeated) :
+        solutions(_solutions),
+        repeated(_repeated)
+    {}
+    uint64_t solutions = 0;
+    uint64_t repeated = 0;
+};
+
 class AppMC {
 public:
     int solve(AppMCConfig _conf);
@@ -85,12 +106,12 @@ private:
         vector<Lit>& assumps,
         uint32_t total_num_hashes
     );
-    int64_t bounded_sol_count(
+    SolNum bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
         const uint32_t hashCount,
         uint32_t minSolutions = 1,
-        std::vector<vector<lbool>>* glob_model = NULL,
+        vector<SavedModel>* glob_model = NULL,
         vector<string>* out_solutions = NULL
     );
     void set_num_hashes(
@@ -123,9 +144,11 @@ private:
     );
     void openLogFile();
     void call_after_parse();
-    void add_glob_banning_cls(
-        const vector<vector<lbool>>* glob_model
-        , const uint32_t act_var);
+    uint64_t add_glob_banning_cls(
+        const vector<SavedModel>* glob_model = 0
+        , const uint32_t act_var = std::numeric_limits<uint32_t>::max()
+        , const uint32_t num_hashes = std::numeric_limits<uint32_t>::max()
+    );
 
     void readInAFile(SATSolver* solver2, const string& filename);
     void readInStandardInput(SATSolver* solver2);
