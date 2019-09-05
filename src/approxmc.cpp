@@ -720,11 +720,8 @@ string AppMC::gen_rnd_bits(const uint32_t size, const uint32_t num_hashes)
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
     uint32_t cutoff = 500;
-    if (conf.sparse && num_hashes > 132) {
-        double probability = 13.46*std::log(num_hashes)/num_hashes;
-        assert(probability < 0.5);
-        cutoff = std::ceil(1000.0*probability);
-        cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
+    if (conf.sparse) {
+        cutoff = 50;
     }
 
     while (randomBits.size() < size) {
