@@ -125,7 +125,7 @@ int64_t AppMC::bounded_sol_count(
 
     //Will we need to extend the solution?
     bool must_extend = true;
-    if (!out_solutions) {
+    if (out_solutions != NULL) {
         must_extend = false;
     } else {
         must_extend = !conf.only_indep_samples;
