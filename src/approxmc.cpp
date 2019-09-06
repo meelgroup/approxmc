@@ -149,7 +149,7 @@ uint64_t AppMC::add_glob_banning_cls(
                 }
             }
             if (ok) {
-                cout << "Found repeat model, had to check " << checked << " hashes" << endl;
+                //cout << "Found repeat model, had to check " << checked << " hashes" << endl;
                 ban_one(act_var, sm.model);
                 repeat++;
             }
@@ -357,13 +357,12 @@ void AppMC::set_num_hashes(
     map<uint64_t, Hash>& hashes,
     vector<Lit>& assumps
 ) {
-    cout << "num_wanted:" << num_wanted << endl;
-    //We got the right number
+    //We got the right number, return
     if (num_wanted == assumps.size()) {
         return;
     }
 
-    //Too many, remove some
+    //Too many, remove some then return
     if (num_wanted < assumps.size()) {
         uint64_t numberToRemove = assumps.size()- num_wanted;
         for (uint64_t i = 0; i< numberToRemove; i++) {
@@ -380,6 +379,7 @@ void AppMC::set_num_hashes(
         }
     }
 
+    //Still more needed, create new ones
     if (num_wanted > assumps.size()) {
         //We have used all we could from old ones
         assert(assumps.size() == hashes.size());
