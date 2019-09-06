@@ -161,7 +161,11 @@ private:
     void openLogFile();
     void call_after_parse();
     void ban_one(const uint32_t act_var, const vector<lbool>& model);
-    void check_model_hash_all_sampling_vars_set(const vector<lbool>& model);
+    void check_model(
+        const vector<lbool>& model,
+        const HashesModels* const hm,
+        const uint32_t hashCount
+    );
     bool check_model_against_hash(const Hash& h, const vector<lbool>& model);
     uint64_t add_glob_banning_cls(
         const HashesModels* glob_model = NULL

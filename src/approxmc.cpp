@@ -42,6 +42,7 @@
 #include <array>
 #include <cmath>
 #include <complex>
+//#include <coz.h>
 
 #include "approxmc.h"
 #include "time_mem.h"
@@ -94,7 +95,7 @@ void AppMC::ban_one(const uint32_t act_var, const vector<lbool>& model)
 bool AppMC::check_model_against_hash(const Hash& h, const vector<lbool>& model)
 {
     bool rhs = h.rhs;
-    for (const uint32_t var: conf.sampling_set) {
+    for (const uint32_t var: h.hash_vars) {
         assert(model[var] != l_Undef);
         rhs ^= model[var] == l_True;
     }
@@ -131,18 +132,15 @@ uint64_t AppMC::add_glob_banning_cls(
         if (sm.hash_num >= num_hashes) {
             ban_one(act_var, sm.model);
             repeat++;
-        } else if (num_hashes-sm.hash_num < 9) {
-            //NOTE: the "9" above is so we don't check solutions that have
-            //      too little chance to be OK. 2**9=512 so only 1/512 chance
-            //      that it will fit
-
+        } else {
             //Model has to fit all hashes
             bool ok = true;
             uint32_t checked = 0;
             for(const auto& h: hm->hashes) {
                 //This hash is number: h.first
                 //Only has to match hashes below current need
-                if (h.first <= num_hashes) {
+                //note that "h.first" is numbered from 0, so this is a "<" not "<="
+                if (h.first < num_hashes) {
                     checked++;
                     ok &= check_model_against_hash(h.second, sm.model);
                     if (!ok) break;
@@ -153,8 +151,6 @@ uint64_t AppMC::add_glob_banning_cls(
                 ban_one(act_var, sm.model);
                 repeat++;
             }
-        } else {
-            //To little chance for solution to match.
         }
     }
     return repeat;
@@ -184,7 +180,10 @@ SolNum AppMC::bounded_sol_count(
     //Set up things for adding clauses that can later be removed
     vector<Lit> new_assumps;
     if (assumps) {
+        assert(assumps->size() == hashCount);
         new_assumps = *assumps;
+    } else {
+        assert(hashCount == 0);
     }
     solver->new_var();
     const uint32_t sol_ban_var = solver->nVars()-1;
@@ -196,6 +195,7 @@ SolNum AppMC::bounded_sol_count(
     vector<vector<lbool>> models;
     while (solutions < maxSolutions) {
         lbool ret = solver->solve(&new_assumps, must_extend);
+        //COZ_PROGRESS_NAMED("one solution")
         assert(ret == l_False || ret == l_True);
 
         if (conf.verb >= 2) {
@@ -226,7 +226,9 @@ SolNum AppMC::bounded_sol_count(
         //Add solution to set
         solutions++;
         const vector<lbool> model = solver->get_model();
-        check_model_hash_all_sampling_vars_set(model);
+        #ifdef SLOW_DEBUG
+        check_model(model, hm, hashCount);
+        #endif
         models.push_back(model);
         if (out_solutions) {
             out_solutions->push_back(get_solution_str(model));
@@ -357,40 +359,16 @@ void AppMC::set_num_hashes(
     map<uint64_t, Hash>& hashes,
     vector<Lit>& assumps
 ) {
-    //We got the right number, return
-    if (num_wanted == assumps.size()) {
-        return;
-    }
-
-    //Too many, remove some then return
-    if (num_wanted < assumps.size()) {
-        uint64_t numberToRemove = assumps.size()- num_wanted;
-        for (uint64_t i = 0; i< numberToRemove; i++) {
-            assumps.pop_back();
-        }
-        assert(assumps.size() == num_wanted);
-        return;
-    }
-
-    //Add back as many old ones as possible
-    if (num_wanted > assumps.size()) {
-        for (uint32_t i = assumps.size(); i < hashes.size() && i < num_wanted; i++) {
-            assumps.push_back(Lit(hashes[i].act_var, false));
-        }
-    }
-
-    //Still more needed, create new ones
-    if (num_wanted > assumps.size()) {
-        //We have used all we could from old ones
-        assert(assumps.size() == hashes.size());
-
-        for(uint32_t i = assumps.size(); i < num_wanted; i++) {
+    assumps.clear();
+    for(uint32_t i = 0; i < num_wanted; i++) {
+        if (hashes.find(i) != hashes.end()) {
+            assumps.push_back(Lit(hashes[i].act_var, true));
+        } else {
             Hash h = add_hash(num_wanted);
             assumps.push_back(Lit(h.act_var, true));
             hashes[i] = h;
         }
     }
-
     assert(num_wanted == assumps.size());
 }
 
@@ -520,7 +498,7 @@ void AppMC::one_measurement_count(
             1, //min num solutions -- ignored
             &hm
         );
-        const uint64_t num_sols = sols.solutions;
+        const uint64_t num_sols = std::min<uint64_t>(sols.solutions, conf.threshold + 1);
         assert(num_sols <= conf.threshold + 1);
         bool found_full = (num_sols == conf.threshold + 1);
         write_log(iter, hashCount, found_full, num_sols, sols.repeated,
@@ -917,9 +895,31 @@ void AppMC::write_log(
 }
 
 
-void AppMC::check_model_hash_all_sampling_vars_set(const vector<lbool>& model)
+void AppMC::check_model(
+    const vector<lbool>& model,
+    const HashesModels* const hm,
+    const uint32_t hashCount
+)
 {
     for(uint32_t var: conf.sampling_set) {
         assert(model[var] != l_Undef);
     }
+
+    if (!hm)
+        return;
+
+    uint32_t checked = 0;
+    bool ok = true;
+    for(const auto& h: hm->hashes) {
+        //This hash is number: h.first
+        //Only has to match hashes at & below
+        //Notice that "h.first" is numbered from 0, so it's a "<" not "<="
+        if (h.first < hashCount) {
+            //cout << "Checking model against hash" << h.first << endl;
+            checked++;
+            ok &= check_model_against_hash(h.second, model);
+            if (!ok) break;
+        }
+    }
+    assert(ok);
 }
