@@ -327,7 +327,7 @@ int AppMC::solve(AppMCConfig _conf)
 
             if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
                 cout << "[appmc] The input formula is unsatisfiable." << endl;
-                return correctReturnValue(l_False);
+                return 0;
             }
 
             if (conf.verb) {
@@ -349,7 +349,7 @@ int AppMC::solve(AppMCConfig _conf)
         generate_samples();
     }
 
-    return correctReturnValue(l_True);
+    return 0;
 }
 
 void AppMC::set_num_hashes(
@@ -837,24 +837,6 @@ inline T AppMC::findMin(vector<T>& numList)
         }
     }
     return min;
-}
-
-int AppMC::correctReturnValue(const lbool ret) const
-{
-    int retval = -1;
-    if (ret == l_True) {
-        retval = 10;
-    } else if (ret == l_False) {
-        retval = 20;
-    } else if (ret == l_Undef) {
-        retval = 15;
-    } else {
-        std::cerr << "Something is very wrong, output is neither "
-        "l_Undef, nor l_False, nor l_True" << endl;
-        exit(-1);
-    }
-
-    return retval;
 }
 
 void printVersionInfoAppMC()

@@ -143,7 +143,6 @@ private:
     template<class T> T findMedian(vector<T>& numList);
     template<class T> T findMin(vector<T>& numList);
     void print_xor(const vector<uint32_t>& vars, const uint32_t rhs);
-    int correctReturnValue(const lbool ret) const;
     std::string get_solution_str(const vector<lbool>& model);
     void one_measurement_count(
         vector<uint64_t>& numHashList,
