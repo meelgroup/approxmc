@@ -172,9 +172,9 @@ SolNum AppMC::bounded_sol_count(
     << " -- hashes active: " << hashCount << endl;
 
     //Will we need to extend the solution?
-    bool must_extend = false;
+    bool only_indep_sol = true;
     if (out_solutions != NULL) {
-        must_extend = !conf.only_indep_samples;
+        only_indep_sol = conf.only_indep_samples;
     }
 
     //Set up things for adding clauses that can later be removed
@@ -194,7 +194,7 @@ SolNum AppMC::bounded_sol_count(
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
     while (solutions < maxSolutions) {
-        lbool ret = solver->solve(&new_assumps, must_extend);
+        lbool ret = solver->solve(&new_assumps, only_indep_sol);
         //COZ_PROGRESS_NAMED("one solution")
         assert(ret == l_False || ret == l_True);
 
