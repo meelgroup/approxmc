@@ -92,24 +92,6 @@ void AppMC::ban_one(const uint32_t act_var, const vector<lbool>& model)
     solver->add_clause(lits);
 }
 
-bool AppMC::check_model_against_hash(const Hash& h, const vector<lbool>& model)
-{
-    bool rhs = h.rhs;
-    for (const uint32_t var: h.hash_vars) {
-        assert(model[var] != l_Undef);
-        rhs ^= model[var] == l_True;
-    }
-
-    //If we started with rhs=FALSE and we XOR-ed in only FALSE
-    //rhs is FALSE but we should return TRUE
-
-    //If we started with rhs=TRUE and we XOR-ed in only one TRUE
-    //rhs is FALSE but we should return TRUE
-
-    //hence return !rhs
-    return !rhs;
-}
-
 ///adding banning clauses for repeating solutions
 uint64_t AppMC::add_glob_banning_cls(
     const HashesModels* hm
@@ -922,4 +904,22 @@ void AppMC::check_model(
         }
     }
     assert(ok);
+}
+
+bool AppMC::check_model_against_hash(const Hash& h, const vector<lbool>& model)
+{
+    bool rhs = h.rhs;
+    for (const uint32_t var: h.hash_vars) {
+        assert(model[var] != l_Undef);
+        rhs ^= model[var] == l_True;
+    }
+
+    //If we started with rhs=FALSE and we XOR-ed in only FALSE
+    //rhs is FALSE but we should return TRUE
+
+    //If we started with rhs=TRUE and we XOR-ed in only one TRUE
+    //rhs is FALSE but we should return TRUE
+
+    //hence return !rhs
+    return !rhs;
 }
