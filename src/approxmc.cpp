@@ -133,10 +133,8 @@ SolNum AppMC::bounded_sol_count(
     << " -- hashes active: " << hashCount << endl;
 
     //Will we need to extend the solution?
-    bool must_extend = true;
+    bool must_extend = false;
     if (out_solutions != NULL) {
-        must_extend = false;
-    } else {
         must_extend = !conf.only_indep_samples;
     }
 
