@@ -55,46 +55,67 @@ using std::endl;
 using std::list;
 using std::map;
 
-void AppMC::add_hash(
-    uint32_t num_xor_cls,
-    vector<Lit>& assumps,
-    uint32_t total_num_hashes)
+Hash AppMC::add_hash(uint32_t total_num_hashes)
 {
     const string randomBits =
-        gen_rnd_bits(conf.sampling_set.size() * num_xor_cls, total_num_hashes);
+        gen_rnd_bits(conf.sampling_set.size(), total_num_hashes);
 
-    bool rhs;
     vector<uint32_t> vars;
-
-    for (uint32_t i = 0; i < num_xor_cls; i++) {
-        //new activation variable
-        solver->new_var();
-        uint32_t act_var = solver->nVars()-1;
-        assumps.push_back(Lit(act_var, true));
-
-        vars.clear();
-        vars.push_back(act_var);
-        rhs = gen_rhs();
-
-        for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
-            if (randomBits.at(conf.sampling_set.size() * i + j) == '1') {
-                vars.push_back(conf.sampling_set[j]);
-            }
-        }
-        solver->add_xor_clause(vars, rhs);
-        if (conf.verb_appmc_cls) {
-            print_xor(vars, rhs);
+    for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
+        if (randomBits[j] == '1') {
+            vars.push_back(conf.sampling_set[j]);
         }
     }
+
+    solver->new_var();
+    const uint32_t act_var = solver->nVars()-1;
+    const bool rhs = gen_rhs();
+    Hash h(act_var, vars, rhs);
+
+    vars.push_back(act_var);
+    solver->add_xor_clause(vars, rhs);
+    if (conf.verb_appmc_cls) {
+        print_xor(vars, rhs);
+    }
+
+    return h;
+}
+
+void AppMC::ban_one(const uint32_t act_var, const vector<lbool>& model)
+{
+    vector<Lit> lits;
+    lits.push_back(Lit(act_var, false));
+    for (const uint32_t var: conf.sampling_set) {
+        lits.push_back(Lit(var, model[var] == l_True));
+    }
+    solver->add_clause(lits);
+}
+
+bool AppMC::check_model_against_hash(const Hash& h, const vector<lbool>& model)
+{
+    bool rhs = h.rhs;
+    for (const uint32_t var: conf.sampling_set) {
+        assert(model[var] != l_Undef);
+        rhs ^= model[var] == l_True;
+    }
+
+    //If we started with rhs=FALSE and we XOR-ed in only FALSE
+    //rhs is FALSE but we should return TRUE
+
+    //If we started with rhs=TRUE and we XOR-ed in only one TRUE
+    //rhs is FALSE but we should return TRUE
+
+    //hence return !rhs
+    return !rhs;
 }
 
 ///adding banning clauses for repeating solutions
 uint64_t AppMC::add_glob_banning_cls(
-    const vector<SavedModel>* glob_model
+    const HashesModels* hm
     , const uint32_t act_var
     , const uint32_t num_hashes)
 {
-    if (glob_model == NULL)
+    if (hm == NULL)
         return 0;
 
     assert(act_var != std::numeric_limits<uint32_t>::max());
@@ -102,16 +123,38 @@ uint64_t AppMC::add_glob_banning_cls(
 
     uint64_t repeat = 0;
     vector<Lit> lits;
-    for (uint32_t i = 0; i < glob_model->size(); i++) {
-        const SavedModel& sm = glob_model->at(i);
+    for (uint32_t i = 0; i < hm->glob_model.size(); i++) {
+        const SavedModel& sm = hm->glob_model[i];
+        //Model was generated with 'sm.hash_num' active
+        //We will have 'num_hashes' hashes active
+
         if (sm.hash_num >= num_hashes) {
-            lits.clear();
-            lits.push_back(Lit(act_var, false));
-            for (const uint32_t var: conf.sampling_set) {
-                lits.push_back(Lit(var, sm.model[var] == l_True));
-            }
-            solver->add_clause(lits);
+            ban_one(act_var, sm.model);
             repeat++;
+        } else if (num_hashes-sm.hash_num < 9) {
+            //NOTE: the "9" above is so we don't check solutions that have
+            //      too little chance to be OK. 2**9=512 so only 1/512 chance
+            //      that it will fit
+
+            //Model has to fit all hashes
+            bool ok = true;
+            uint32_t checked = 0;
+            for(const auto& h: hm->hashes) {
+                //This hash is number: h.first
+                //Only has to match hashes below current need
+                if (h.first <= num_hashes) {
+                    checked++;
+                    ok &= check_model_against_hash(h.second, sm.model);
+                    if (!ok) break;
+                }
+            }
+            if (ok) {
+                cout << "Found repeat model, had to check " << checked << " hashes" << endl;
+                ban_one(act_var, sm.model);
+                repeat++;
+            }
+        } else {
+            //To little chance for solution to match.
         }
     }
     return repeat;
@@ -122,7 +165,7 @@ SolNum AppMC::bounded_sol_count(
         const vector<Lit>* assumps,
         const uint32_t hashCount,
         uint32_t minSolutions,
-        vector<SavedModel>* glob_model,
+        HashesModels* hm,
         vector<string>* out_solutions
 ) {
     cout << "[appmc] "
@@ -147,7 +190,7 @@ SolNum AppMC::bounded_sol_count(
     const uint32_t sol_ban_var = solver->nVars()-1;
     new_assumps.push_back(Lit(sol_ban_var, true));
 
-    const uint64_t repeat = add_glob_banning_cls(glob_model, sol_ban_var, hashCount);
+    const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hashCount);
     uint64_t solutions = repeat;
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
@@ -182,7 +225,8 @@ SolNum AppMC::bounded_sol_count(
 
         //Add solution to set
         solutions++;
-        vector<lbool> model = solver->get_model();
+        const vector<lbool> model = solver->get_model();
+        check_model_hash_all_sampling_vars_set(model);
         models.push_back(model);
         if (out_solutions) {
             out_solutions->push_back(get_solution_str(model));
@@ -219,9 +263,9 @@ SolNum AppMC::bounded_sol_count(
     }
 
     //Save global models
-    if (glob_model) {
+    if (hm) {
         for (const auto& model: models) {
-            glob_model->push_back(SavedModel(hashCount, model));
+            hm->glob_model.push_back(SavedModel(hashCount, model));
         }
     }
 
@@ -310,27 +354,44 @@ int AppMC::solve(AppMCConfig _conf)
 
 void AppMC::set_num_hashes(
     uint32_t num_wanted,
-    map<uint64_t,Lit>& hashVars,
+    map<uint64_t, Hash>& hashes,
     vector<Lit>& assumps
 ) {
+    cout << "num_wanted:" << num_wanted << endl;
+    //We got the right number
+    if (num_wanted == assumps.size()) {
+        return;
+    }
+
+    //Too many, remove some
     if (num_wanted < assumps.size()) {
         uint64_t numberToRemove = assumps.size()- num_wanted;
-        for (uint64_t i = 0; i<numberToRemove; i++) {
+        for (uint64_t i = 0; i< numberToRemove; i++) {
             assumps.pop_back();
         }
-    } else {
-        if (num_wanted > assumps.size() && assumps.size() < hashVars.size()) {
-            for (uint32_t i = assumps.size(); i< hashVars.size() && i < num_wanted; i++) {
-                assumps.push_back(hashVars[i]);
-            }
+        assert(assumps.size() == num_wanted);
+        return;
+    }
+
+    //Add back as many old ones as possible
+    if (num_wanted > assumps.size()) {
+        for (uint32_t i = assumps.size(); i < hashes.size() && i < num_wanted; i++) {
+            assumps.push_back(Lit(hashes[i].act_var, false));
         }
-        if (num_wanted > hashVars.size()) {
-            add_hash(num_wanted-hashVars.size(), assumps, num_wanted);
-            for (uint64_t i = hashVars.size(); i < num_wanted; i++) {
-                hashVars[i] = assumps[i];
-            }
+    }
+
+    if (num_wanted > assumps.size()) {
+        //We have used all we could from old ones
+        assert(assumps.size() == hashes.size());
+
+        for(uint32_t i = assumps.size(); i < num_wanted; i++) {
+            Hash h = add_hash(num_wanted);
+            assumps.push_back(Lit(h.act_var, true));
+            hashes[i] = h;
         }
-}
+    }
+
+    assert(num_wanted == assumps.size());
 }
 
 void AppMC::count(SATCount& ret_count)
@@ -425,7 +486,6 @@ void AppMC::one_measurement_count(
 )
 {
     vector<Lit> assumps;
-    map<uint64_t, Lit> hashVars;
 
     //Tells the number of solutions found at hash number N
     //sols_for_hash[N] tells the number of solutions found when N hashes were added
@@ -438,7 +498,7 @@ void AppMC::one_measurement_count(
     //if it's not set, we have no clue.
     map<uint64_t,bool> threshold_sols;
 
-    vector<SavedModel> glob_model; //global table storing models
+    HashesModels hm;
 
     int64_t total_max_xors = conf.sampling_set.size();
     int64_t numExplored = 0;
@@ -449,7 +509,7 @@ void AppMC::one_measurement_count(
     int64_t hashPrev = hashCount;
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
-        set_num_hashes(hashCount, hashVars, assumps);
+        set_num_hashes(hashCount, hm.hashes, assumps);
 
         cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
         double myTime = cpuTime();
@@ -458,7 +518,7 @@ void AppMC::one_measurement_count(
             &assumps, //assumptions to use
             hashCount,
             1, //min num solutions -- ignored
-            &glob_model //all solutions put here
+            &hm
         );
         const uint64_t num_sols = sols.solutions;
         assert(num_sols <= conf.threshold + 1);
@@ -641,12 +701,12 @@ uint32_t AppMC::gen_n_samples(
         }
 
         vector<Lit> assumps;
-        map<uint64_t,Lit> hashVars;
+        map<uint64_t, Hash> hashes;
         bool ok;
         for (uint32_t j = 0; j < 3; j++) {
             uint32_t currentHashOffset = hashOffsets[j];
             uint32_t currentHashCount = currentHashOffset + conf.startiter;
-            set_num_hashes(currentHashCount, hashVars, assumps);
+            set_num_hashes(currentHashCount, hashes, assumps);
 
             double myTime = cpuTime();
             const uint64_t solutionCount = bounded_sol_count(
@@ -720,7 +780,9 @@ bool AppMC::gen_rhs()
     return rhs;
 }
 
-string AppMC::gen_rnd_bits(const uint32_t size, const uint32_t num_hashes)
+string AppMC::gen_rnd_bits(
+    const uint32_t size,
+    const uint32_t num_hashes)
 {
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
@@ -869,5 +931,13 @@ void AppMC::write_log(
         << " " << std::setw(7) << std::fixed << std::setprecision(2) << used_time
         << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpuTimeTotal() - startTime)
         << endl;
+    }
+}
+
+
+void AppMC::check_model_hash_all_sampling_vars_set(const vector<lbool>& model)
+{
+    for(uint32_t var: conf.sampling_set) {
+        assert(model[var] != l_Undef);
     }
 }

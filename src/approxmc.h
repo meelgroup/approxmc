@@ -68,6 +68,26 @@ struct SavedModel
     uint32_t hash_num;
 };
 
+struct Hash {
+    Hash(uint32_t _act_var, vector<uint32_t>& _hash_vars, bool _rhs) :
+        act_var(_act_var),
+        hash_vars(_hash_vars),
+        rhs(_rhs)
+    {}
+
+    Hash()
+    {}
+
+    uint32_t act_var;
+    vector<uint32_t> hash_vars;
+    bool rhs;
+};
+
+struct HashesModels {
+    map<uint64_t, Hash> hashes;
+    vector<SavedModel> glob_model; //global table storing models
+};
+
 struct SolNum {
     SolNum(uint64_t _solutions, uint64_t _repeated) :
         solutions(_solutions),
@@ -101,22 +121,19 @@ private:
     void count(SATCount& count);
     void add_appmc_options();
     bool ScalAppMC(SATCount& count);
-    void add_hash(
-        uint32_t num_xor_cls,
-        vector<Lit>& assumps,
-        uint32_t total_num_hashes
-    );
+    Hash add_hash(uint32_t total_num_hashes);
+
     SolNum bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
         const uint32_t hashCount,
         uint32_t minSolutions = 1,
-        vector<SavedModel>* glob_model = NULL,
+        HashesModels* hm = NULL,
         vector<string>* out_solutions = NULL
     );
     void set_num_hashes(
         uint32_t num_wanted,
-        map<uint64_t,Lit>& hashVars,
+        map<uint64_t, Hash>& hashes,
         vector<Lit>& assumps
     );
 
@@ -144,8 +161,11 @@ private:
     );
     void openLogFile();
     void call_after_parse();
+    void ban_one(const uint32_t act_var, const vector<lbool>& model);
+    void check_model_hash_all_sampling_vars_set(const vector<lbool>& model);
+    bool check_model_against_hash(const Hash& h, const vector<lbool>& model);
     uint64_t add_glob_banning_cls(
-        const vector<SavedModel>* glob_model = 0
+        const HashesModels* glob_model = NULL
         , const uint32_t act_var = std::numeric_limits<uint32_t>::max()
         , const uint32_t num_hashes = std::numeric_limits<uint32_t>::max()
     );
