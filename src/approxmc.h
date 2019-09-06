@@ -131,10 +131,9 @@ private:
         HashesModels* hm = NULL,
         vector<string>* out_solutions = NULL
     );
-    void set_num_hashes(
+    vector<Lit> set_num_hashes(
         uint32_t num_wanted,
-        map<uint64_t, Hash>& hashes,
-        vector<Lit>& assumps
+        map<uint64_t, Hash>& hashes
     );
 
     ////////////////

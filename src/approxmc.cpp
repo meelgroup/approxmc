@@ -336,12 +336,11 @@ int AppMC::solve(AppMCConfig _conf)
     return 0;
 }
 
-void AppMC::set_num_hashes(
+vector<Lit> AppMC::set_num_hashes(
     uint32_t num_wanted,
-    map<uint64_t, Hash>& hashes,
-    vector<Lit>& assumps
+    map<uint64_t, Hash>& hashes
 ) {
-    assumps.clear();
+    vector<Lit> assumps;
     for(uint32_t i = 0; i < num_wanted; i++) {
         if (hashes.find(i) != hashes.end()) {
             assumps.push_back(Lit(hashes[i].act_var, true));
@@ -352,6 +351,8 @@ void AppMC::set_num_hashes(
         }
     }
     assert(num_wanted == assumps.size());
+
+    return assumps;
 }
 
 void AppMC::count(SATCount& ret_count)
@@ -445,8 +446,6 @@ void AppMC::one_measurement_count(
     const int iter
 )
 {
-    vector<Lit> assumps;
-
     //Tells the number of solutions found at hash number N
     //sols_for_hash[N] tells the number of solutions found when N hashes were added
     map<uint64_t,int64_t> sols_for_hash;
@@ -469,7 +468,7 @@ void AppMC::one_measurement_count(
     int64_t hashPrev = hashCount;
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
-        set_num_hashes(hashCount, hm.hashes, assumps);
+        const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes);
 
         cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
         double myTime = cpuTime();
@@ -660,13 +659,12 @@ uint32_t AppMC::gen_n_samples(
             hashOffsets[2] = 0;
         }
 
-        vector<Lit> assumps;
         map<uint64_t, Hash> hashes;
         bool ok;
         for (uint32_t j = 0; j < 3; j++) {
             uint32_t currentHashOffset = hashOffsets[j];
             uint32_t currentHashCount = currentHashOffset + conf.startiter;
-            set_num_hashes(currentHashCount, hashes, assumps);
+            const vector<Lit> assumps = set_num_hashes(currentHashCount, hashes);
 
             double myTime = cpuTime();
             const uint64_t solutionCount = bounded_sol_count(
