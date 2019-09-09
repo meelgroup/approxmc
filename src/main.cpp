@@ -46,6 +46,7 @@ using namespace CMSat;
 using std::cout;
 using std::cerr;
 using std::endl;
+string command_line;
 AppMC* appmc = NULL;
 
 AppMCConfig conf;
@@ -407,9 +408,21 @@ int main(int argc, char** argv)
                   );
     #endif
 
+    //Reconstruct the command line so we can emit it later if needed
+    for(int i = 0; i < argc; i++) {
+        command_line += string(argv[i]);
+        if (i+1 < argc) {
+            command_line += " ";
+        }
+    }
+
     appmc = new AppMC;
     add_supported_options(argc, argv);
     appmc->printVersionInfo();
+    cout
+    << "c executed with command line: "
+    << command_line
+    << endl;
 
     cout << "[appmc] using seed: " << conf.seed << endl;
 
