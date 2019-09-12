@@ -171,6 +171,10 @@ SolNum AppMC::bounded_sol_count(
     const uint32_t sol_ban_var = solver->nVars()-1;
     new_assumps.push_back(Lit(sol_ban_var, true));
 
+    if (conf.simplify >= 2) {
+        solver->simplify(&new_assumps);
+    }
+
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hashCount);
     uint64_t solutions = repeat;
     double last_found_time = cpuTimeTotal();
@@ -417,7 +421,9 @@ void AppMC::count(SATCount& ret_count)
             , mPrev
             , j
         );
-        solver->simplify();
+        if (conf.simplify >= 1) {
+            solver->simplify();
+        }
     }
     assert(numHashList.size() > 0 && "UNSAT should not be possible");
 

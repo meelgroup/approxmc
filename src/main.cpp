@@ -153,6 +153,8 @@ void add_appmc_options()
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
         , "Generate sparse XORs when possible")
+    ("simplify", po::value(&conf.simplify)->default_value(conf.simplify)
+        , "Simplify agressiveness")
     ;
 
     appmcgen_options.add_options()
