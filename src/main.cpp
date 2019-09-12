@@ -166,8 +166,6 @@ void add_appmc_options()
         , "Return multiple samples from each call")
     ("sampleout", po::value(&conf.sampleFilename)
         , "Write samples to this file")
-    ("cmsindeponly", po::value(&conf.cms_indep_only)->default_value(conf.cms_indep_only)
-        , "Don't extend solution by SAT solver")
     ("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
         , "Uniformity parameter (see TACAS-15 paper)")
 
@@ -438,7 +436,7 @@ int main(int argc, char** argv)
         }
     }
 
-    if (!conf.only_indep_samples && conf.cms_indep_only) {
+    if (!conf.only_indep_samples) {
         cout << "ERROR: You requested samples with full solutions but '--cmpindeponly 1' is set. Set it to false: '--indep 0'" << endl;
         exit(-1);
     }

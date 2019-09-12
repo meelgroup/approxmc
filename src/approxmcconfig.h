@@ -44,7 +44,6 @@ struct AppMCConfig {
     bool only_indep_samples = true;
     uint32_t multisample = 1;
     uint32_t samples = 0;
-    bool cms_indep_only = false;
     int simplify = 1;
     std::vector<uint32_t> sampling_set;
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
