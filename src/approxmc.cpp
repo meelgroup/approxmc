@@ -676,6 +676,7 @@ uint32_t AppMC::gen_n_samples(
             const uint64_t solutionCount = bounded_sol_count(
                 hiThresh // max num solutions
                 , &assumps //assumptions to use
+                , currentHashCount
                 , loThresh //min number of solutions (samples not output otherwise)
             ).solutions;
             ok = (solutionCount < hiThresh && solutionCount >= loThresh);
