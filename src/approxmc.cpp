@@ -212,9 +212,9 @@ SolNum AppMC::bounded_sol_count(
         //Add solution to set
         solutions++;
         const vector<lbool> model = solver->get_model();
-        #ifdef SLOW_DEBUG
+        //#ifdef SLOW_DEBUG
         check_model(model, hm, hashCount);
-        #endif
+        //#endif
         models.push_back(model);
         if (out_solutions) {
             out_solutions->push_back(get_solution_str(model));
