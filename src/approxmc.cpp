@@ -172,7 +172,9 @@ SolNum AppMC::bounded_sol_count(
     new_assumps.push_back(Lit(sol_ban_var, true));
 
     if (conf.simplify >= 2) {
+
         solver->simplify(&new_assumps);
+        solver->reset_vsids();
     }
 
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hashCount);
@@ -368,6 +370,16 @@ void AppMC::count(SATCount& ret_count)
     if (hashCount == 0) {
         cout << "[appmc] Checking if there are at least threshold+1 solutions..." << endl;
         double myTime = cpuTime();
+        if (conf.simplify >= 1) {
+            cout << "FIRST SIMPLIFY!!!!" << endl;
+            solver->set_full_bve(1);
+            solver->simplify();
+            solver->set_sls(0);
+            solver->set_intree_probe(0);
+            solver->set_full_bve(0);
+            solver->set_no_bva();
+            //solver->set_scc(0);
+        }
         int64_t currentNumSolutions = bounded_sol_count(
             conf.threshold+1, //max solutions
             NULL, // no assumptions
@@ -421,9 +433,6 @@ void AppMC::count(SATCount& ret_count)
             , mPrev
             , j
         );
-        if (conf.simplify >= 1) {
-            solver->simplify();
-        }
     }
     assert(numHashList.size() > 0 && "UNSAT should not be possible");
 
@@ -707,7 +716,11 @@ uint32_t AppMC::gen_n_samples(
         if (ok) {
             i++;
         }
-        solver->simplify();
+        if (conf.simplify >= 1) {
+            solver->set_full_bve(1);
+            solver->simplify();
+            solver->set_full_bve(0);
+        }
     }
     return num_samples;
 }
