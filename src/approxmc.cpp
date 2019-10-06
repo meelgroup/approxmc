@@ -745,9 +745,7 @@ uint32_t AppMC::gen_n_samples(
             i++;
         }
         if (conf.simplify >= 1) {
-            solver->set_full_bve(1);
-            solver->simplify();
-            solver->set_full_bve(0);
+            simplify();
         }
     }
     return num_samples;
