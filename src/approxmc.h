@@ -122,7 +122,6 @@ private:
     void add_appmc_options();
     bool ScalAppMC(SATCount& count);
     Hash add_hash(uint32_t total_num_hashes);
-
     SolNum bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
@@ -135,6 +134,7 @@ private:
         uint32_t num_wanted,
         map<uint64_t, Hash>& hashes
     );
+    void simplify();
 
     ////////////////
     //Helper functions

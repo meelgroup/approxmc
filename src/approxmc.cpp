@@ -172,10 +172,9 @@ SolNum AppMC::bounded_sol_count(
     new_assumps.push_back(Lit(sol_ban_var, true));
 
     if (conf.simplify >= 2) {
-
         solver->simplify(&new_assumps);
-        solver->reset_vsids();
     }
+    solver->reset_vsids();
 
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hashCount);
     uint64_t solutions = repeat;
@@ -361,6 +360,29 @@ vector<Lit> AppMC::set_num_hashes(
     return assumps;
 }
 
+void AppMC::simplify()
+{
+    if (conf.verb >= 1) {
+        cout << "[appc] simplifying" << endl;
+    }
+
+    solver->set_sls(1);
+    solver->set_intree_probe(1);
+    solver->set_full_bve(1);
+    solver->set_bva(1);
+    solver->set_distill(1);
+    solver->set_scc(1);
+
+    solver->simplify();
+
+    solver->set_sls(0);
+    solver->set_intree_probe(0);
+    solver->set_full_bve(0);
+    solver->set_bva(0);
+    solver->set_distill(0);
+    //solver->set_scc(0);
+}
+
 void AppMC::count(SATCount& ret_count)
 {
     ret_count.clear();
@@ -371,14 +393,7 @@ void AppMC::count(SATCount& ret_count)
         cout << "[appmc] Checking if there are at least threshold+1 solutions..." << endl;
         double myTime = cpuTime();
         if (conf.simplify >= 1) {
-            cout << "FIRST SIMPLIFY!!!!" << endl;
-            solver->set_full_bve(1);
-            solver->simplify();
-            solver->set_sls(0);
-            solver->set_intree_probe(0);
-            solver->set_full_bve(0);
-            solver->set_no_bva();
-            //solver->set_scc(0);
+            simplify();
         }
         int64_t currentNumSolutions = bounded_sol_count(
             conf.threshold+1, //max solutions
@@ -433,6 +448,11 @@ void AppMC::count(SATCount& ret_count)
             , mPrev
             , j
         );
+
+        //Only simplify before next round
+        if (conf.simplify >= 1 && j+1 < conf.measurements) {
+            simplify();
+        }
     }
     assert(numHashList.size() > 0 && "UNSAT should not be possible");
 
@@ -485,7 +505,12 @@ void AppMC::one_measurement_count(
         uint64_t cur_hash_count = hashCount;
         const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes);
 
-        cout << "[appmc] hashes active: " << std::setw(6) << hashCount << endl;
+        cout << "[appmc] "
+        "[ " << std::setw(7) << std::setprecision(2) << std::fixed
+        << (cpuTimeTotal()-startTime)
+        << " ]"
+        << " round: " << std::setw(2) << iter
+        << " hashes: " << std::setw(6) << hashCount << endl;
         double myTime = cpuTime();
         SolNum sols = bounded_sol_count(
             conf.threshold + 1, //max no. solutions
