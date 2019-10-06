@@ -174,7 +174,6 @@ SolNum AppMC::bounded_sol_count(
     if (conf.simplify >= 2) {
         solver->simplify(&new_assumps);
     }
-    solver->reset_vsids();
 
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hashCount);
     uint64_t solutions = repeat;
