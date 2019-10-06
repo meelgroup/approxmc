@@ -421,6 +421,9 @@ void AppMC::count(SATCount& ret_count)
     vector<uint64_t> numHashList;
     vector<int64_t> numCountList;
     int64_t mPrev = hashCount;
+
+    //this is a HACK to jump directly to the right place below.
+    //not very elegant, and probably also not worth it.
     if (false) {
         uint32_t threshold_prev = conf.threshold;
         conf.threshold = 1;
