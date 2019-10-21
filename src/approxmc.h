@@ -185,6 +185,7 @@ private:
     std::ofstream logfile;
     std::mt19937 randomEngine;
     uint32_t orig_num_vars;
+    double total_inter_simp_time = 0;
 
     int argc;
     char** argv;

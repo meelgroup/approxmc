@@ -172,7 +172,18 @@ SolNum AppMC::bounded_sol_count(
     new_assumps.push_back(Lit(sol_ban_var, true));
 
     if (conf.simplify >= 2) {
+        if (conf.verb >= 2) {
+            cout << "[appmc] inter-simplifying" << endl;
+        }
+        double myTime = cpuTime();
         solver->simplify(&new_assumps);
+        solver->set_verbosity(0);
+        total_inter_simp_time += cpuTime() - myTime;
+        if (conf.verb >= 1) {
+            cout << "[appmc] inter-simp finished, total simp time: "
+            << total_inter_simp_time << endl;
+        }
+
     }
 
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hashCount);
