@@ -373,7 +373,7 @@ vector<Lit> AppMC::set_num_hashes(
 void AppMC::simplify()
 {
     if (conf.verb >= 1) {
-        cout << "[appc] simplifying" << endl;
+        cout << "[appmc] simplifying" << endl;
     }
 
     solver->set_sls(1);
