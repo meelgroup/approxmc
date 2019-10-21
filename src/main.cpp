@@ -155,6 +155,11 @@ void add_appmc_options()
         , "Generate sparse XORs when possible")
     ("simplify", po::value(&conf.simplify)->default_value(conf.simplify)
         , "Simplify agressiveness")
+
+    //blasted_TR_ptb_1_linear.cnf.gz.no_w.cnf.gz is sensitive to below.
+    //1.0 will mess it up. 0.3 will work.
+    ("velimratio", po::value(&conf.var_elim_ratio)->default_value(conf.var_elim_ratio)
+        , "Variable elimination ratio for each simplify run")
     ;
 
     appmcgen_options.add_options()

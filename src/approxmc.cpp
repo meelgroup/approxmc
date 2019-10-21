@@ -378,6 +378,7 @@ void AppMC::simplify()
 
     solver->set_sls(1);
     solver->set_intree_probe(1);
+    solver->set_full_bve_iter_ratio(conf.var_elim_ratio);
     solver->set_full_bve(1);
     solver->set_bva(1);
     solver->set_distill(1);
