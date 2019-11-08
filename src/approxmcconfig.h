@@ -45,7 +45,7 @@ struct AppMCConfig {
     uint32_t multisample = 1;
     uint32_t samples = 0;
     int simplify = 1;
-    double var_elim_ratio = 0.3;
+    double var_elim_ratio = 1.6;
     std::vector<uint32_t> sampling_set;
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     std::string sampleFilename;
