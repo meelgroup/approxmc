@@ -3,8 +3,10 @@
 # ApproxMCv3: Approximate Model Counter
 ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
 
-ApproxMC handles CNF formulas. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting).
+ApproxMC handles CNF formulas. 
 
+1. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting).
+2. If you are interested in exact counting, visit our exact counter [GANAK](https://github.com/meelgroup/ganak) 
 ## Docker image
 If you don't have or don't know what an independent set is, first run our MIS tool:
 ```
