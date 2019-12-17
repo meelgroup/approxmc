@@ -797,6 +797,9 @@ bool AppMC::gen_rhs()
 
 string AppMC::gen_rnd_bits(
     const uint32_t size,
+
+    // this parameter is needed in case the probability must change
+    // with the number of hashes already added. For less than 50% prob.
     const uint32_t num_hashes)
 {
     string randomBits;
