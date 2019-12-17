@@ -95,18 +95,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
-option(FEEDBACKFUZZ "Use Clang coverage sanitizers" OFF)
-if (FEEDBACKFUZZ)
-    SET (CMAKE_CXX_COMPILER "clang++")
-    add_compile_options("-fsanitize=address")
-    add_compile_options("-fsanitize-coverage=edge,indirect-calls,8bit-counters")
-endif()
-
-option(LARGEMEM "Allow memory usage to grow to Terabyte values -- uses 64b offsets. Slower, but allows the solver to run for much longer." OFF)
-if (LARGEMEM)
-    add_definitions(-DLARGE_OFFSETS)
-endif()
-
 option(SANITIZE "Use Clang sanitizers. You MUST use clang++ as the compiler for this to work" OFF)
 if (SANITIZE)
     MESSAGE(WARNING " --Using clang sanitizers -- you MUST use clang++ or the compile WILL fail")
