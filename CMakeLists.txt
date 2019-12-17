@@ -149,6 +149,12 @@ else()
     add_definitions(-D_FORTIFY_SOURCE=0)
 endif()
 
+option(STATICCOMPILE "Compile to static executable" OFF)
+if (STATICCOMPILE)
+    set(ENABLE_TESTING OFF)
+    set(Boost_USE_STATIC_LIBS ON)
+endif()
+
 # Note: O3 gives slight speed increase, 1 more solved from SAT Comp'14 @ 3600s
 if (NOT MSVC)
     add_compile_options( -g)
@@ -235,7 +241,6 @@ endif()
 
 option(ENABLE_TESTING "Enable testing" OFF)
 option(COVERAGE "Build with coverage check" OFF)
-option(STATICCOMPILE "Compile to static executable" OFF)
 if (COVERAGE AND NOT STATICCOMPILE)
     MESSAGE(FATAL_ERROR "Coverage can only be computed on static compilation")
 endif()
@@ -305,10 +310,6 @@ if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Dar
         add_definitions(-DBOOST_TEST_DYN_LINK)
         MESSAGE(STATUS "Compiling for dynamic library use")
     endif()
-endif()
-
-if ((${CMAKE_SYSTEM_NAME} MATCHES "Windows") AND (STATICCOMPILE))
-    set(Boost_USE_STATIC_LIBS ON)
 endif()
 
 if(NOT MSVC)
