@@ -155,6 +155,8 @@ void add_appmc_options()
         , "Generate sparse XORs when possible")
     ("simplify", po::value(&conf.simplify)->default_value(conf.simplify)
         , "Simplify agressiveness")
+    ("detachxor", po::value(&conf.cms_detach_xor)->default_value(conf.cms_detach_xor)
+        , "Detach XORs in CMS")
 
     //blasted_TR_ptb_1_linear.cnf.gz.no_w.cnf.gz is sensitive to below.
     //1.0 will mess it up. 0.3 will work.
@@ -454,6 +456,7 @@ int main(int argc, char** argv)
         appmc->solver->set_verbosity(conf.verb-2);
     }
     appmc->solver->set_allow_otf_gauss();
+    appmc->solver->set_xor_detach(conf.cms_detach_xor);
 
     if (conf.num_threads > 1) {
         appmc->solver->set_num_threads(conf.num_threads);

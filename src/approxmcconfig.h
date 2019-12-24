@@ -50,6 +50,8 @@ struct AppMCConfig {
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     std::string sampleFilename;
     std::string logfilename = "";
+
+    int cms_detach_xor = 1;
 };
 
 #endif //APPMCCONFIG
