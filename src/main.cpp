@@ -467,6 +467,9 @@ int main(int argc, char** argv)
         exit(-1);
     }
     conf.threshold = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+    if (conf.verb) {
+        cout << "[appmc] threshold set to " << conf.threshold << endl;
+    }
 
     if (conf.delta <= 0.0 || conf.delta > 1.0) {
         cout << "[appmc] ERROR: invalid delta" << endl;

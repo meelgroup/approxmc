@@ -32,7 +32,7 @@
 
 struct AppMCConfig {
     uint32_t startiter = 0;
-    uint32_t threshold = 72; //precision
+    uint32_t threshold; //precision, it's computed (see main.cpp)
     double epsilon = 0.80;
     uint32_t measurements = 9; //confidence of 0.81
     double delta = 0.2;
