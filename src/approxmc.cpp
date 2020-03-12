@@ -262,7 +262,7 @@ SolNum AppMC::bounded_sol_count(
     }
 
     //Save global models
-    if (hm) {
+    if (hm && conf.reuse_models) {
         for (const auto& model: models) {
             hm->glob_model.push_back(SavedModel(hashCount, model));
         }

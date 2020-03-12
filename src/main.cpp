@@ -157,6 +157,8 @@ void add_appmc_options()
         , "Simplify agressiveness")
     ("detachxor", po::value(&conf.cms_detach_xor)->default_value(conf.cms_detach_xor)
         , "Detach XORs in CMS")
+    ("reusemodels", po::value(&conf.reuse_models)->default_value(conf.reuse_models)
+        , "Reuse models while counting solutions")
 
     //blasted_TR_ptb_1_linear.cnf.gz.no_w.cnf.gz is sensitive to below.
     //1.0 will mess it up. 0.3 will work.
