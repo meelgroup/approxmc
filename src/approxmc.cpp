@@ -876,8 +876,8 @@ void printVersionInfoAppMC()
 
 void AppMC::printVersionInfo() const
 {
-    //::printVersionInfoAppMC();
-    //cout << solver->get_text_version_info();
+    ::printVersionInfoAppMC();
+    cout << solver->get_text_version_info();
 }
 
 /* Number of solutions to return from one invocation of gen_n_samples. */
