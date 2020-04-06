@@ -159,6 +159,11 @@ SolNum AppMC::bounded_sol_count(
         only_indep_sol = conf.only_indep_samples;
     }
 
+    //Turn off improvement from ApproxMC4 research paper
+    if (conf.force_sol_extension) {
+        only_indep_sol = false;
+    }
+
     //Set up things for adding clauses that can later be removed
     vector<Lit> new_assumps;
     if (assumps) {

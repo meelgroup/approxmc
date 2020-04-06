@@ -50,8 +50,9 @@ string command_line;
 AppMC* appmc = NULL;
 
 AppMCConfig conf;
-po::options_description appmc_options = po::options_description("ApproxMC options");
-po::options_description appmcgen_options = po::options_description("gen_n_samples options");
+po::options_description appmc_options = po::options_description("Main options");
+po::options_description appmcgen_options = po::options_description("Sampling options");
+po::options_description appmc4_options = po::options_description("ApproxMC4 paper options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
@@ -155,16 +156,20 @@ void add_appmc_options()
         , "Generate sparse XORs when possible")
     ("simplify", po::value(&conf.simplify)->default_value(conf.simplify)
         , "Simplify agressiveness")
-    ("detachxor", po::value(&conf.cms_detach_xor)->default_value(conf.cms_detach_xor)
-        , "Detach XORs in CMS")
-    ("reusemodels", po::value(&conf.reuse_models)->default_value(conf.reuse_models)
-        , "Reuse models while counting solutions")
-
     //blasted_TR_ptb_1_linear.cnf.gz.no_w.cnf.gz is sensitive to below.
     //1.0 will mess it up. 0.3 will work.
     ("velimratio", po::value(&conf.var_elim_ratio)->default_value(conf.var_elim_ratio)
         , "Variable elimination ratio for each simplify run")
     ;
+
+    //Improvements from ApproxMC4 paper
+    appmc4_options.add_options()
+    ("detachxor", po::value(&conf.cms_detach_xor)->default_value(conf.cms_detach_xor)
+        , "Detach XORs in CMS")
+    ("reusemodels", po::value(&conf.reuse_models)->default_value(conf.reuse_models)
+        , "Reuse models while counting solutions")
+    ("forcesolextension", po::value(&conf.force_sol_extension)->default_value(conf.force_sol_extension)
+        , "Use trick of not extending solutions in the SAT solver to full solution");
 
     appmcgen_options.add_options()
     ("samples", po::value(&conf.samples)->default_value(conf.samples)
@@ -182,6 +187,7 @@ void add_appmc_options()
 
     help_options.add(appmc_options);
     help_options.add(appmcgen_options);
+    help_options.add(appmc4_options);
 }
 
 void add_supported_options(int argc, char** argv)

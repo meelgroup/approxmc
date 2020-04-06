@@ -47,6 +47,7 @@ struct AppMCConfig {
     int simplify = 1;
     double var_elim_ratio = 1.6;
     int reuse_models = 1;
+    int force_sol_extension = 0;
     std::vector<uint32_t> sampling_set;
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     std::string sampleFilename;
