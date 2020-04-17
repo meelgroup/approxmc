@@ -299,9 +299,7 @@ void add_supported_options(int argc, char** argv)
      }
 }
 void readInProbFile(string filename){
-
     std::ifstream myFile(filename);
-
     if(!myFile.is_open()){
         std::cerr
         << "ERROR! Could not open file"
