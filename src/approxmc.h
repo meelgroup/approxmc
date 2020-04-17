@@ -179,6 +179,9 @@ private:
     ////////////////
     // internal data
     ////////////////
+    uint32_t next_index = 0;
+    uint32_t next_var_index = 0;
+    double sparseprob = 0.5;
     double startTime;
     std::ostream* samples_out = NULL;
     bool sampling = false;

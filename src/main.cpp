@@ -154,6 +154,8 @@ void add_appmc_options()
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
         , "Generate sparse XORs when possible")
+    ("sparsefile", po::value(&conf.sparsefilename)->default_value(conf.sparsefilename),
+         "Sparse File Name")
     ("simplify", po::value(&conf.simplify)->default_value(conf.simplify)
         , "Simplify agressiveness")
     //blasted_TR_ptb_1_linear.cnf.gz.no_w.cnf.gz is sensitive to below.
@@ -296,7 +298,69 @@ void add_supported_options(int argc, char** argv)
         exit(-1);
      }
 }
+void readInProbFile(string filename){
 
+    std::ifstream myFile(filename);
+
+    if(!myFile.is_open()){
+        std::cerr
+        << "ERROR! Could not open file"
+        <<filename
+        << "' for reading: " << strerror(errno) << endl;
+        std::exit(-1);
+    }
+    string value, line;
+    if(myFile.good())
+    {
+        std::getline(myFile, line);
+        std::stringstream ss(line);
+        std::getline(ss, value, ',');
+        cout<<value<<endl;
+        if (value == "header"){
+            while(std::getline(ss, value, ',')){
+            conf.probval.push_back(atof(value.c_str()));
+            }
+        }
+        else{
+            cerr
+            <<" The first line must be header"<<endl;
+            std::exit(-1);
+        }
+    }
+    while(std::getline(myFile, line))
+    {
+        cout<<line<<endl;
+        std::stringstream ss(line);
+        std::getline(ss, value, ',');
+        if (atoi(value.c_str()) >= (int)conf.sampling_set.size()){
+            while(std::getline(ss, value, ',')){
+                conf.index_var_map.push_back(atoi(value.c_str()));
+            }
+        }
+    }
+    if (conf.index_var_map.size() > conf.probval.size())
+    {
+        conf.index_var_map.resize(conf.probval.size());
+    }
+    if (conf.index_var_map.size() > conf.probval.size())
+    {
+        conf.probval.resize(conf.index_var_map.size());
+    }
+    if (conf.index_var_map.size() == 0)
+    {
+        cout << "[appmc] Sparse file does not have probability values for "
+        << conf.sampling_set.size()
+        <<endl;
+        conf.index_var_map.push_back((int)conf.sampling_set.size());
+        conf.probval.clear();
+        conf.probval.push_back(0.5);
+    }
+    else
+    {
+        conf.thresh_factor = 1.1;
+    }
+    myFile.close();
+}
 void readInAFile(SATSolver* solver2, const string& filename)
 {
     solver2->add_sql_tag("filename", filename);
@@ -474,7 +538,6 @@ int main(int argc, char** argv)
         cout << "[appmc] ERROR: invalid epsilon" << endl;
         exit(-1);
     }
-    conf.threshold = int(1 + 9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
     if (conf.verb) {
         cout << "[appmc] threshold set to " << conf.threshold << endl;
     }
@@ -502,6 +565,14 @@ int main(int argc, char** argv)
         readInStandardInput(appmc->solver);
     }
     set_sampling_vars();
+    if (conf.sparse){
+        if (conf.sparsefilename == ""){
+            std::cerr << "[appmc] ERROR: You must provide the sparsefile name" << endl;
+            exit(-1);
+        }
+        readInProbFile(conf.sparsefilename); //This call may update thresh_factor, so threshold should be computed after this call
+    }
+    conf.threshold = int(1 + conf.thresh_factor*9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
     std::ostream* out = open_samples_file();
     if (conf.samples > 0) {
         appmc->set_samples_file(out);

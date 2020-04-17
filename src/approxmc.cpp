@@ -56,10 +56,10 @@ using std::endl;
 using std::list;
 using std::map;
 
-Hash AppMC::add_hash(uint32_t total_num_hashes)
+Hash AppMC::add_hash(uint32_t hash_index)
 {
     const string randomBits =
-        gen_rnd_bits(conf.sampling_set.size(), total_num_hashes);
+        gen_rnd_bits(conf.sampling_set.size(), hash_index);
 
     vector<uint32_t> vars;
     for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
@@ -365,7 +365,7 @@ vector<Lit> AppMC::set_num_hashes(
         if (hashes.find(i) != hashes.end()) {
             assumps.push_back(Lit(hashes[i].act_var, true));
         } else {
-            Hash h = add_hash(num_wanted);
+            Hash h = add_hash(i);
             assumps.push_back(Lit(h.act_var, true));
             hashes[i] = h;
         }
@@ -803,17 +803,29 @@ bool AppMC::gen_rhs()
 string AppMC::gen_rnd_bits(
     const uint32_t size,
 
-    // this parameter is needed in case the probability must change
-    // with the number of hashes already added. For less than 50% prob.
-    const uint32_t num_hashes)
+    // The name of parameter was changed to indicate that this is the index of hash function
+    const uint32_t hash_index)
 {
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
     uint32_t cutoff = 500;
     if (conf.sparse) {
-        cutoff = 50;
+        if (hash_index >= next_var_index)
+        {
+            sparseprob = conf.probval[next_index];
+            if (next_index < conf.index_var_map.size()-1)
+            {
+                next_index ++;
+                next_var_index = conf.index_var_map[next_index];
+            }
+        }
+        assert(sparseprob <= 0.5);
+        cutoff = std::ceil(1000.0*sparseprob);
+        if (conf.verb > 1)
+        {
+        cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
+        }
     }
-
     while (randomBits.size() < size) {
         bool val = dist(randomEngine) < cutoff;
         randomBits += '0' + val;
