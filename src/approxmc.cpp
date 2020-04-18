@@ -517,7 +517,12 @@ void AppMC::one_measurement_count(
     int64_t numExplored = 0;
     int64_t lowerFib = 0;
     int64_t upperFib = total_max_xors;
-
+   
+    //The following options reset sparse
+    next_index = 0;
+    next_var_index = 0;
+    sparseprob = 0.5;
+    
     int64_t hashCount = mPrev;
     int64_t hashPrev = hashCount;
     while (numExplored < total_max_xors) {
@@ -809,7 +814,7 @@ string AppMC::gen_rnd_bits(
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
     uint32_t cutoff = 500;
-    if (conf.sparse) {
+    if (conf.sparse && !sampling) {
         if (hash_index >= next_var_index)
         {
             sparseprob = conf.probval[next_index];
