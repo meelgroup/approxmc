@@ -56,10 +56,10 @@ using std::endl;
 using std::list;
 using std::map;
 
-Hash AppMC::add_hash(uint32_t total_num_hashes)
+Hash AppMC::add_hash(uint32_t hash_index, SparseData& sparse_data)
 {
     const string randomBits =
-        gen_rnd_bits(conf.sampling_set.size(), total_num_hashes);
+        gen_rnd_bits(conf.sampling_set.size(), hash_index, sparse_data);
 
     vector<uint32_t> vars;
     for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
@@ -286,7 +286,6 @@ int AppMC::solve(AppMCConfig _conf)
     conf = _conf;
     orig_num_vars = solver->nVars();
     startTime = cpuTimeTotal();
-    sampling = false;
 
     openLogFile();
     randomEngine.seed(conf.seed);
@@ -358,14 +357,15 @@ int AppMC::solve(AppMCConfig _conf)
 
 vector<Lit> AppMC::set_num_hashes(
     uint32_t num_wanted,
-    map<uint64_t, Hash>& hashes
+    map<uint64_t, Hash>& hashes,
+    SparseData& sparse_data
 ) {
     vector<Lit> assumps;
     for(uint32_t i = 0; i < num_wanted; i++) {
         if (hashes.find(i) != hashes.end()) {
             assumps.push_back(Lit(hashes[i].act_var, true));
         } else {
-            Hash h = add_hash(num_wanted);
+            Hash h = add_hash(i, sparse_data);
             assumps.push_back(Lit(h.act_var, true));
             hashes[i] = h;
         }
@@ -412,18 +412,19 @@ void AppMC::count(SATCount& ret_count)
             simplify();
         }
         int64_t currentNumSolutions = bounded_sol_count(
-            conf.threshold+1, //max solutions
+            threshold+1, //max solutions
             NULL, // no assumptions
             hashCount
         ).solutions;
-        write_log(0, 0,
-                  currentNumSolutions == (conf.threshold + 1),
+        write_log(false, //not sampling
+                  0, 0,
+                  currentNumSolutions == (threshold + 1),
                   currentNumSolutions, 0, cpuTime() - myTime);
 
         //Din't find at least threshold+1
-        if (currentNumSolutions <= conf.threshold) {
+        if (currentNumSolutions <= threshold) {
             cout << "[appmc] Did not find at least threshold+1 ("
-            << conf.threshold << ") we found only " << currentNumSolutions
+            << threshold << ") we found only " << currentNumSolutions
             << ", i.e. we got exact count" << endl;
 
             ret_count.cellSolCount = currentNumSolutions;
@@ -437,25 +438,6 @@ void AppMC::count(SATCount& ret_count)
     vector<uint64_t> numHashList;
     vector<int64_t> numCountList;
     int64_t mPrev = hashCount;
-
-    //this is a HACK to jump directly to the right place below.
-    //not very elegant, and probably also not worth it.
-    if (false) {
-        uint32_t threshold_prev = conf.threshold;
-        conf.threshold = 1;
-        one_measurement_count(
-            numHashList
-            , numCountList
-            , mPrev
-            , -1
-        );
-        numHashList.clear();
-        numCountList.clear();
-        conf.threshold = threshold_prev;
-        mPrev -= log2(conf.threshold);
-        mPrev = std::max<int64_t>(0, mPrev);
-        mPrev++;
-    }
 
     //See Algorithm 1 in paper "Algorithmic Improvements in Approximate Counting
     //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
@@ -490,6 +472,24 @@ void AppMC::count(SATCount& ret_count)
     return;
 }
 
+int AppMC::find_best_sparse_match()
+{
+    for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
+        if (constants.index_var_maps[i].vars_from_inclusive > conf.sampling_set.size()) {
+            cout << "[sparse] Using match: " << i-1
+            << " sampling set size: " << conf.sampling_set.size()
+            << " next start is: " << constants.index_var_maps[i].vars_from_inclusive
+            << " prev start is: " << ((i == 0) ? (int)-1 : (int)constants.index_var_maps[i-1].vars_from_inclusive)
+            << " sampl size: " << conf.sampling_set.size()
+            << endl;
+
+            return i-1;
+        }
+    }
+
+    return constants.index_var_maps.size()-1;
+}
+
 //See Algorithm 2+3 in paper "Algorithmic Improvements in Approximate Counting
 //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
 //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
@@ -518,11 +518,34 @@ void AppMC::one_measurement_count(
     int64_t lowerFib = 0;
     int64_t upperFib = total_max_xors;
 
+    //Set up probabilities, threshold and measurements
+    int best_match = find_best_sparse_match();
+    SparseData sparse_data(-1);
+    if (conf.sparse && best_match != -1) {
+        sparse_data = SparseData(best_match);
+        conf.thresh_factor = 1.1;
+    } else {
+        conf.thresh_factor = 1.0;
+    }
+    threshold = int(1 + conf.thresh_factor*9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+    if (conf.verb) {
+        cout << "[sparse] threshold set to " << threshold << endl;
+    }
+
+    conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
+    for (int count = 0; count < 256; count++) {
+        if (constants.iterationConfidences[count] >= 1 - conf.delta) {
+            conf.measurements = count*2+1;
+            break;
+        }
+    }
+
+
     int64_t hashCount = mPrev;
     int64_t hashPrev = hashCount;
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
-        const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes);
+        const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes, sparse_data);
 
         cout << "[appmc] "
         "[ " << std::setw(7) << std::setprecision(2) << std::fixed
@@ -532,20 +555,22 @@ void AppMC::one_measurement_count(
         << " hashes: " << std::setw(6) << hashCount << endl;
         double myTime = cpuTime();
         SolNum sols = bounded_sol_count(
-            conf.threshold + 1, //max no. solutions
+            threshold + 1, //max no. solutions
             &assumps, //assumptions to use
             hashCount,
             1, //min num solutions -- ignored
             &hm
         );
-        const uint64_t num_sols = std::min<uint64_t>(sols.solutions, conf.threshold + 1);
-        assert(num_sols <= conf.threshold + 1);
-        bool found_full = (num_sols == conf.threshold + 1);
-        write_log(iter, hashCount, found_full, num_sols, sols.repeated,
+        const uint64_t num_sols = std::min<uint64_t>(sols.solutions, threshold + 1);
+        assert(num_sols <= threshold + 1);
+        bool found_full = (num_sols == threshold + 1);
+        write_log(
+            false, //not sampling
+            iter, hashCount, found_full, num_sols, sols.repeated,
             cpuTime() - myTime
         );
 
-        if (num_sols < conf.threshold + 1) {
+        if (num_sols < threshold + 1) {
             numExplored = lowerFib + total_max_xors - hashCount;
 
             //one less hash count had threshold solutions
@@ -583,7 +608,7 @@ void AppMC::one_measurement_count(
                     //we got some solutions here -- calculate the right place
                     int64_t diff_delta = 0;
                     if (num_sols > 0) {
-                        diff_delta = log2(conf.threshold/(num_sols));
+                        diff_delta = log2(threshold/(num_sols));
                         if (diff_delta == 0){
                             diff_delta = 1;
                         }
@@ -597,7 +622,7 @@ void AppMC::one_measurement_count(
                 }
             }
         } else {
-            assert(num_sols == conf.threshold + 1);
+            assert(num_sols == threshold + 1);
             numExplored = hashCount + total_max_xors - upperFib;
 
             //success record for +1 hashcount exists and is 0
@@ -613,7 +638,7 @@ void AppMC::one_measurement_count(
             }
 
             threshold_sols[hashCount] = 1;
-            sols_for_hash[hashCount] = conf.threshold+1;
+            sols_for_hash[hashCount] = threshold+1;
             if (iter > 0
                 && std::abs(hashCount - mPrev) < 2
             ) {
@@ -633,7 +658,6 @@ void AppMC::one_measurement_count(
 
 void AppMC::generate_samples()
 {
-    sampling = true;
     assert(samples_out != NULL);
     double genStartTime = cpuTimeTotal();
 
@@ -702,6 +726,7 @@ uint32_t AppMC::gen_n_samples(
     const uint32_t num_calls
     , uint32_t* lastSuccessfulHashOffset)
 {
+    SparseData sparse_data(-1);
     uint32_t num_samples = 0;
     uint32_t i = 0;
     while(i < num_calls) {
@@ -723,7 +748,7 @@ uint32_t AppMC::gen_n_samples(
         for (uint32_t j = 0; j < 3; j++) {
             uint32_t currentHashOffset = hashOffsets[j];
             uint32_t currentHashCount = currentHashOffset + conf.startiter;
-            const vector<Lit> assumps = set_num_hashes(currentHashCount, hashes);
+            const vector<Lit> assumps = set_num_hashes(currentHashCount, hashes, sparse_data);
 
             double myTime = cpuTime();
             const uint64_t solutionCount = bounded_sol_count(
@@ -733,7 +758,9 @@ uint32_t AppMC::gen_n_samples(
                 , loThresh //min number of solutions (samples not output otherwise)
             ).solutions;
             ok = (solutionCount < hiThresh && solutionCount >= loThresh);
-            write_log(i, currentHashCount, solutionCount == hiThresh,
+            write_log(
+                true, //sampling
+                i, currentHashCount, solutionCount == hiThresh,
                       solutionCount, 0, cpuTime()-myTime);
 
             if (ok) {
@@ -802,16 +829,31 @@ bool AppMC::gen_rhs()
 
 string AppMC::gen_rnd_bits(
     const uint32_t size,
-
-    // this parameter is needed in case the probability must change
-    // with the number of hashes already added. For less than 50% prob.
-    const uint32_t num_hashes)
+    // The name of parameter was changed to indicate that this is the index of hash function
+    const uint32_t hash_index,
+    SparseData& sparse_data)
 {
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
     uint32_t cutoff = 500;
-    if (conf.sparse) {
-        cutoff = 50;
+    if (conf.sparse && sparse_data.table_no != -1) {
+        //Do we need to update the probability?
+        const auto& table = constants.index_var_maps[sparse_data.table_no];
+        const auto next_var_index = table.index_var_map[sparse_data.next_index];
+        if (hash_index >= next_var_index) {
+            sparse_data.sparseprob = constants.probval[sparse_data.next_index];
+            sparse_data.next_index = std::min<uint32_t>(
+                sparse_data.next_index+1, table.index_var_map.size()-1);
+        }
+        assert(sparse_data.sparseprob <= 0.5);
+        cutoff = std::ceil(1000.0*sparse_data.sparseprob);
+        if (conf.verb > 3) {
+            cout << "[sparse] cutoff: " << cutoff
+            << " table: " << sparse_data.table_no
+            << " lookup index: " << sparse_data.next_index
+            << " hash index: " << hash_index
+            << endl;
+        }
     }
 
     while (randomBits.size() < size) {
@@ -916,6 +958,7 @@ void AppMC::openLogFile()
 }
 
 void AppMC::write_log(
+    bool sampling,
     int iter,
     uint32_t hashCount,
     int found_full,
@@ -927,7 +970,7 @@ void AppMC::write_log(
     if (!conf.logfilename.empty()) {
         logfile
         << std::left
-        << std::setw(5) << sampling
+        << std::setw(5) << (int)sampling
         << " " << std::setw(4) << iter
         << " " << std::setw(4) << hashCount
         << " " << std::setw(4) << found_full

@@ -35,6 +35,7 @@
 #include <map>
 #include <cstdint>
 #include <cryptominisat5/cryptominisat.h>
+#include "constants.h"
 
 using std::string;
 using std::vector;
@@ -97,10 +98,21 @@ struct SolNum {
     uint64_t repeated = 0;
 };
 
+struct SparseData {
+    explicit SparseData(int _table_no) :
+        table_no(_table_no)
+    {}
+
+    uint32_t next_index = 0;
+    double sparseprob = 0.5;
+    int table_no = -1;
+};
+
 class AppMC {
 public:
     int solve(AppMCConfig _conf);
-    string gen_rnd_bits(const uint32_t size, const uint32_t numhashes);
+    string gen_rnd_bits(const uint32_t size,
+                        const uint32_t numhashes, SparseData& sparse_data);
     string binary(const uint32_t x, const uint32_t length);
     uint32_t sols_to_return(uint32_t numSolutions);
     void generate_samples();
@@ -115,13 +127,14 @@ public:
     SATSolver* solver = NULL;
     void printVersionInfo() const;
     void set_samples_file(std::ostream* os);
+    const Constants constants;
 
 private:
     AppMCConfig conf;
     void count(SATCount& count);
     void add_appmc_options();
     bool ScalAppMC(SATCount& count);
-    Hash add_hash(uint32_t total_num_hashes);
+    Hash add_hash(uint32_t total_num_hashes, SparseData& sparse_data);
     SolNum bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
@@ -132,7 +145,8 @@ private:
     );
     vector<Lit> set_num_hashes(
         uint32_t num_wanted,
-        map<uint64_t, Hash>& hashes
+        map<uint64_t, Hash>& hashes,
+        SparseData& sparse_data
     );
     void simplify();
 
@@ -150,6 +164,7 @@ private:
         const int iter
     );
     void write_log(
+        bool sampling,
         int iter,
         uint32_t hashCount,
         int found_full,
@@ -174,6 +189,7 @@ private:
 
     void readInAFile(SATSolver* solver2, const string& filename);
     void readInStandardInput(SATSolver* solver2);
+    int find_best_sparse_match();
 
 
     ////////////////
@@ -181,11 +197,11 @@ private:
     ////////////////
     double startTime;
     std::ostream* samples_out = NULL;
-    bool sampling = false;
     std::ofstream logfile;
     std::mt19937 randomEngine;
     uint32_t orig_num_vars;
     double total_inter_simp_time = 0;
+    uint32_t threshold; //precision, it's computed
 
     int argc;
     char** argv;
