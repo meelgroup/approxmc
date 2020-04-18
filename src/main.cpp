@@ -407,9 +407,6 @@ int main(int argc, char** argv)
         cout << "[appmc] ERROR: invalid epsilon" << endl;
         exit(-1);
     }
-    if (conf.verb) {
-        cout << "[appmc] threshold set to " << conf.threshold << endl;
-    }
 
     if (conf.delta <= 0.0 || conf.delta > 1.0) {
         cout << "[appmc] ERROR: invalid delta" << endl;

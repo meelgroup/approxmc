@@ -412,19 +412,19 @@ void AppMC::count(SATCount& ret_count)
             simplify();
         }
         int64_t currentNumSolutions = bounded_sol_count(
-            conf.threshold+1, //max solutions
+            threshold+1, //max solutions
             NULL, // no assumptions
             hashCount
         ).solutions;
         write_log(false, //not sampling
                   0, 0,
-                  currentNumSolutions == (conf.threshold + 1),
+                  currentNumSolutions == (threshold + 1),
                   currentNumSolutions, 0, cpuTime() - myTime);
 
         //Din't find at least threshold+1
-        if (currentNumSolutions <= conf.threshold) {
+        if (currentNumSolutions <= threshold) {
             cout << "[appmc] Did not find at least threshold+1 ("
-            << conf.threshold << ") we found only " << currentNumSolutions
+            << threshold << ") we found only " << currentNumSolutions
             << ", i.e. we got exact count" << endl;
 
             ret_count.cellSolCount = currentNumSolutions;
@@ -485,6 +485,8 @@ int AppMC::find_best_sparse_match()
             return i-1;
         }
     }
+
+    return constants.index_var_maps.size()-1;
 }
 
 //See Algorithm 2+3 in paper "Algorithmic Improvements in Approximate Counting
@@ -524,7 +526,10 @@ void AppMC::one_measurement_count(
     } else {
         conf.thresh_factor = 1.0;
     }
-    conf.threshold = int(1 + conf.thresh_factor*9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+    threshold = int(1 + conf.thresh_factor*9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+    if (conf.verb) {
+        cout << "[sparse] threshold set to " << threshold << endl;
+    }
 
     conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
     for (int count = 0; count < 256; count++) {
@@ -549,22 +554,22 @@ void AppMC::one_measurement_count(
         << " hashes: " << std::setw(6) << hashCount << endl;
         double myTime = cpuTime();
         SolNum sols = bounded_sol_count(
-            conf.threshold + 1, //max no. solutions
+            threshold + 1, //max no. solutions
             &assumps, //assumptions to use
             hashCount,
             1, //min num solutions -- ignored
             &hm
         );
-        const uint64_t num_sols = std::min<uint64_t>(sols.solutions, conf.threshold + 1);
-        assert(num_sols <= conf.threshold + 1);
-        bool found_full = (num_sols == conf.threshold + 1);
+        const uint64_t num_sols = std::min<uint64_t>(sols.solutions, threshold + 1);
+        assert(num_sols <= threshold + 1);
+        bool found_full = (num_sols == threshold + 1);
         write_log(
             false, //not sampling
             iter, hashCount, found_full, num_sols, sols.repeated,
             cpuTime() - myTime
         );
 
-        if (num_sols < conf.threshold + 1) {
+        if (num_sols < threshold + 1) {
             numExplored = lowerFib + total_max_xors - hashCount;
 
             //one less hash count had threshold solutions
@@ -602,7 +607,7 @@ void AppMC::one_measurement_count(
                     //we got some solutions here -- calculate the right place
                     int64_t diff_delta = 0;
                     if (num_sols > 0) {
-                        diff_delta = log2(conf.threshold/(num_sols));
+                        diff_delta = log2(threshold/(num_sols));
                         if (diff_delta == 0){
                             diff_delta = 1;
                         }
@@ -616,7 +621,7 @@ void AppMC::one_measurement_count(
                 }
             }
         } else {
-            assert(num_sols == conf.threshold + 1);
+            assert(num_sols == threshold + 1);
             numExplored = hashCount + total_max_xors - upperFib;
 
             //success record for +1 hashcount exists and is 0
@@ -632,7 +637,7 @@ void AppMC::one_measurement_count(
             }
 
             threshold_sols[hashCount] = 1;
-            sols_for_hash[hashCount] = conf.threshold+1;
+            sols_for_hash[hashCount] = threshold+1;
             if (iter > 0
                 && std::abs(hashCount - mPrev) < 2
             ) {
@@ -831,19 +836,22 @@ string AppMC::gen_rnd_bits(
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
     uint32_t cutoff = 500;
     if (conf.sparse && sparse_data.table_no != -1) {
-        if (hash_index >= sparse_data.next_var_index)
-        {
+        //Do we need to update the probability?
+        const auto& table = constants.index_var_maps[sparse_data.table_no];
+        const auto next_var_index = table.index_var_map[sparse_data.next_index];
+        if (hash_index >= next_var_index) {
             sparse_data.sparseprob = constants.probval[sparse_data.next_index];
-            if (sparse_data.next_index < constants.index_var_maps[sparse_data.table_no].index_var_map.size()-1)
-            {
-                sparse_data.next_index ++;
-                sparse_data.next_var_index = constants.index_var_maps[sparse_data.table_no].index_var_map[sparse_data.next_index];
-            }
+            sparse_data.next_index = std::min<uint32_t>(
+                sparse_data.next_index+1, table.index_var_map.size()-1);
         }
         assert(sparse_data.sparseprob <= 0.5);
         cutoff = std::ceil(1000.0*sparse_data.sparseprob);
-        if (conf.verb > 1) {
-            cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
+        if (conf.verb > 3) {
+            cout << "[sparse] cutoff: " << cutoff
+            << " table: " << sparse_data.table_no
+            << " lookup index: " << sparse_data.next_index
+            << " hash index: " << hash_index
+            << endl;
         }
     }
 

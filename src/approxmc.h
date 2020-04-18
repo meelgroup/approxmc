@@ -104,7 +104,6 @@ struct SparseData {
     {}
 
     uint32_t next_index = 0;
-    uint32_t next_var_index = 0;
     double sparseprob = 0.5;
     int table_no = -1;
 };
@@ -202,6 +201,7 @@ private:
     std::mt19937 randomEngine;
     uint32_t orig_num_vars;
     double total_inter_simp_time = 0;
+    uint32_t threshold; //precision, it's computed
 
     int argc;
     char** argv;
