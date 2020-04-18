@@ -56,10 +56,10 @@ using std::endl;
 using std::list;
 using std::map;
 
-Hash AppMC::add_hash(uint32_t hash_index)
+Hash AppMC::add_hash(uint32_t hash_index, SparseData& sparse_data)
 {
     const string randomBits =
-        gen_rnd_bits(conf.sampling_set.size(), hash_index);
+        gen_rnd_bits(conf.sampling_set.size(), hash_index, sparse_data);
 
     vector<uint32_t> vars;
     for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
@@ -286,7 +286,6 @@ int AppMC::solve(AppMCConfig _conf)
     conf = _conf;
     orig_num_vars = solver->nVars();
     startTime = cpuTimeTotal();
-    sampling = false;
 
     openLogFile();
     randomEngine.seed(conf.seed);
@@ -358,14 +357,15 @@ int AppMC::solve(AppMCConfig _conf)
 
 vector<Lit> AppMC::set_num_hashes(
     uint32_t num_wanted,
-    map<uint64_t, Hash>& hashes
+    map<uint64_t, Hash>& hashes,
+    SparseData& sparse_data
 ) {
     vector<Lit> assumps;
     for(uint32_t i = 0; i < num_wanted; i++) {
         if (hashes.find(i) != hashes.end()) {
             assumps.push_back(Lit(hashes[i].act_var, true));
         } else {
-            Hash h = add_hash(i);
+            Hash h = add_hash(i, sparse_data);
             assumps.push_back(Lit(h.act_var, true));
             hashes[i] = h;
         }
@@ -416,7 +416,8 @@ void AppMC::count(SATCount& ret_count)
             NULL, // no assumptions
             hashCount
         ).solutions;
-        write_log(0, 0,
+        write_log(false, //not sampling
+                  0, 0,
                   currentNumSolutions == (conf.threshold + 1),
                   currentNumSolutions, 0, cpuTime() - myTime);
 
@@ -517,17 +518,13 @@ void AppMC::one_measurement_count(
     int64_t numExplored = 0;
     int64_t lowerFib = 0;
     int64_t upperFib = total_max_xors;
-   
-    //The following options reset sparse
-    next_index = 0;
-    next_var_index = 0;
-    sparseprob = 0.5;
-    
+    SparseData sparse_data(false);
+
     int64_t hashCount = mPrev;
     int64_t hashPrev = hashCount;
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
-        const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes);
+        const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes, sparse_data);
 
         cout << "[appmc] "
         "[ " << std::setw(7) << std::setprecision(2) << std::fixed
@@ -546,7 +543,9 @@ void AppMC::one_measurement_count(
         const uint64_t num_sols = std::min<uint64_t>(sols.solutions, conf.threshold + 1);
         assert(num_sols <= conf.threshold + 1);
         bool found_full = (num_sols == conf.threshold + 1);
-        write_log(iter, hashCount, found_full, num_sols, sols.repeated,
+        write_log(
+            false, //not sampling
+            iter, hashCount, found_full, num_sols, sols.repeated,
             cpuTime() - myTime
         );
 
@@ -638,7 +637,6 @@ void AppMC::one_measurement_count(
 
 void AppMC::generate_samples()
 {
-    sampling = true;
     assert(samples_out != NULL);
     double genStartTime = cpuTimeTotal();
 
@@ -707,6 +705,7 @@ uint32_t AppMC::gen_n_samples(
     const uint32_t num_calls
     , uint32_t* lastSuccessfulHashOffset)
 {
+    SparseData sparse_data(true);
     uint32_t num_samples = 0;
     uint32_t i = 0;
     while(i < num_calls) {
@@ -728,7 +727,7 @@ uint32_t AppMC::gen_n_samples(
         for (uint32_t j = 0; j < 3; j++) {
             uint32_t currentHashOffset = hashOffsets[j];
             uint32_t currentHashCount = currentHashOffset + conf.startiter;
-            const vector<Lit> assumps = set_num_hashes(currentHashCount, hashes);
+            const vector<Lit> assumps = set_num_hashes(currentHashCount, hashes, sparse_data);
 
             double myTime = cpuTime();
             const uint64_t solutionCount = bounded_sol_count(
@@ -738,7 +737,9 @@ uint32_t AppMC::gen_n_samples(
                 , loThresh //min number of solutions (samples not output otherwise)
             ).solutions;
             ok = (solutionCount < hiThresh && solutionCount >= loThresh);
-            write_log(i, currentHashCount, solutionCount == hiThresh,
+            write_log(
+                true, //sampling
+                i, currentHashCount, solutionCount == hiThresh,
                       solutionCount, 0, cpuTime()-myTime);
 
             if (ok) {
@@ -807,28 +808,27 @@ bool AppMC::gen_rhs()
 
 string AppMC::gen_rnd_bits(
     const uint32_t size,
-
     // The name of parameter was changed to indicate that this is the index of hash function
-    const uint32_t hash_index)
+    const uint32_t hash_index,
+    SparseData& sparse_data)
 {
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
     uint32_t cutoff = 500;
-    if (conf.sparse && !sampling) {
-        if (hash_index >= next_var_index)
+    if (conf.sparse && sparse_data.sampling) {
+        if (hash_index >= sparse_data.next_var_index)
         {
-            sparseprob = conf.probval[next_index];
-            if (next_index < conf.index_var_map.size()-1)
+            sparse_data.sparseprob = conf.probval[sparse_data.next_index];
+            if (sparse_data.next_index < conf.index_var_map.size()-1)
             {
-                next_index ++;
-                next_var_index = conf.index_var_map[next_index];
+                sparse_data.next_index ++;
+                sparse_data.next_var_index = conf.index_var_map[sparse_data.next_index];
             }
         }
-        assert(sparseprob <= 0.5);
-        cutoff = std::ceil(1000.0*sparseprob);
-        if (conf.verb > 1)
-        {
-        cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
+        assert(sparse_data.sparseprob <= 0.5);
+        cutoff = std::ceil(1000.0*sparse_data.sparseprob);
+        if (conf.verb > 1) {
+            cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
         }
     }
 
@@ -934,6 +934,7 @@ void AppMC::openLogFile()
 }
 
 void AppMC::write_log(
+    bool sampling,
     int iter,
     uint32_t hashCount,
     int found_full,
@@ -945,7 +946,7 @@ void AppMC::write_log(
     if (!conf.logfilename.empty()) {
         logfile
         << std::left
-        << std::setw(5) << sampling
+        << std::setw(5) << (int)sampling
         << " " << std::setw(4) << iter
         << " " << std::setw(4) << hashCount
         << " " << std::setw(4) << found_full
