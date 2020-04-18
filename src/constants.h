@@ -36,12 +36,12 @@ using std::string;
 struct VarMap
 {
     VarMap() {}
-    VarMap(uint32_t _vars_from_inclusive, vector<uint32_t> _index_var_map) :
-        vars_from_inclusive(_vars_from_inclusive),
+    VarMap(uint32_t _vars_to_inclusive, vector<uint32_t> _index_var_map) :
+        vars_to_inclusive(_vars_to_inclusive),
         index_var_map(_index_var_map)
     {}
 
-    uint32_t vars_from_inclusive = 0;
+    uint32_t vars_to_inclusive = 0;
     vector<uint32_t> index_var_map;
 };
 

@@ -475,17 +475,20 @@ void AppMC::count(SATCount& ret_count)
 int AppMC::find_best_sparse_match()
 {
     for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
-        if (constants.index_var_maps[i].vars_from_inclusive > conf.sampling_set.size()) {
-            cout << "[sparse] Using match: " << i-1
+        cout << i << " sparse:" << constants.index_var_maps[i].vars_to_inclusive << endl;
+        if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampling_set.size()) {
+            cout << "[sparse] Using match: " << i
             << " sampling set size: " << conf.sampling_set.size()
-            << " next start is: " << constants.index_var_maps[i].vars_from_inclusive
-            << " this start is: " << ((i == 0) ? (int)-1 : (int)constants.index_var_maps[i-1].vars_from_inclusive)
+            << " prev end inclusive is: " << (i == 0 ? -1 : (int)constants.index_var_maps[i-1].vars_to_inclusive)
+            << " this end inclusive is: " << constants.index_var_maps[i].vars_to_inclusive
+            << " next end inclusive is: " << ((i+1 < constants.index_var_maps.size()) ? ((int)constants.index_var_maps[i+1].vars_to_inclusive) : -1)
             << " sampl size: " << conf.sampling_set.size()
             << endl;
 
-            return i-1;
+            return i;
         }
     }
+
     cout << "[sparse] No match. Using default 0.5" << endl;
     return -1;
 }
