@@ -486,8 +486,8 @@ int AppMC::find_best_sparse_match()
             return i-1;
         }
     }
-
-    return constants.index_var_maps.size()-1;
+    cout << "[sparse] No match. Using default 0.5" << endl;
+    return -1;
 }
 
 //See Algorithm 2+3 in paper "Algorithmic Improvements in Approximate Counting
