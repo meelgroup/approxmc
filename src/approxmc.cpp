@@ -439,25 +439,6 @@ void AppMC::count(SATCount& ret_count)
     vector<int64_t> numCountList;
     int64_t mPrev = hashCount;
 
-    //this is a HACK to jump directly to the right place below.
-    //not very elegant, and probably also not worth it.
-    if (false) {
-        uint32_t threshold_prev = conf.threshold;
-        conf.threshold = 1;
-        one_measurement_count(
-            numHashList
-            , numCountList
-            , mPrev
-            , -1
-        );
-        numHashList.clear();
-        numCountList.clear();
-        conf.threshold = threshold_prev;
-        mPrev -= log2(conf.threshold);
-        mPrev = std::max<int64_t>(0, mPrev);
-        mPrev++;
-    }
-
     //See Algorithm 1 in paper "Algorithmic Improvements in Approximate Counting
     //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
     //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
