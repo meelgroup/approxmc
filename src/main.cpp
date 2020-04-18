@@ -319,6 +319,7 @@ void add_supported_options(int argc, char** argv)
         exit(-1);
      }
 }
+
 void readInSparseValues(){
     string value, line;
     for (uint32_t i = 0; i<sparseprobvalues.size(); i++)

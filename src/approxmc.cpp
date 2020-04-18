@@ -831,6 +831,7 @@ string AppMC::gen_rnd_bits(
         cout << "[appmc] sparse hashing used, cutoff: " << cutoff << endl;
         }
     }
+
     while (randomBits.size() < size) {
         bool val = dist(randomEngine) < cutoff;
         randomBits += '0' + val;
