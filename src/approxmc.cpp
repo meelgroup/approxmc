@@ -479,7 +479,7 @@ int AppMC::find_best_sparse_match()
             cout << "[sparse] Using match: " << i-1
             << " sampling set size: " << conf.sampling_set.size()
             << " next start is: " << constants.index_var_maps[i].vars_from_inclusive
-            << " prev start is: " << ((i == 0) ? (int)-1 : (int)constants.index_var_maps[i-1].vars_from_inclusive)
+            << " this start is: " << ((i == 0) ? (int)-1 : (int)constants.index_var_maps[i-1].vars_from_inclusive)
             << " sampl size: " << conf.sampling_set.size()
             << endl;
 
