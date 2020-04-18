@@ -240,8 +240,6 @@ void readInSparseValues()
         std::stringstream ss(constants.sparseprobvalues[i]);
         string value;
         std::getline(ss, value, ',');
-        cout << constants.sparseprobvalues[i] << endl;
-        cout << "value: " << value << endl;
         if (value == "header"){
             while(std::getline(ss, value, ',')){
             conf.probval.push_back(atof(value.c_str()));
