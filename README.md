@@ -47,14 +47,6 @@ sudo make install
 ## How to Use
 First, you must translate your problem to CNF and just pass your file as input to ApproxMC. Voila -- and it will print the number of solutions of the given CNF formula.
 
-To use sparse xors, 
-
-```
-./approxmc --sparse 1 --sparsefile <path-to-sparseval.txt> <input>
-```
-
-The file sparseval.txt is supplied in the root directory
-
 ### Sampling Set
 For some applications, one is not interested in solutions over all the variables and instead interested in counting the number of unique solutions to a subset of variables, called sampling set. ApproxMC allows you to specify the sampling set using the following modified version of DIMACS format:
 

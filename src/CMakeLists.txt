@@ -48,12 +48,14 @@ if (NOT EMSCRIPTEN)
     add_executable(approxmc
         approxmc.cpp
         main.cpp
+        constants.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
     )
 else()
     add_executable(approxmc
         approxmc.cpp
         main_min.cpp
+        constants.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
     )
 

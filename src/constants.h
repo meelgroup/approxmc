@@ -1,10 +1,10 @@
 /*
- ApproxMC and gen_n_samples
+ ApproxMC and UniGen
 
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
- Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
  Kuldeep S. Meel, Sanjit A. Seshia, Moshe Y. Vardi
+ Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,37 +25,19 @@
  THE SOFTWARE.
  */
 
-#ifndef APPMCCONFIG
-#define APPMCCONFIG
+#ifndef CONSTANTS_H
 
 #include <vector>
+#include <string>
 
-struct AppMCConfig {
-    uint32_t startiter = 0;
-    uint32_t threshold; //precision, it's computed (see main.cpp)
-    double epsilon = 0.80;
-    uint32_t measurements = 9; //confidence of 0.81
-    double delta = 0.2;
-    uint32_t num_threads = 1;
-    int sparse = 0;
-    unsigned verb = 1;
-    unsigned verb_appmc_cls = 0;
-    uint32_t seed = 1;
-    bool only_indep_samples = true;
-    uint32_t multisample = 1;
-    uint32_t samples = 0;
-    int simplify = 1;
-    double var_elim_ratio = 1.6;
-    int reuse_models = 1;
-    int force_sol_extension = 0;
-    std::vector<uint32_t> sampling_set;
-    std::vector<double> probval;
-    std::vector<uint32_t> index_var_map;
-    double thresh_factor = 1.0;
-    double kappa = 0.638;      /* Corresponds to epsilon=16 */
-    std::string sampleFilename;
-    std::string logfilename = "";
-    int cms_detach_xor = 1;
+using std::vector;
+using std::string;
+
+struct Constants
+{
+    Constants();
+    vector<string> sparseprobvalues;
+    vector<double> iterationConfidences;
 };
 
-#endif //APPMCCONFIG
+#endif
