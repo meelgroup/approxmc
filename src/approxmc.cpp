@@ -815,7 +815,7 @@ string AppMC::gen_rnd_bits(
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
     uint32_t cutoff = 500;
-    if (conf.sparse && sparse_data.sampling) {
+    if (conf.sparse && !sparse_data.sampling) {
         if (hash_index >= sparse_data.next_var_index)
         {
             sparse_data.sparseprob = conf.probval[sparse_data.next_index];
