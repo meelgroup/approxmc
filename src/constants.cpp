@@ -26,6 +26,15 @@
  */
 
 #include "constants.h"
+#include <iostream>
+#include <sstream>
+#include <cassert>
+#include <string>
+
+using std::string;
+using std::cout;
+using std::endl;
+using std::vector;
 
 Constants::Constants() {
     //So if you have 50 hashes, then between 1-6, use 0.5 prob, between 7-8 use 0.49, between 9-10 0.48
@@ -123,4 +132,33 @@ Constants::Constants() {
         0.999999999907, 0.999999999915, 0.999999999922, 0.999999999928,
         0.999999999934, 0.999999999939, 0.999999999944, 0.999999999948
         }};
+
+    readInSparseValues();
+}
+
+void Constants::readInSparseValues()
+{
+    assert(index_var_maps.empty());
+    for (uint32_t i = 0; i < sparseprobvalues.size(); i++)
+    {
+        std::stringstream ss(sparseprobvalues[i]);
+        string value;
+        std::getline(ss, value, ',');
+        if (value == "header") {
+            while(std::getline(ss, value, ',')) {
+                probval.push_back(std::stod(value.c_str()));
+            }
+            continue;
+        }
+
+        //non-header
+        uint32_t numvars = std::stoul(value.c_str());
+        vector<uint32_t> index_var_map;
+        while(std::getline(ss, value, ',')) {
+            index_var_map.push_back(std::stoul(value.c_str()));
+        }
+        assert(index_var_map.size() <= probval.size());
+        VarMap vmap(numvars, index_var_map);
+        index_var_maps.push_back(vmap);
+    }
 }

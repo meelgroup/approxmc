@@ -472,6 +472,21 @@ void AppMC::count(SATCount& ret_count)
     return;
 }
 
+int AppMC::find_best_sparse_match()
+{
+    for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
+        if (constants.index_var_maps[i].vars_from_inclusive > conf.sampling_set.size()) {
+            cout << "[sparse] Using match: " << i-1
+            << " next start is: " << constants.index_var_maps[i].vars_from_inclusive
+            << " prev start is: " << ((i == 0) ? -1 : constants.index_var_maps[i-1].vars_from_inclusive)
+            << " sampl size: " << conf.sampling_set.size()
+            << endl;
+
+            return i-1;
+        }
+    }
+}
+
 //See Algorithm 2+3 in paper "Algorithmic Improvements in Approximate Counting
 //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
 //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
@@ -499,7 +514,26 @@ void AppMC::one_measurement_count(
     int64_t numExplored = 0;
     int64_t lowerFib = 0;
     int64_t upperFib = total_max_xors;
-    SparseData sparse_data(false);
+
+    //Set up probabilities, threshold and measurements
+    int best_match = find_best_sparse_match();
+    SparseData sparse_data(-1);
+    if (conf.sparse && best_match != -1) {
+        sparse_data = SparseData(best_match);
+        conf.thresh_factor = 1.1;
+    } else {
+        conf.thresh_factor = 1.0;
+    }
+    conf.threshold = int(1 + conf.thresh_factor*9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+
+    conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
+    for (int count = 0; count < 256; count++) {
+        if (constants.iterationConfidences[count] >= 1 - conf.delta) {
+            conf.measurements = count*2+1;
+            break;
+        }
+    }
+
 
     int64_t hashCount = mPrev;
     int64_t hashPrev = hashCount;
@@ -686,7 +720,7 @@ uint32_t AppMC::gen_n_samples(
     const uint32_t num_calls
     , uint32_t* lastSuccessfulHashOffset)
 {
-    SparseData sparse_data(true);
+    SparseData sparse_data(-1);
     uint32_t num_samples = 0;
     uint32_t i = 0;
     while(i < num_calls) {
@@ -796,14 +830,14 @@ string AppMC::gen_rnd_bits(
     string randomBits;
     std::uniform_int_distribution<uint32_t> dist{0, 1000};
     uint32_t cutoff = 500;
-    if (conf.sparse && !sparse_data.sampling) {
+    if (conf.sparse && sparse_data.table_no != -1) {
         if (hash_index >= sparse_data.next_var_index)
         {
-            sparse_data.sparseprob = conf.probval[sparse_data.next_index];
-            if (sparse_data.next_index < conf.index_var_map.size()-1)
+            sparse_data.sparseprob = constants.probval[sparse_data.next_index];
+            if (sparse_data.next_index < constants.index_var_maps[sparse_data.table_no].index_var_map.size()-1)
             {
                 sparse_data.next_index ++;
-                sparse_data.next_var_index = conf.index_var_map[sparse_data.next_index];
+                sparse_data.next_var_index = constants.index_var_maps[sparse_data.table_no].index_var_map[sparse_data.next_index];
             }
         }
         assert(sparse_data.sparseprob <= 0.5);

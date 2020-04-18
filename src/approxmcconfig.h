@@ -49,8 +49,6 @@ struct AppMCConfig {
     int reuse_models = 1;
     int force_sol_extension = 0;
     std::vector<uint32_t> sampling_set;
-    std::vector<double> probval;
-    std::vector<uint32_t> index_var_map;
     double thresh_factor = 1.0;
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     std::string sampleFilename;

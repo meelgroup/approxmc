@@ -35,6 +35,7 @@
 #include <map>
 #include <cstdint>
 #include <cryptominisat5/cryptominisat.h>
+#include "constants.h"
 
 using std::string;
 using std::vector;
@@ -98,14 +99,14 @@ struct SolNum {
 };
 
 struct SparseData {
-    explicit SparseData(bool _sampling) :
-        sampling(_sampling)
+    explicit SparseData(int _table_no) :
+        table_no(_table_no)
     {}
 
     uint32_t next_index = 0;
     uint32_t next_var_index = 0;
     double sparseprob = 0.5;
-    bool sampling;
+    int table_no = -1;
 };
 
 class AppMC {
@@ -127,6 +128,7 @@ public:
     SATSolver* solver = NULL;
     void printVersionInfo() const;
     void set_samples_file(std::ostream* os);
+    const Constants constants;
 
 private:
     AppMCConfig conf;
@@ -188,6 +190,7 @@ private:
 
     void readInAFile(SATSolver* solver2, const string& filename);
     void readInStandardInput(SATSolver* solver2);
+    int find_best_sparse_match();
 
 
     ////////////////

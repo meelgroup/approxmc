@@ -38,7 +38,6 @@ using std::vector;
 #include "approxmcconfig.h"
 #include "time_mem.h"
 #include "approxmc.h"
-#include "constants.h"
 #include <cryptominisat5/cryptominisat.h>
 #include "cryptominisat5/dimacsparser.h"
 #include "cryptominisat5/streambuffer.h"
@@ -231,50 +230,6 @@ void add_supported_options(int argc, char** argv)
      }
 }
 
-void readInSparseValues()
-{
-    Constants constants;
-
-    for (uint32_t i = 0; i < constants.sparseprobvalues.size(); i++)
-    {
-        std::stringstream ss(constants.sparseprobvalues[i]);
-        string value;
-        std::getline(ss, value, ',');
-        if (value == "header"){
-            while(std::getline(ss, value, ',')){
-            conf.probval.push_back(atof(value.c_str()));
-            }
-        }
-        else{
-        if (atoi(value.c_str()) >= (int)conf.sampling_set.size()){
-            while(std::getline(ss, value, ',')){
-                conf.index_var_map.push_back(atoi(value.c_str()));
-                }
-            }
-        }
-    }
-    if (conf.index_var_map.size() > conf.probval.size())
-    {
-        conf.index_var_map.resize(conf.probval.size());
-    }
-    if (conf.index_var_map.size() > conf.probval.size())
-    {
-        conf.probval.resize(conf.index_var_map.size());
-    }
-    if (conf.index_var_map.size() == 0)
-    {
-        cout << "[appmc] Sparse file does not have probability values for "
-        << conf.sampling_set.size()
-        <<endl;
-        conf.index_var_map.push_back((int)conf.sampling_set.size());
-        conf.probval.clear();
-        conf.probval.push_back(0.5);
-    }
-    else
-    {
-        conf.thresh_factor = 1.1;
-    }
-}
 void readInAFile(SATSolver* solver2, const string& filename)
 {
     solver2->add_sql_tag("filename", filename);
@@ -460,15 +415,6 @@ int main(int argc, char** argv)
         cout << "[appmc] ERROR: invalid delta" << endl;
         exit(-1);
     }
-    conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
-
-    Constants constants;
-    for (int count = 0; count < 256; count++) {
-        if (constants.iterationConfidences[count] >= 1 - conf.delta) {
-            conf.measurements = count*2+1;
-            break;
-        }
-    }
 
     //parsing the input
     if (vm.count("input") != 0) {
@@ -481,10 +427,7 @@ int main(int argc, char** argv)
         readInStandardInput(appmc->solver);
     }
     set_sampling_vars();
-    if (conf.sparse){
-        readInSparseValues();
-    }
-    conf.threshold = int(1 + conf.thresh_factor*9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+
     std::ostream* out = open_samples_file();
     if (conf.samples > 0) {
         appmc->set_samples_file(out);
