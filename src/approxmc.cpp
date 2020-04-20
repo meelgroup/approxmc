@@ -475,7 +475,6 @@ void AppMC::count(SATCount& ret_count)
 int AppMC::find_best_sparse_match()
 {
     for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
-        cout << i << " sparse:" << constants.index_var_maps[i].vars_to_inclusive << endl;
         if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampling_set.size()) {
             cout << "[sparse] Using match: " << i
             << " sampling set size: " << conf.sampling_set.size()
