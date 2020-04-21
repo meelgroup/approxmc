@@ -403,7 +403,28 @@ void AppMC::count(SATCount& ret_count)
 {
     ret_count.clear();
     int64_t hashCount = conf.startiter;
+    //Set up probabilities, threshold and measurements
+    int best_match = find_best_sparse_match();
+    SparseData sparse_data(-1);
+    if (conf.sparse && best_match != -1) {
+        sparse_data = SparseData(best_match);
+        conf.thresh_factor = 1.1;
+    } else {
+        conf.thresh_factor = 1.0;
+    }
+    threshold = int(1 + conf.thresh_factor*9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
+    if (conf.verb) {
+        cout << "[sparse] threshold set to " << threshold << endl;
+    }
 
+    conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
+    for (int count = 0; count < 256; count++) {
+        if (constants.iterationConfidences[count] >= 1 - conf.delta) {
+            conf.measurements = count*2+1;
+            break;
+        }
+    }
+    
     cout << "[appmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
         cout << "[appmc] Checking if there are at least threshold+1 solutions..." << endl;
@@ -448,7 +469,9 @@ void AppMC::count(SATCount& ret_count)
             , numCountList
             , mPrev
             , j
+            , sparse_data
         );
+        sparse_data.next_index = 0;
 
         //Only simplify before next round
         if (conf.simplify >= 1 && j+1 < conf.measurements) {
@@ -499,7 +522,8 @@ void AppMC::one_measurement_count(
     vector<uint64_t>& numHashList,
     vector<int64_t>& numCountList,
     int64_t& mPrev,
-    const int iter
+    const int iter,
+    SparseData sparse_data
 )
 {
     //Tells the number of solutions found at hash number N
@@ -519,29 +543,6 @@ void AppMC::one_measurement_count(
     int64_t numExplored = 0;
     int64_t lowerFib = 0;
     int64_t upperFib = total_max_xors;
-
-    //Set up probabilities, threshold and measurements
-    int best_match = find_best_sparse_match();
-    SparseData sparse_data(-1);
-    if (conf.sparse && best_match != -1) {
-        sparse_data = SparseData(best_match);
-        conf.thresh_factor = 1.1;
-    } else {
-        conf.thresh_factor = 1.0;
-    }
-    threshold = int(1 + conf.thresh_factor*9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
-    if (conf.verb) {
-        cout << "[sparse] threshold set to " << threshold << endl;
-    }
-
-    conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
-    for (int count = 0; count < 256; count++) {
-        if (constants.iterationConfidences[count] >= 1 - conf.delta) {
-            conf.measurements = count*2+1;
-            break;
-        }
-    }
-
 
     int64_t hashCount = mPrev;
     int64_t hashPrev = hashCount;
