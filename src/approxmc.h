@@ -161,7 +161,8 @@ private:
         vector<uint64_t>& numHashList,
         vector<int64_t>& numCountList,
         int64_t& mPrev,
-        const int iter
+        const int iter,
+        SparseData sparse_data
     );
     void write_log(
         bool sampling,
