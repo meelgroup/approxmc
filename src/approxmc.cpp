@@ -426,6 +426,7 @@ bool AppMC::count(SATCount& count)
             hashPrev = swapVar;
         }
         assumps.clear();
+        hashVars.clear();   
         hashCount = mPrev;
     }
     if (numHashList.size() == 0) {
