@@ -290,7 +290,7 @@ int AppMC::solve(AppMCConfig _conf)
     openLogFile();
     randomEngine.seed(conf.seed);
     if (conf.samples == 0) {
-        cout << "[appmc] Using start iteration " << conf.startiter << endl;
+        cout << "c [appmc] Using start iteration " << conf.startiter << endl;
 
         SATCount solCount;
         count(solCount);
@@ -300,7 +300,7 @@ int AppMC::solve(AppMCConfig _conf)
         << endl;
 
         if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-            cout << "[appmc] Formula was UNSAT " << endl;
+            cout << "c [appmc] Formula was UNSAT " << endl;
         }
 
         if (conf.verb > 2) {

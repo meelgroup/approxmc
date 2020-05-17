@@ -64,7 +64,7 @@ struct SATCount {
         mpz_ui_pow_ui(num_sols, 2, hashCount);
         mpz_mul_ui(num_sols, num_sols, cellSolCount);
 
-        cout << "c mc " << std::flush;
+        cout << "s mc " << std::flush;
         mpz_out_str(0, 10, num_sols);
         cout << endl;
         mpz_clear(num_sols);
