@@ -30,6 +30,7 @@
 #define AppMC_H_
 
 #include "approxmcconfig.h"
+#include <gmp.h>
 #include <fstream>
 #include <random>
 #include <map>
@@ -37,9 +38,12 @@
 #include <cryptominisat5/cryptominisat.h>
 #include "constants.h"
 
+
 using std::string;
 using std::vector;
 using std::map;
+using std::cout;
+using std::endl;
 using namespace CMSat;
 
 struct SATCount {
@@ -52,8 +56,19 @@ struct SATCount {
     uint32_t cellSolCount = 0;
 
     void print_num_solutions() {
-        std::cout << "[appmc] Number of solutions is: "
-        << cellSolCount << "*2**" << hashCount << std::endl;
+        cout << "c [appmc] Number of solutions is: "
+        << cellSolCount << "*2**" << hashCount << endl;
+
+        mpz_t num_sols;
+        mpz_init (num_sols);
+        mpz_ui_pow_ui(num_sols, 2, hashCount);
+        mpz_mul_ui(num_sols, num_sols, cellSolCount);
+
+        cout << "c mc " << std::flush;
+        mpz_out_str(0, 10, num_sols);
+        cout << endl;
+        mpz_clear(num_sols);
+
     }
 };
 

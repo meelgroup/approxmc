@@ -146,7 +146,7 @@ SolNum AppMC::bounded_sol_count(
         HashesModels* hm,
         vector<string>* out_solutions
 ) {
-    cout << "[appmc] "
+    cout << "c [appmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
     << (cpuTimeTotal()-startTime)
     << " ]"
@@ -178,14 +178,14 @@ SolNum AppMC::bounded_sol_count(
 
     if (conf.simplify >= 2) {
         if (conf.verb >= 2) {
-            cout << "[appmc] inter-simplifying" << endl;
+            cout << "c [appmc] inter-simplifying" << endl;
         }
         double myTime = cpuTime();
         solver->simplify(&new_assumps);
         solver->set_verbosity(0);
         total_inter_simp_time += cpuTime() - myTime;
         if (conf.verb >= 1) {
-            cout << "[appmc] inter-simp finished, total simp time: "
+            cout << "c [appmc] inter-simp finished, total simp time: "
             << total_inter_simp_time << endl;
         }
 
@@ -201,7 +201,7 @@ SolNum AppMC::bounded_sol_count(
         assert(ret == l_False || ret == l_True);
 
         if (conf.verb >= 2) {
-            cout << "[appmc] bounded_sol_count ret: " << std::setw(7) << ret;
+            cout << "c [appmc] bounded_sol_count ret: " << std::setw(7) << ret;
             if (ret == l_True) {
                 cout << " sol no.  " << std::setw(3) << solutions;
             } else {
@@ -244,7 +244,7 @@ SolNum AppMC::bounded_sol_count(
             lits.push_back(Lit(var, solver->get_model()[var] == l_True));
         }
         if (conf.verb_appmc_cls) {
-            cout << "[appmc] Adding banning clause: " << lits << endl;
+            cout << "c [appmc] Adding banning clause: " << lits << endl;
         }
         solver->add_clause(lits);
     }
@@ -295,7 +295,7 @@ int AppMC::solve(AppMCConfig _conf)
         SATCount solCount;
         count(solCount);
 
-        cout << "[appmc] FINISHED AppMC T: "
+        cout << "c [appmc] FINISHED AppMC T: "
         << (cpuTimeTotal() - startTime) << " s"
         << endl;
 
@@ -325,7 +325,7 @@ int AppMC::solve(AppMCConfig _conf)
             samples_out = NULL;
 
             count(solCount);
-            cout << "[appmc] finished counting solutions in "
+            cout << "c [appmc] finished counting solutions in "
             << (cpuTimeTotal() - startTime) << " s" << endl;
 
             if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
@@ -378,7 +378,7 @@ vector<Lit> AppMC::set_num_hashes(
 void AppMC::simplify()
 {
     if (conf.verb >= 1) {
-        cout << "[appmc] simplifying" << endl;
+        cout << "c [appmc] simplifying" << endl;
     }
 
     solver->set_sls(1);
@@ -426,7 +426,7 @@ void AppMC::set_up_probs_threshold_measurements(
 
     if (conf.verb) {
         cout
-        << "[appmc] threshold set to " << threshold
+        << "c [appmc] threshold set to " << threshold
         << " sparse: " << (int)using_sparse
         << endl;
     }
@@ -449,9 +449,9 @@ void AppMC::count(SATCount& ret_count)
     uint32_t measurements;
     set_up_probs_threshold_measurements(measurements, sparse_data);
     
-    cout << "[appmc] Starting up, initial measurement" << endl;
+    cout << "c [appmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
-        cout << "[appmc] Checking if there are at least threshold+1 solutions..." << endl;
+        cout << "c [appmc] Checking if there are at least threshold+1 solutions..." << endl;
         double myTime = cpuTime();
         if (conf.simplify >= 1) {
             simplify();
@@ -478,7 +478,7 @@ void AppMC::count(SATCount& ret_count)
         }
         hashCount++;
     }
-    cout << "[appmc] Starting at hash count: " << hashCount << endl;
+    cout << "c [appmc] Starting at hash count: " << hashCount << endl;
 
     vector<uint64_t> numHashList;
     vector<int64_t> numCountList;
@@ -523,11 +523,11 @@ int AppMC::find_best_sparse_match()
 {
     for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
         if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampling_set.size()) {
-            cout << "[sparse] Using match: " << i
+            cout << "c [sparse] Using match: " << i
             << " sampling set size: " << conf.sampling_set.size()
             << " prev end inclusive is: " << (i == 0 ? -1 : (int)constants.index_var_maps[i-1].vars_to_inclusive)
             << " this end inclusive is: " << constants.index_var_maps[i].vars_to_inclusive
-            << " next end inclusive is: " << ((i+1 < constants.index_var_maps.size()) ? ((int)constants.index_var_maps[i+1].vars_to_inclusive) : -1)
+            << " next end inclusive is: " << ((i+1 < (int)constants.index_var_maps.size()) ? ((int)constants.index_var_maps[i+1].vars_to_inclusive) : -1)
             << " sampl size: " << conf.sampling_set.size()
             << endl;
 
@@ -574,7 +574,7 @@ void AppMC::one_measurement_count(
         uint64_t cur_hash_count = hashCount;
         const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes, sparse_data);
 
-        cout << "[appmc] "
+        cout << "c [appmc] "
         "[ " << std::setw(7) << std::setprecision(2) << std::fixed
         << (cpuTimeTotal()-startTime)
         << " ]"

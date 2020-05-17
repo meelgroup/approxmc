@@ -41,6 +41,7 @@ endif()
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
+include_directories(${GMP_INCLUDE_DIRS})
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" @ONLY)
 
@@ -72,6 +73,7 @@ endif()
 
 set(approxmc_exec_link_libs
     ${Boost_LIBRARIES}
+    ${GMP_LIBRARY}
 )
 
 IF (ZLIB_FOUND)
