@@ -33,7 +33,6 @@
 struct AppMCConfig {
     uint32_t startiter = 0;
     double epsilon = 0.80;
-    uint32_t measurements = 9; //confidence of 0.81
     double delta = 0.2;
     uint32_t num_threads = 1;
     int sparse = 0;
@@ -48,7 +47,6 @@ struct AppMCConfig {
     int reuse_models = 1;
     int force_sol_extension = 0;
     std::vector<uint32_t> sampling_set;
-    double thresh_factor = 1.0;
     double kappa = 0.638;      /* Corresponds to epsilon=16 */
     std::string sampleFilename;
     std::string logfilename = "";

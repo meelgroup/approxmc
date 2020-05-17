@@ -399,31 +399,55 @@ void AppMC::simplify()
     //solver->set_scc(0);
 }
 
+void AppMC::set_up_probs_threshold_measurements(
+    uint32_t& measurements, SparseData& sparse_data)
+{
+    //Set up probabilities, threshold and measurements
+    int best_match = find_best_sparse_match();
+
+    bool using_sparse = false;
+    double thresh_factor;
+    if (conf.sparse && best_match != -1) {
+        sparse_data = SparseData(best_match);
+        thresh_factor = 1.1;
+        using_sparse = true;
+    } else {
+        thresh_factor = 1.0;
+    }
+
+    threshold = int(
+        1 +
+        thresh_factor*
+        9.84*
+        (1.0+(1.0/conf.epsilon))*
+        (1.0+(1.0/conf.epsilon))*
+        (1.0+(conf.epsilon/(1.0+conf.epsilon)))
+    );
+
+    if (conf.verb) {
+        cout
+        << "[appmc] threshold set to " << threshold
+        << " sparse: " << (int)using_sparse
+        << endl;
+    }
+
+    measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
+    for (int count = 0; count < 256; count++) {
+        if (constants.iterationConfidences[count] >= 1 - conf.delta) {
+            measurements = count*2+1;
+            break;
+        }
+    }
+}
+
 void AppMC::count(SATCount& ret_count)
 {
     ret_count.clear();
     int64_t hashCount = conf.startiter;
-    //Set up probabilities, threshold and measurements
-    int best_match = find_best_sparse_match();
-    SparseData sparse_data(-1);
-    if (conf.sparse && best_match != -1) {
-        sparse_data = SparseData(best_match);
-        conf.thresh_factor = 1.1;
-    } else {
-        conf.thresh_factor = 1.0;
-    }
-    threshold = int(1 + conf.thresh_factor*9.84*(1+(1/conf.epsilon))*(1+(1/conf.epsilon))*(1+(conf.epsilon/(1+conf.epsilon))));
-    if (conf.verb) {
-        cout << "[sparse] threshold set to " << threshold << endl;
-    }
 
-    conf.measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
-    for (int count = 0; count < 256; count++) {
-        if (constants.iterationConfidences[count] >= 1 - conf.delta) {
-            conf.measurements = count*2+1;
-            break;
-        }
-    }
+    SparseData sparse_data(-1);
+    uint32_t measurements;
+    set_up_probs_threshold_measurements(measurements, sparse_data);
     
     cout << "[appmc] Starting up, initial measurement" << endl;
     if (hashCount == 0) {
@@ -463,7 +487,7 @@ void AppMC::count(SATCount& ret_count)
     //See Algorithm 1 in paper "Algorithmic Improvements in Approximate Counting
     //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
     //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
-    for (uint32_t j = 0; j < conf.measurements; j++) {
+    for (uint32_t j = 0; j < measurements; j++) {
         one_measurement_count(
             numHashList
             , numCountList
@@ -474,7 +498,7 @@ void AppMC::count(SATCount& ret_count)
         sparse_data.next_index = 0;
 
         //Only simplify before next round
-        if (conf.simplify >= 1 && j+1 < conf.measurements) {
+        if (conf.simplify >= 1 && j+1 < measurements) {
             simplify();
         }
     }

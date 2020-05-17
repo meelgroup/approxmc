@@ -191,6 +191,7 @@ private:
     void readInAFile(SATSolver* solver2, const string& filename);
     void readInStandardInput(SATSolver* solver2);
     int find_best_sparse_match();
+    void set_up_probs_threshold_measurements(uint32_t& measurements, SparseData& sparse_data);
 
 
     ////////////////
