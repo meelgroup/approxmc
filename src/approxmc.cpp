@@ -329,7 +329,7 @@ int AppMC::solve(AppMCConfig _conf)
             << (cpuTimeTotal() - startTime) << " s" << endl;
 
             if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-                cout << "[appmc] The input formula is unsatisfiable." << endl;
+                cout << "c [appmc] The input formula is unsatisfiable." << endl;
                 return 0;
             }
 
@@ -347,7 +347,7 @@ int AppMC::solve(AppMCConfig _conf)
             }
             samples_out = backup;
         } else {
-            cout << "Using manually-specified startiter for sample generation" << endl;
+            cout << "c Using manually-specified startiter for sample generation" << endl;
         }
         generate_samples();
     }
@@ -468,7 +468,7 @@ void AppMC::count(SATCount& ret_count)
 
         //Din't find at least threshold+1
         if (currentNumSolutions <= threshold) {
-            cout << "[appmc] Did not find at least threshold+1 ("
+            cout << "c [appmc] Did not find at least threshold+1 ("
             << threshold << ") we found only " << currentNumSolutions
             << ", i.e. we got exact count" << endl;
 
@@ -535,7 +535,7 @@ int AppMC::find_best_sparse_match()
         }
     }
 
-    cout << "[sparse] No match. Using default 0.5" << endl;
+    cout << "c [sparse] No match. Using default 0.5" << endl;
     return -1;
 }
 
@@ -702,7 +702,7 @@ void AppMC::generate_samples()
     callsPerLoop = std::max(callsPerLoop, 1U);
     cout << "callsPerLoop:" << callsPerLoop << endl;
 
-    cout << "[appmc] starting sample generation."
+    cout << "c [appmc] starting sample generation."
     << " loThresh: " << loThresh
     << ", hiThresh: " << hiThresh
     << ", startiter: " << conf.startiter << endl;
@@ -746,7 +746,7 @@ void AppMC::generate_samples()
     << " -- Time count+samples: " << cpuTimeTotal() << " s"
     << endl;
 
-    cout << "[appmc] Samples generated: " << samples << endl;
+    cout << "c [appmc] Samples generated: " << samples << endl;
 }
 
 uint32_t AppMC::gen_n_samples(
@@ -875,7 +875,7 @@ string AppMC::gen_rnd_bits(
         assert(sparse_data.sparseprob <= 0.5);
         cutoff = std::ceil(1000.0*sparse_data.sparseprob);
         if (conf.verb > 3) {
-            cout << "[sparse] cutoff: " << cutoff
+            cout << "c [sparse] cutoff: " << cutoff
             << " table: " << sparse_data.table_no
             << " lookup index: " << sparse_data.next_index
             << " hash index: " << hash_index
@@ -895,7 +895,7 @@ string AppMC::gen_rnd_bits(
 
 void AppMC::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
-    cout << "[appmc] Added XOR ";
+    cout << "c [appmc] Added XOR ";
     for (size_t i = 0; i < vars.size(); i++) {
         cout << vars[i]+1;
         if (i < vars.size()-1) {

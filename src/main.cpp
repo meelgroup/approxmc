@@ -377,7 +377,7 @@ int main(int argc, char** argv)
     if (vm.count("log") == 0) {
         if (vm.count("input") != 0) {
             conf.logfilename = vm["input"].as<vector<string> >()[0] + ".log";
-            cout << "[appmc] Logfile name not given, assumed to be " << conf.logfilename << endl;
+            cout << "c [appmc] Logfile name not given, assumed to be " << conf.logfilename << endl;
         } else {
             std::cerr << "[appmc] ERROR: You must provide the logfile name" << endl;
             exit(-1);
@@ -432,11 +432,11 @@ int main(int argc, char** argv)
 
     //Counting
     if (conf.samples > 0 && conf.startiter == 0) {
-        cout << "[appmc] Using appmc to compute startiter for gen_n_samples" << endl;
+        cout << "c [appmc] Using appmc to compute startiter for gen_n_samples" << endl;
     }
 
     if (conf.startiter > conf.sampling_set.size()) {
-        cout << "[appmc] ERROR: Manually-specified start_iter"
+        cout << "c [appmc] ERROR: Manually-specified start_iter"
              "is larger than the size of the sampling set.\n" << endl;
         exit(-1);
     }

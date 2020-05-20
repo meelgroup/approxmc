@@ -57,15 +57,15 @@ void set_sampling_vars()
 {
     if (conf.sampling_set.empty()) {
         cout
-        << "[appmc] WARNING! Sampling set was not declared with 'c ind var1 [var2 var3 ..] 0'"
-        " notation in the CNF." << endl
-        << "[appmc] we may work substantially worse!" << endl;
+        << "c [appmc] WARNING! Sampling set was not declared with 'vp var1 [var2 var3 ..] 0'"
+        " notation in the PCNF." << endl
+        << "c [appmc] we may work substantially worse!" << endl;
         for (size_t i = 0; i < appmc->solver->nVars(); i++) {
             conf.sampling_set.push_back(i);
         }
     }
-    cout << "[appmc] Sampling set size: " << conf.sampling_set.size() << endl;
-    cout << "[appmc] Sampling set: ";
+    cout << "c [appmc] Sampling set size: " << conf.sampling_set.size() << endl;
+    cout << "c [appmc] Sampling set: ";
     for (auto v: conf.sampling_set) {
         cout << v+1 << ", ";
     }
@@ -78,7 +78,7 @@ int solve(const char* cnf)
     appmc = new AppMC;
     appmc->printVersionInfo();
     appmc->solver = new SATSolver;
-    cout << "[appmc] using seed: " << conf.seed << endl;
+    cout << "c [appmc] using seed: " << conf.seed << endl;
     conf.logfilename = "log.txt";
 
     DimacsParser<StreamBuffer<const char*, CH>> parser(appmc->solver, NULL, 2);
