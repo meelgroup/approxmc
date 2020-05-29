@@ -1,7 +1,7 @@
 xzgrep -i "terminated" *.timeout.xz |  sed -e "s/.gz[^ ]*//" | awk '{print $1 " " $5}' > signals.csv
 ls -- *.out.xz > allFiles_xz.csv
 ls -- *.out.xz | sed "s/.gz.*/.gz/" > allFiles.csv
-xzgrep "FINISHED" *.out.xz | sed -e "s/.gz[^ ]*//" | awk '{print $6 " " $1}' > solveTimes.csv
+xzgrep "FINISHED" *.out.xz | sed -e "s/.gz[^ ]*//" | awk '{print $5 " " $1}' > solveTimes.csv
 awk '{print $2}' solveTimes.csv > solved.csv
 grep -v -f solved.csv allFiles.csv | sed "s/.gz.*/.gz/" > unsolved.csv
 cat unsolved.csv | awk '{print "5000.00 " $1}' >> solveTimes.csv

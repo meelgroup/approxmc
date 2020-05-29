@@ -7,7 +7,7 @@ for x in `ls | grep $1`; do
     (cd $x
     echo At $x
     pwd
-    ../solvetimes_from_output.sh
+    ../solvetimes_from_output_old.sh
     );
 done
 
