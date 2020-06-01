@@ -34,6 +34,7 @@ using std::vector;
 #if defined(__GNUC__) && defined(__linux__)
 #include <fenv.h>
 #endif
+#include <signal.h>
 
 #include "approxmcconfig.h"
 #include "time_mem.h"
@@ -56,6 +57,23 @@ po::options_description appmc4_options = po::options_description("ApproxMC4 pape
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
+
+//signal code
+void SIGINT_handler(int)
+{
+    if (!appmc) {
+        return;
+    }
+    SATCount solCount = appmc->calc_est_count();
+    if (!solCount.valid) {
+        cout << "c did not manage to get a single measurement, we have no estimate of the count" << endl;
+        exit(-1);
+    }
+    cout << "c Below count is NOT FULLY APPROXIMIATE due to early-abort!" << endl;
+    solCount.print_num_solutions();
+    exit(-1);
+}
+
 
 void add_appmc_options()
 {
@@ -355,6 +373,7 @@ int main(int argc, char** argv)
                    FE_OVERFLOW
                   );
     #endif
+    signal(SIGINT, SIGINT_handler);
 
     //Reconstruct the command line so we can emit it later if needed
     for(int i = 0; i < argc; i++) {
