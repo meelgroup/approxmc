@@ -375,7 +375,8 @@ int main(int argc, char** argv)
     #endif
     signal(SIGINT, SIGINT_handler);
     signal(SIGALRM, SIGINT_handler);
-
+    signal(SIGTERM, SIGINT_handler);
+    signal(SIGKILL, SIGINT_handler);
     //Reconstruct the command line so we can emit it later if needed
     for(int i = 0; i < argc; i++) {
         command_line += string(argv[i]);
