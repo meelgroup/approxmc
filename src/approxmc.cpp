@@ -252,18 +252,8 @@ SolNum AppMC::bounded_sol_count(
     return SolNum(solutions, repeat);
 }
 
-int AppMC::solve(AppMCConfig _conf, SATCount& solCount)
+void AppMC::print_final_count_stats(SATCount solCount)
 {
-    conf = _conf;
-    orig_num_vars = solver->nVars();
-    startTime = cpuTimeTotal();
-
-    openLogFile();
-    randomEngine.seed(conf.seed);
-    cout << "c [appmc] Using start iteration " << conf.startiter << endl;
-
-    count(solCount);
-
     cout << "c [appmc] FINISHED AppMC T: "
     << (cpuTimeTotal() - startTime) << " s"
     << endl;
@@ -275,9 +265,29 @@ int AppMC::solve(AppMCConfig _conf, SATCount& solCount)
     if (conf.verb > 2) {
         solver->print_stats();
     }
+    solCount.print_num_solutions();
+}
 
-    
-    return 0;
+SATCount AppMC::solve(AppMCConfig _conf)
+
+{
+    conf = _conf;
+    orig_num_vars = solver->nVars();
+    startTime = cpuTimeTotal();
+
+    openLogFile();
+    randomEngine.seed(conf.seed);
+    cout << "c [appmc] Using start iteration " << conf.startiter << endl;
+    cout << "c [appmc] Using start iteration " << conf.startiter << endl;
+    SATCount solCount = count();
+    print_final_count_stats(solCount);
+    cout << "c [appmc] FINISHED AppMC T: "
+        << (cpuTimeTotal() - startTime) << " s"
+        << endl;
+    if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
+        cout << "c [appmc] Formula was UNSAT " << endl;
+    }
+    return solCount;
 }
 
 vector<Lit> AppMC::set_num_hashes(
@@ -365,9 +375,8 @@ void AppMC::set_up_probs_threshold_measurements(
     }
 }
 
-void AppMC::count(SATCount& ret_count)
+SATCount AppMC::count()
 {
-    ret_count.clear();
     int64_t hashCount = conf.startiter;
 
     SparseData sparse_data(-1);
@@ -393,30 +402,32 @@ void AppMC::count(SATCount& ret_count)
 
         //Din't find at least threshold+1
         if (currentNumSolutions <= threshold) {
-            cout << "[appmc] Did not find at least threshold+1 ("
+            cout << "c [appmc] Did not find at least threshold+1 ("
             << threshold << ") we found only " << currentNumSolutions
             << ", i.e. we got exact count" << endl;
 
+            SATCount ret_count;
+            ret_count.valid = true;
             ret_count.cellSolCount = currentNumSolutions;
             ret_count.hashCount = 0;
-            return;
+            return ret_count;
         }
         hashCount++;
     }
     cout << "c [appmc] Starting at hash count: " << hashCount << endl;
-
-    vector<uint64_t> numHashList;
-    vector<int64_t> numCountList;
     int64_t mPrev = hashCount;
+
+    count_mutex.lock();
+    numHashList.clear();
+    numCountList.clear();
+    count_mutex.unlock();
 
     //See Algorithm 1 in paper "Algorithmic Improvements in Approximate Counting
     //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
     //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
     for (uint32_t j = 0; j < measurements; j++) {
         one_measurement_count(
-            numHashList
-            , numCountList
-            , mPrev
+            mPrev
             , j
             , sparse_data
         );
@@ -429,8 +440,22 @@ void AppMC::count(SATCount& ret_count)
     }
     assert(numHashList.size() > 0 && "UNSAT should not be possible");
 
-    //Median
-    auto minHash = findMin(numHashList);
+    return calc_est_count();
+}
+
+SATCount AppMC::calc_est_count()
+{
+    SATCount ret_count;
+    if (!count_mutex.try_lock()) {
+        //in the middle of updating, can't lock mutex
+        return ret_count;
+    }
+    if (numHashList.empty() || numCountList.empty()) {
+        count_mutex.unlock();
+        return ret_count;
+    }
+
+    const auto minHash = findMin(numHashList);
     auto cnt_it = numCountList.begin();
     for (auto hash_it = numHashList.begin()
         ; hash_it != numHashList.end() && cnt_it != numCountList.end()
@@ -438,10 +463,12 @@ void AppMC::count(SATCount& ret_count)
     ) {
         *cnt_it *= pow(2, (*hash_it) - minHash);
     }
-    int medSolCount = findMedian(numCountList);
-    ret_count.cellSolCount = medSolCount;
+    ret_count.valid = true;
+    ret_count.cellSolCount = findMedian(numCountList);
     ret_count.hashCount = minHash;
-    return;
+    count_mutex.unlock();
+
+    return ret_count;
 }
 
 int AppMC::find_best_sparse_match()
@@ -460,7 +487,7 @@ int AppMC::find_best_sparse_match()
         }
     }
 
-    cout << "[sparse] No match. Using default 0.5" << endl;
+    cout << "c [sparse] No match. Using default 0.5" << endl;
     return -1;
 }
 
@@ -468,8 +495,6 @@ int AppMC::find_best_sparse_match()
 //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
 //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
 void AppMC::one_measurement_count(
-    vector<uint64_t>& numHashList,
-    vector<int64_t>& numCountList,
     int64_t& mPrev,
     const int iter,
     SparseData sparse_data
@@ -530,8 +555,10 @@ void AppMC::one_measurement_count(
             if (threshold_sols.find(hashCount-1) != threshold_sols.end()
                 && threshold_sols[hashCount-1] == 1
             ) {
+                count_mutex.lock();
                 numHashList.push_back(hashCount);
                 numCountList.push_back(num_sols);
+                count_mutex.unlock();
                 mPrev = hashCount;
                 return;
             }
@@ -606,10 +633,6 @@ void AppMC::one_measurement_count(
         hashPrev = cur_hash_count;
     }
 }
-
-
-
-
 bool AppMC::gen_rhs()
 {
     std::uniform_int_distribution<uint32_t> dist{0, 1};
@@ -639,7 +662,7 @@ string AppMC::gen_rnd_bits(
         assert(sparse_data.sparseprob <= 0.5);
         cutoff = std::ceil(1000.0*sparse_data.sparseprob);
         if (conf.verb > 3) {
-            cout << "[sparse] cutoff: " << cutoff
+            cout << "c [sparse] cutoff: " << cutoff
             << " table: " << sparse_data.table_no
             << " lookup index: " << sparse_data.next_index
             << " hash index: " << hash_index
@@ -659,7 +682,7 @@ string AppMC::gen_rnd_bits(
 
 void AppMC::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
-    cout << "[appmc] Added XOR ";
+    cout << "c [appmc] Added XOR ";
     for (size_t i = 0; i < vars.size(); i++) {
         cout << vars[i]+1;
         if (i < vars.size()-1) {

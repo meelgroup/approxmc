@@ -38,6 +38,21 @@ if (NOT WIN32)
     #add_cxx_flag_if_supported("-Wdeprecated")
 endif()
 
+macro(approxmc_add_public_header LIBTARGET HEADER)
+    get_target_property(EXISTING_PUBLIC_HEADERS ${LIBTARGET} PUBLIC_HEADER)
+    if(EXISTING_PUBLIC_HEADERS)
+        list(APPEND EXISTING_PUBLIC_HEADERS "${HEADER}")
+    else()
+        # Do not append to empty list
+        set(EXISTING_PUBLIC_HEADERS "${HEADER}")
+    endif()
+    set_target_properties(
+        ${LIBTARGET}
+        PROPERTIES
+        PUBLIC_HEADER "${EXISTING_PUBLIC_HEADERS}"
+     )
+endmacro()
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
@@ -45,31 +60,63 @@ include_directories(${GMP_INCLUDE_DIRS})
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" @ONLY)
 
-if (NOT EMSCRIPTEN)
-    add_executable(approxmc
-        approxmc.cpp
-        main.cpp
-        constants.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
-    )
-else()
-    add_executable(approxmc
-        approxmc.cpp
-        main_min.cpp
-        constants.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
-    )
-
-    set_target_properties(
-      approxmc PROPERTIES LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
-    )
+set(approxmc_lib_files
+    approxmc.cpp
+    constants.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
+)
 
 
-    SET_SOURCE_FILES_PROPERTIES(main_min.cpp
-        PROPERTIES COMPILE_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
-    )
-endif()
+add_library(approxmc
+    ${approxmc_lib_files}
+)
 
+set_target_properties(approxmc PROPERTIES
+    PUBLIC_HEADER "${approxmc_public_headers}"
+    VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+)
+
+install(TARGETS approxmc
+    EXPORT ${CRYPTOMINISAT5_EXPORT_NAME}
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/approxmc"
+)
+
+approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h )
+
+#     set_target_properties(
+#       approxmc PROPERTIES LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
+#     )
+#
+#
+#     SET_SOURCE_FILES_PROPERTIES(main_min.cpp
+#         PROPERTIES COMPILE_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
+#     )
+
+
+# -----------------------------------------------------------------------------
+# Copy public headers into build directory include directory.
+# The approxmcConfig.cmake we generate in the build directory depends on
+# this.
+# -----------------------------------------------------------------------------
+set(HEADER_DEST "${PROJECT_BINARY_DIR}/include/approxmc")
+add_custom_target(CopyPublicHeaders ALL)
+get_target_property(approxmc_public_headers approxmc PUBLIC_HEADER)
+foreach(public_header ${approxmc_public_headers})
+    get_filename_component(HEADER_NAME ${public_header} NAME)
+    add_custom_command(TARGET CopyPublicHeaders PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${HEADER_DEST}"
+        COMMAND ${CMAKE_COMMAND} -E echo "Copying ${HEADER_NAME} to ${HEADER_DEST}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${public_header} "${HEADER_DEST}"
+    )
+endforeach()
+
+add_executable(approxmc-bin
+    main.cpp
+)
 
 set(approxmc_exec_link_libs
     ${Boost_LIBRARIES}
@@ -80,24 +127,19 @@ IF (ZLIB_FOUND)
     SET(approxmc_exec_link_libs ${approxmc_exec_link_libs} ${ZLIB_LIBRARY})
 ENDIF()
 
-target_link_libraries(approxmc
+target_link_libraries(approxmc-bin
+    ${cms_libs}
+    ${CRYPTOMINISAT5_LIBRARIES}
     ${approxmc_exec_link_libs}
+    approxmc
 )
 
-if (STATICCOMPILE)
-    SET_TARGET_PROPERTIES(approxmc PROPERTIES LINK_SEARCH_START_STATIC 1)
-    SET(cms_libs ${CRYPTOMINISAT5_STATIC_LIBRARIES})
-    message(STATUS "bimm: ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
-else()
-    SET(cms_libs ${CRYPTOMINISAT5_LIBRARIES})
-endif()
-set_target_properties(approxmc PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
-    INSTALL_RPATH_USE_LINK_PATH TRUE)
-if (STATICCOMPILE)
-    SET_TARGET_PROPERTIES(approxmc PROPERTIES LINK_SEARCH_END_STATIC 1)
-endif()
+set_target_properties(approxmc-bin PROPERTIES
+        OUTPUT_NAME approxmc
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+        INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+<<<<<<< HEAD
 target_link_libraries(approxmc
     ${cms_libs}
 )
@@ -143,10 +185,13 @@ foreach(public_header ${approxmc_public_headers})
 
 endforeach()
 
-install(TARGETS approxmc
+
+install(TARGETS approxmc-bin
     EXPORT ${APPROXMC_EXPORT_NAME}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/approxmc"
 
 )

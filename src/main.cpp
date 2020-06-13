@@ -35,6 +35,7 @@ using std::vector;
 #if defined(__GNUC__) && defined(__linux__)
 #include <fenv.h>
 #endif
+#include <signal.h>
 
 #include "approxmcconfig.h"
 #include "time_mem.h"
@@ -57,6 +58,23 @@ po::options_description appmc4_options = po::options_description("ApproxMC4 pape
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
+
+//signal code
+void SIGINT_handler(int)
+{
+    if (!appmc) {
+        return;
+    }
+    SATCount solCount = appmc->calc_est_count();
+    if (!solCount.valid) {
+        cout << "c did not manage to get a single measurement, we have no estimate of the count" << endl;
+        exit(-1);
+    }
+    cout << "c Below count is NOT FULLY APPROXIMIATE due to early-abort!" << endl;
+    solCount.print_num_solutions();
+    exit(-1);
+}
+
 
 void add_appmc_options()
 {
@@ -315,7 +333,10 @@ int main(int argc, char** argv)
                    FE_OVERFLOW
                   );
     #endif
-
+    signal(SIGINT, SIGINT_handler);
+    signal(SIGALRM, SIGINT_handler);
+    signal(SIGTERM, SIGINT_handler);
+    signal(SIGKILL, SIGINT_handler);
     //Reconstruct the command line so we can emit it later if needed
     for(int i = 0; i < argc; i++) {
         command_line += string(argv[i]);
@@ -337,7 +358,7 @@ int main(int argc, char** argv)
     if (vm.count("log") == 0) {
         if (vm.count("input") != 0) {
             conf.logfilename = vm["input"].as<vector<string> >()[0] + ".log";
-            cout << "[appmc] Logfile name not given, assumed to be " << conf.logfilename << endl;
+            cout << "c [appmc] Logfile name not given, assumed to be " << conf.logfilename << endl;
         } else {
             std::cerr << "[appmc] ERROR: You must provide the logfile name" << endl;
             exit(-1);
@@ -379,15 +400,11 @@ int main(int argc, char** argv)
     }
     set_sampling_vars();
     if (conf.startiter > conf.sampling_set.size()) {
-        cout << "[appmc] ERROR: Manually-specified start_iter"
+        cout << "c [appmc] ERROR: Manually-specified start_iter"
              "is larger than the size of the sampling set.\n" << endl;
         exit(-1);
     }
     SATCount solCount;
-    auto ret = appmc->solve(conf, solCount);
-    if (ret == 0){
-        solCount.print_num_solutions();
-    }
-
-    return ret;
+    solCount = appmc->solve(conf, solCount);
+    return 0;
 }

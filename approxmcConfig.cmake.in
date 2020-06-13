@@ -1,17 +1,20 @@
 # Config file for the @EXPORT_TYPE@ cryptominisat Package
 # It defines the following variables
-#  SCALMC_INCLUDE_DIRS - include directories for cryptominisat5
-#  SCALMC_LIBRARIES    - libraries to link against
-#  SCALMC_EXECUTABLE   - the cryptominisat executable
+#  APPROXMC_INCLUDE_DIRS - include directories for cryptominisat5
+#  APPROXMC_LIBRARIES    - libraries to link against
+#  APPROXMC_EXECUTABLE   - the cryptominisat executable
 
 # Compute paths
-get_filename_component(SCALMC_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(APPROXMC_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 set(SCALMC_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
 
 # Our library dependencies (contains definitions for IMPORTED targets)
-include("${SCALMC_CMAKE_DIR}/@SCALMC_TARGETS_FILENAME@")
+include("${APPROXMC_CMAKE_DIR}/@APPROXMC_TARGETS_FILENAME@")
 
 # These are IMPORTED targets created by @SCALMC_TARGETS_FILENAME@
-set(SCALMC_VERSION_MAJOR @PROJECT_VERSION_MAJOR@)
-set(SCALMC_VERSION_MINOR @PROJECT_VERSION_MINOR@)
-set(SCALMC_EXECUTABLE scalmc)
+set(APPROXMC_LIBRARIES approxmc)
+set(APPROXMC_STATIC_LIBRARIES approxmc)
+set(APPROXMC_STATIC_LIBRARIES_DEPS APPROXMC_STATIC_DEPS@)
+set(APPROXMC_VERSION_MAJOR @PROJECT_VERSION_MAJOR@)
+set(APPROXMC_VERSION_MINOR @PROJECT_VERSION_MINOR@)
+set(APPROXMC_EXECUTABLE scalmc)

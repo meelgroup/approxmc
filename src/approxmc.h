@@ -36,6 +36,7 @@
 #include <random>
 #include <map>
 #include <cstdint>
+#include <mutex>
 #include <cryptominisat5/cryptominisat.h>
 #include "constants.h"
 
@@ -53,6 +54,7 @@ struct SATCount {
         SATCount tmp;
         *this = tmp;
     }
+    bool valid = false;
     uint32_t hashCount = 0;
     uint32_t cellSolCount = 0;
 
@@ -126,7 +128,7 @@ struct SparseData {
 
 class AppMC {
 public:
-    int solve(AppMCConfig _conf, SATCount& solCount);
+    SATCount solve(AppMCConfig _conf);
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
     string binary(const uint32_t x, const uint32_t length);
@@ -134,11 +136,14 @@ public:
     uint32_t threshold_appmcgen;
     SATSolver* solver = NULL;
     void printVersionInfo() const;
+    SATCount calc_est_count();
+    std::mutex count_mutex;
+    void print_final_count_stats(SATCount sol_count);
     const Constants constants;
 
 private:
     AppMCConfig conf;
-    void count(SATCount& count);
+    SATCount count();
     void add_appmc_options();
     bool ScalAppMC(SATCount& count);
     Hash add_hash(uint32_t total_num_hashes, SparseData& sparse_data);
@@ -158,12 +163,8 @@ private:
     ////////////////
     //Helper functions
     ////////////////
-    template<class T> T findMedian(vector<T>& numList);
-    template<class T> T findMin(vector<T>& numList);
     void print_xor(const vector<uint32_t>& vars, const uint32_t rhs);
     void one_measurement_count(
-        vector<uint64_t>& numHashList,
-        vector<int64_t>& numCountList,
         int64_t& mPrev,
         const int iter,
         SparseData sparse_data
@@ -197,6 +198,11 @@ private:
     int find_best_sparse_match();
     void set_up_probs_threshold_measurements(uint32_t& measurements, SparseData& sparse_data);
 
+    //Data so we can output temporary count when catching the signal
+    vector<uint64_t> numHashList;
+    vector<int64_t> numCountList;
+    template<class T> T findMedian(vector<T>& numList);
+    template<class T> T findMin(vector<T>& numList);
 
     ////////////////
     // internal data

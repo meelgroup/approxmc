@@ -149,11 +149,14 @@ else()
     add_definitions(-D_FORTIFY_SOURCE=0)
 endif()
 
+# static compilation
+option(BUILD_SHARED_LIBS "Build the shared library" ON)
 option(STATICCOMPILE "Compile to static executable" OFF)
 if (STATICCOMPILE)
-    set(ENABLE_TESTING OFF)
+    set(BUILD_SHARED_LIBS OFF)
     set(Boost_USE_STATIC_LIBS ON)
 endif()
+
 
 # Note: O3 gives slight speed increase, 1 more solved from SAT Comp'14 @ 3600s
 if (NOT MSVC)
@@ -361,13 +364,13 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT EMSCRIPTEN)
     if (HELP2MAN_FOUND)
         ADD_CUSTOM_TARGET(man_approxmc
             ALL
-            DEPENDS approxmc
+            DEPENDS approxmc-bin
         )
 
         ADD_CUSTOM_COMMAND(
             TARGET man_approxmc
             COMMAND help2man
-            ARGS --version-string=${APPROXMC_FULL_VERSION} --help-option="-h" $<TARGET_FILE:approxmc> -o ${CMAKE_CURRENT_BINARY_DIR}/approxmc.1
+            ARGS --version-string=${APPROXMC_FULL_VERSION} --help-option="-h" $<TARGET_FILE:approxmc-bin> -o ${CMAKE_CURRENT_BINARY_DIR}/approxmc.1
         )
 
         INSTALL(
@@ -412,7 +415,7 @@ message(STATUS "All defines at startup: ${COMPILE_DEFINES}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 
-macro(cmsat_add_public_header LIBTARGET HEADER)
+macro(approxmc_add_public_header LIBTARGET HEADER)
     get_target_property(EXISTING_PUBLIC_HEADERS ${LIBTARGET} PUBLIC_HEADER)
     if(EXISTING_PUBLIC_HEADERS)
         list(APPEND EXISTING_PUBLIC_HEADERS "${HEADER}")
@@ -434,6 +437,7 @@ if (GMP_FOUND)
 else()
     message(FATAL_ERROR  "Cannot find GMP. Please install it! Exiting.")
 endif()
+
 find_package(cryptominisat5 CONFIG)
 if (cryptominisat5_FOUND)
     message(STATUS "Found CryptoMiniSat 5.x")
@@ -505,6 +509,8 @@ configure_file(approxmcConfig.cmake.in
 
 set(APPROXMC_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
     "Installation directory for approxmc CMake files")
+
+
 
 # Create approxmcConfig file
 set(EXPORT_TYPE "installed")
