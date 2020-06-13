@@ -405,6 +405,6 @@ int main(int argc, char** argv)
         exit(-1);
     }
     SATCount solCount;
-    solCount = appmc->solve(conf, solCount);
+    solCount = appmc->solve(conf);
     return 0;
 }
