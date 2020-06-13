@@ -38,6 +38,21 @@ if (NOT WIN32)
     #add_cxx_flag_if_supported("-Wdeprecated")
 endif()
 
+macro(approxmc_add_public_header LIBTARGET HEADER)
+    get_target_property(EXISTING_PUBLIC_HEADERS ${LIBTARGET} PUBLIC_HEADER)
+    if(EXISTING_PUBLIC_HEADERS)
+        list(APPEND EXISTING_PUBLIC_HEADERS "${HEADER}")
+    else()
+        # Do not append to empty list
+        set(EXISTING_PUBLIC_HEADERS "${HEADER}")
+    endif()
+    set_target_properties(
+        ${LIBTARGET}
+        PROPERTIES
+        PUBLIC_HEADER "${EXISTING_PUBLIC_HEADERS}"
+     )
+endmacro()
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
@@ -98,12 +113,82 @@ if (STATICCOMPILE)
     SET_TARGET_PROPERTIES(approxmc PROPERTIES LINK_SEARCH_END_STATIC 1)
 endif()
 
+
+set(approxmc_lib_files
+    approxmc.cpp
+    constants.cpp  
+    ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
+)
+
+
+
+set_target_properties(approxmc PROPERTIES
+    PUBLIC_HEADER "${approxmc_public_headers}"
+    VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+)
+approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h )
+
+
+
+
+
+
+# -----------------------------------------------------------------------------
+
+# Copy public headers into build directory include directory.
+
+# The approxmcConfig.cmake we generate in the build directory depends on
+
+# this.
+
+# -----------------------------------------------------------------------------
+
+set(HEADER_DEST "${PROJECT_BINARY_DIR}/include/approxmc")
+
+add_custom_target(CopyPublicHeaders ALL)
+
+get_target_property(approxmc_public_headers approxmc PUBLIC_HEADER)
+
+foreach(public_header ${approxmc_public_headers})
+
+    get_filename_component(HEADER_NAME ${public_header} NAME)
+
+    add_custom_command(TARGET CopyPublicHeaders PRE_BUILD
+
+                       COMMAND ${CMAKE_COMMAND} -E make_directory
+
+                               "${HEADER_DEST}"
+
+                       COMMAND ${CMAKE_COMMAND} -E echo
+
+                       "Copying ${HEADER_NAME} to ${HEADER_DEST}"
+
+                       COMMAND ${CMAKE_COMMAND} -E
+
+                           copy_if_different
+
+                           ${public_header}
+
+                           "${HEADER_DEST}"
+
+                      )
+
+endforeach()
+
+
+
 target_link_libraries(approxmc
     ${cms_libs}
+    ${approxmc_lib_files}
 )
 
 install(TARGETS approxmc
     EXPORT ${APPROXMC_EXPORT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/approxmc"
+
 )
 SET(CPACK_PACKAGE_EXECUTABLES "approxmc")

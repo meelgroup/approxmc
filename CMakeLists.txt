@@ -506,6 +506,8 @@ configure_file(approxmcConfig.cmake.in
 set(APPROXMC_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
     "Installation directory for approxmc CMake files")
 
+
+
 # Create approxmcConfig file
 set(EXPORT_TYPE "installed")
 set(CONF_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
