@@ -145,42 +145,21 @@ approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h )
 # -----------------------------------------------------------------------------
 
 set(HEADER_DEST "${PROJECT_BINARY_DIR}/include/approxmc")
-
 add_custom_target(CopyPublicHeaders ALL)
-
 get_target_property(approxmc_public_headers approxmc PUBLIC_HEADER)
-
 foreach(public_header ${approxmc_public_headers})
-
     get_filename_component(HEADER_NAME ${public_header} NAME)
-
     add_custom_command(TARGET CopyPublicHeaders PRE_BUILD
-
-                       COMMAND ${CMAKE_COMMAND} -E make_directory
-
-                               "${HEADER_DEST}"
-
-                       COMMAND ${CMAKE_COMMAND} -E echo
-
-                       "Copying ${HEADER_NAME} to ${HEADER_DEST}"
-
-                       COMMAND ${CMAKE_COMMAND} -E
-
-                           copy_if_different
-
-                           ${public_header}
-
-                           "${HEADER_DEST}"
-
-                      )
-
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${HEADER_DEST}"
+        COMMAND ${CMAKE_COMMAND} -E echo "Copying ${HEADER_NAME} to ${HEADER_DEST}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${public_header} "${HEADER_DEST}"
+    )
 endforeach()
 
 
 
 target_link_libraries(approxmc
     ${cms_libs}
-    ${approxmc_lib_files}
 )
 
 install(TARGETS approxmc
