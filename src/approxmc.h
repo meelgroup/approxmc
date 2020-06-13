@@ -1,6 +1,7 @@
 /*
- ApproxMC and gen_n_samples
+ ApproxMC
 
+ Copyright (c) 2019-2020, Mate Soos and Kuldeep S. Meel. All rights reserved
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
  Kuldeep S. Meel, Sanjit A. Seshia, Moshe Y. Vardi
@@ -125,23 +126,14 @@ struct SparseData {
 
 class AppMC {
 public:
-    int solve(AppMCConfig _conf);
+    int solve(AppMCConfig _conf, SATCount& solCount);
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
     string binary(const uint32_t x, const uint32_t length);
-    uint32_t sols_to_return(uint32_t numSolutions);
-    void generate_samples();
     bool gen_rhs();
-    uint32_t gen_n_samples(
-        const uint32_t samples
-        , uint32_t* lastSuccessfulHashOffset
-    );
-    uint32_t loThresh;
-    uint32_t hiThresh;
     uint32_t threshold_appmcgen;
     SATSolver* solver = NULL;
     void printVersionInfo() const;
-    void set_samples_file(std::ostream* os);
     const Constants constants;
 
 private:
@@ -154,9 +146,7 @@ private:
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
         const uint32_t hashCount,
-        uint32_t minSolutions = 1,
-        HashesModels* hm = NULL,
-        vector<string>* out_solutions = NULL
+        HashesModels* hm = NULL
     );
     vector<Lit> set_num_hashes(
         uint32_t num_wanted,
@@ -171,7 +161,6 @@ private:
     template<class T> T findMedian(vector<T>& numList);
     template<class T> T findMin(vector<T>& numList);
     void print_xor(const vector<uint32_t>& vars, const uint32_t rhs);
-    std::string get_solution_str(const vector<lbool>& model);
     void one_measurement_count(
         vector<uint64_t>& numHashList,
         vector<int64_t>& numCountList,
@@ -213,7 +202,6 @@ private:
     // internal data
     ////////////////
     double startTime;
-    std::ostream* samples_out = NULL;
     std::ofstream logfile;
     std::mt19937 randomEngine;
     uint32_t orig_num_vars;
@@ -224,10 +212,7 @@ private:
     char** argv;
 };
 
-inline void AppMC::set_samples_file(std::ostream* out)
-{
-    samples_out = out;
-}
+
 
 
 #endif //AppMC_H_

@@ -1,6 +1,7 @@
 /*
- ApproxMC and gen_n_samples
-
+ ApproxMC
+ 
+ Copyright (c) 2019, Mate Soos and Kuldeep S. Meel. All rights reserved
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
@@ -39,16 +40,11 @@ struct AppMCConfig {
     unsigned verb = 1;
     unsigned verb_appmc_cls = 0;
     uint32_t seed = 1;
-    bool only_indep_samples = true;
-    uint32_t multisample = 1;
-    uint32_t samples = 0;
     int simplify = 1;
     double var_elim_ratio = 1.6;
     int reuse_models = 1;
     int force_sol_extension = 0;
     std::vector<uint32_t> sampling_set;
-    double kappa = 0.638;      /* Corresponds to epsilon=16 */
-    std::string sampleFilename;
     std::string logfilename = "";
     int cms_detach_xor = 1;
 };

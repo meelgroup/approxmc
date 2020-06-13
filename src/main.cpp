@@ -1,6 +1,7 @@
 /*
- ApproxMC and gen_n_samples
+ ApproxMC
 
+ Copyright (c) 2019-2020, Mate Soos and Kuldeep S. Meel. All rights reserved
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
  Kuldeep S. Meel, Sanjit A. Seshia, Moshe Y. Vardi
@@ -61,12 +62,10 @@ void add_appmc_options()
 {
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;
-    std::ostringstream my_kappa;
 
     my_epsilon << std::setprecision(8) << conf.epsilon;
     my_delta << std::setprecision(8) << conf.delta;
-    my_kappa << std::setprecision(8) << conf.kappa;
-
+ 
     appmc_options.add_options()
     ("help,h", "Prints help")
     ("version", "Print version info")
@@ -105,17 +104,6 @@ void add_appmc_options()
         , "Use trick of not extending solutions in the SAT solver to full solution");
 
     appmcgen_options.add_options()
-    ("samples", po::value(&conf.samples)->default_value(conf.samples)
-        , "Number of random samples to generate")
-    ("indepsamples", po::value(&conf.only_indep_samples)->default_value(conf.only_indep_samples)
-        , "Should only output the independent vars from the samples")
-    ("multisample", po::value(&conf.multisample)->default_value(conf.multisample)
-        , "Return multiple samples from each call")
-    ("sampleout", po::value(&conf.sampleFilename)
-        , "Write samples to this file")
-    ("kappa", po::value(&conf.kappa)->default_value(conf.kappa, my_kappa.str())
-        , "Uniformity parameter (see TACAS-15 paper)")
-
     ;
 
     help_options.add(appmc_options);
@@ -223,11 +211,6 @@ void add_supported_options(int argc, char** argv)
         std::exit(-1);
     }
 
-     if (conf.samples == 0 && vm.count("sampleout")){
-        cerr << "ERROR: You did not give the '--samples N' option, but you gave the '--sampleout FNAME' option." << endl;
-        cout << "ERROR: This is confusing. Please give '--samples N' if you give '--sampleout FNAME'" << endl;
-        exit(-1);
-     }
 }
 
 void readInAFile(SATSolver* solver2, const string& filename)
@@ -323,29 +306,6 @@ void set_sampling_vars()
     appmc->solver->set_sampling_vars(&conf.sampling_set);
 }
 
-std::ostream* open_samples_file()
-{
-    std::ostream* os;
-    std::ofstream* sampleFile = NULL;
-    if (conf.sampleFilename.length() != 0)
-    {
-        sampleFile = new std::ofstream;
-        sampleFile->open(conf.sampleFilename.c_str());
-        if (!(*sampleFile)) {
-            cout
-            << "ERROR: Couldn't open sample file '"
-            << conf.sampleFilename
-            << "' for writing!"
-            << endl;
-            std::exit(-1);
-        }
-        os = sampleFile;
-    } else {
-        os = &cout;
-    }
-
-    return os;
-}
 
 int main(int argc, char** argv)
 {
@@ -383,12 +343,6 @@ int main(int argc, char** argv)
             exit(-1);
         }
     }
-
-    if (!conf.only_indep_samples) {
-        cout << "ERROR: You requested samples with full solutions but '--cmpindeponly 1' is set. Set it to false: '--indep 0'" << endl;
-        exit(-1);
-    }
-
     //startTime = cpuTimeTotal();
     appmc->solver = new SATSolver();
     appmc->solver->set_up_for_scalmc();
@@ -424,26 +378,15 @@ int main(int argc, char** argv)
         readInStandardInput(appmc->solver);
     }
     set_sampling_vars();
-
-    std::ostream* out = open_samples_file();
-    if (conf.samples > 0) {
-        appmc->set_samples_file(out);
-    }
-
-    //Counting
-    if (conf.samples > 0 && conf.startiter == 0) {
-        cout << "[appmc] Using appmc to compute startiter for gen_n_samples" << endl;
-    }
-
     if (conf.startiter > conf.sampling_set.size()) {
         cout << "[appmc] ERROR: Manually-specified start_iter"
              "is larger than the size of the sampling set.\n" << endl;
         exit(-1);
     }
-
-    auto ret = appmc->solve(conf);
-    if (out != &cout) {
-        delete out;
+    SATCount solCount;
+    auto ret = appmc->solve(conf, solCount);
+    if (ret == 0){
+        solCount.print_num_solutions();
     }
 
     return ret;

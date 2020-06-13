@@ -1,6 +1,7 @@
 /*
  ApproxMC
 
+ Copyright (c) 2019-2020, Mate Soos and Kuldeep S. Meel. All rights reserved
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
  Kuldeep S. Meel, Sanjit A. Seshia, Moshe Y. Vardi
@@ -142,9 +143,7 @@ SolNum AppMC::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
         const uint32_t hashCount,
-        uint32_t minSolutions,
-        HashesModels* hm,
-        vector<string>* out_solutions
+        HashesModels* hm
 ) {
     cout << "c [appmc] "
     "[ " << std::setw(7) << std::setprecision(2) << std::fixed
@@ -153,16 +152,7 @@ SolNum AppMC::bounded_sol_count(
     << " bounded_sol_count looking for " << std::setw(4) << maxSolutions << " solutions"
     << " -- hashes active: " << hashCount << endl;
 
-    //Will we need to extend the solution?
-    bool only_indep_sol = true;
-    if (out_solutions != NULL) {
-        only_indep_sol = conf.only_indep_samples;
-    }
 
-    //Turn off improvement from ApproxMC4 research paper
-    if (conf.force_sol_extension) {
-        only_indep_sol = false;
-    }
 
     //Set up things for adding clauses that can later be removed
     vector<Lit> new_assumps;
@@ -196,7 +186,7 @@ SolNum AppMC::bounded_sol_count(
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
     while (solutions < maxSolutions) {
-        lbool ret = solver->solve(&new_assumps, only_indep_sol);
+        lbool ret = solver->solve(&new_assumps);
         //COZ_PROGRESS_NAMED("one solution")
         assert(ret == l_False || ret == l_True);
 
@@ -232,9 +222,6 @@ SolNum AppMC::bounded_sol_count(
         check_model(model, hm, hashCount);
         //#endif
         models.push_back(model);
-        if (out_solutions) {
-            out_solutions->push_back(get_solution_str(model));
-        }
 
         //ban solution
         vector<Lit> lits;
@@ -249,22 +236,6 @@ SolNum AppMC::bounded_sol_count(
         solver->add_clause(lits);
     }
 
-    if (solutions < maxSolutions) {
-        //Sampling -- output a random sample of N solutions
-        if (solutions >= minSolutions && samples_out != NULL) {
-            assert(minSolutions > 0);
-            vector<size_t> modelIndices;
-            for (uint32_t i = 0; i < models.size(); i++) {
-                modelIndices.push_back(i);
-            }
-            std::shuffle(modelIndices.begin(), modelIndices.end(), randomEngine);
-
-            for (uint32_t i = 0; i < sols_to_return(solutions); i++) {
-                const auto& model = models.at(modelIndices.at(i));
-                (*samples_out) << get_solution_str(model) << endl << std::flush;
-            }
-        }
-    }
 
     //Save global models
     if (hm && conf.reuse_models) {
@@ -281,7 +252,7 @@ SolNum AppMC::bounded_sol_count(
     return SolNum(solutions, repeat);
 }
 
-int AppMC::solve(AppMCConfig _conf)
+int AppMC::solve(AppMCConfig _conf, SATCount& solCount)
 {
     conf = _conf;
     orig_num_vars = solver->nVars();
@@ -289,69 +260,23 @@ int AppMC::solve(AppMCConfig _conf)
 
     openLogFile();
     randomEngine.seed(conf.seed);
-    if (conf.samples == 0) {
-        cout << "c [appmc] Using start iteration " << conf.startiter << endl;
+    cout << "c [appmc] Using start iteration " << conf.startiter << endl;
 
-        SATCount solCount;
-        count(solCount);
+    count(solCount);
 
-        cout << "c [appmc] FINISHED AppMC T: "
-        << (cpuTimeTotal() - startTime) << " s"
-        << endl;
+    cout << "c [appmc] FINISHED AppMC T: "
+    << (cpuTimeTotal() - startTime) << " s"
+    << endl;
 
-        if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-            cout << "c [appmc] Formula was UNSAT " << endl;
-        }
-
-        if (conf.verb > 2) {
-            solver->print_stats();
-        }
-
-        solCount.print_num_solutions();
-    } else {
-        if (conf.startiter > conf.sampling_set.size()) {
-            cerr << "ERROR: Manually-specified startiter for gen_n_samples"
-                 "is larger than the size of the independent set.\n" << endl;
-            exit(-1);
-        }
-
-        /* Compute threshold via formula from TACAS-15 paper */
-        threshold_appmcgen = ceil(4.03 * (1 + (1/conf.kappa)) * (1 + (1/conf.kappa)));
-
-        //No startiter, we have to figure it out
-        if (conf.startiter == 0) {
-            SATCount solCount;
-            std::ostream* backup = samples_out;
-            samples_out = NULL;
-
-            count(solCount);
-            cout << "c [appmc] finished counting solutions in "
-            << (cpuTimeTotal() - startTime) << " s" << endl;
-
-            if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-                cout << "[appmc] The input formula is unsatisfiable." << endl;
-                return 0;
-            }
-
-            if (conf.verb) {
-                solver->print_stats();
-            }
-            solCount.print_num_solutions();
-
-            double si = round(solCount.hashCount + log2(solCount.cellSolCount)
-                + log2(1.8) - log2(threshold_appmcgen)) - 2;
-            if (si > 0) {
-                conf.startiter = si;
-            } else {
-                conf.startiter = 0;   /* Indicate ideal sampling case */
-            }
-            samples_out = backup;
-        } else {
-            cout << "Using manually-specified startiter for sample generation" << endl;
-        }
-        generate_samples();
+    if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
+        cout << "c [appmc] Formula was UNSAT " << endl;
     }
 
+    if (conf.verb > 2) {
+        solver->print_stats();
+    }
+
+    
     return 0;
 }
 
@@ -585,7 +510,6 @@ void AppMC::one_measurement_count(
             threshold + 1, //max no. solutions
             &assumps, //assumptions to use
             hashCount,
-            1, //min num solutions -- ignored
             &hm
         );
         const uint64_t num_sols = std::min<uint64_t>(sols.solutions, threshold + 1);
@@ -683,168 +607,8 @@ void AppMC::one_measurement_count(
     }
 }
 
-void AppMC::generate_samples()
-{
-    assert(samples_out != NULL);
-    double genStartTime = cpuTimeTotal();
 
-    hiThresh = ceil(1 + (1.4142136 * (1 + conf.kappa) * threshold_appmcgen));
-    loThresh = floor(threshold_appmcgen / (1.4142136 * (1 + conf.kappa)));
-    const uint32_t samplesPerCall = sols_to_return(conf.samples);
-    const uint32_t callsNeeded =
-        conf.samples / samplesPerCall + (bool)(conf.samples % samplesPerCall);
-    cout << "Samples requested: " << conf.samples << endl;
-    cout << "samples per XOR set:" << samplesPerCall << endl;
-    cout << "-> calls needed: " << callsNeeded << endl;
 
-    //TODO WARNING what is this 14???????????????????
-    uint32_t callsPerLoop = std::min(solver->nVars() / 14, callsNeeded);
-    callsPerLoop = std::max(callsPerLoop, 1U);
-    cout << "callsPerLoop:" << callsPerLoop << endl;
-
-    cout << "[appmc] starting sample generation."
-    << " loThresh: " << loThresh
-    << ", hiThresh: " << hiThresh
-    << ", startiter: " << conf.startiter << endl;
-
-    uint32_t samples = 0;
-    if (conf.startiter > 0) {
-        uint32_t lastSuccessfulHashOffset = 0;
-        while(samples < conf.samples) {
-            samples += gen_n_samples(
-                callsPerLoop,
-                &lastSuccessfulHashOffset);
-        }
-    } else {
-        /* Ideal sampling case; enumerate all solutions */
-        vector<string> out_solutions;
-        const uint32_t count = bounded_sol_count(
-            std::numeric_limits<uint32_t>::max() //max no. solutions
-            , NULL //assumps is empty
-            , 0 //number of hashes (information only)
-            , 1 //min num. solutions
-            , NULL //gobal model (would be banned)
-            , &out_solutions
-        ).solutions;
-        assert(count > 0);
-
-        std::uniform_int_distribution<unsigned> uid {0, count-1};
-        for (uint32_t i = 0; i < conf.samples; ++i) {
-            vector<string>::iterator it = out_solutions.begin();
-            for (uint32_t j = uid(randomEngine); j > 0; --j)    // TODO improve hack
-            {
-                ++it;
-            }
-            samples++;
-            (*samples_out) << *it << endl << std::flush;
-        }
-    }
-
-    cout
-    << "[appmc]"
-    << " Time to sample: " << cpuTimeTotal() - genStartTime << " s"
-    << " -- Time count+samples: " << cpuTimeTotal() << " s"
-    << endl;
-
-    cout << "[appmc] Samples generated: " << samples << endl;
-}
-
-uint32_t AppMC::gen_n_samples(
-    const uint32_t num_calls
-    , uint32_t* lastSuccessfulHashOffset)
-{
-    SparseData sparse_data(-1);
-    uint32_t num_samples = 0;
-    uint32_t i = 0;
-    while(i < num_calls) {
-        uint32_t hashOffsets[3];
-        hashOffsets[0] = *lastSuccessfulHashOffset;
-
-        //Specific values
-        if (hashOffsets[0] == 0) { // Starting at q-2; go to q-1 then q
-            hashOffsets[1] = 1;
-            hashOffsets[2] = 2;
-        }
-        if (hashOffsets[0] == 2) { // Starting at q; go to q-1 then q-2
-            hashOffsets[1] = 1;
-            hashOffsets[2] = 0;
-        }
-
-        map<uint64_t, Hash> hashes;
-        bool ok;
-        for (uint32_t j = 0; j < 3; j++) {
-            uint32_t currentHashOffset = hashOffsets[j];
-            uint32_t currentHashCount = currentHashOffset + conf.startiter;
-            const vector<Lit> assumps = set_num_hashes(currentHashCount, hashes, sparse_data);
-
-            double myTime = cpuTime();
-            const uint64_t solutionCount = bounded_sol_count(
-                hiThresh // max num solutions
-                , &assumps //assumptions to use
-                , currentHashCount
-                , loThresh //min number of solutions (samples not output otherwise)
-            ).solutions;
-            ok = (solutionCount < hiThresh && solutionCount >= loThresh);
-            write_log(
-                true, //sampling
-                i, currentHashCount, solutionCount == hiThresh,
-                      solutionCount, 0, cpuTime()-myTime);
-
-            if (ok) {
-                num_samples += sols_to_return(conf.samples);
-                *lastSuccessfulHashOffset = currentHashOffset;
-                break;
-            }
-            // Number of solutions too small or too large
-
-            // At q-1, and need to pick next hash count
-            if (j == 0 && currentHashOffset == 1) {
-                if (solutionCount < loThresh) {
-                    // Go to q-2; next will be q
-                    hashOffsets[1] = 0;
-                    hashOffsets[2] = 2;
-                } else {
-                    // Go to q; next will be q-2
-                    hashOffsets[1] = 2;
-                    hashOffsets[2] = 0;
-                }
-            }
-        }
-
-        if (ok) {
-            i++;
-        }
-        if (conf.simplify >= 1) {
-            simplify();
-        }
-    }
-    return num_samples;
-}
-
-////////////////////
-//Helper functions
-////////////////////
-
-std::string AppMC::get_solution_str(const vector<lbool>& model)
-{
-    assert(samples_out != NULL);
-
-    std::stringstream  solution;
-    if (conf.only_indep_samples) {
-        for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
-            uint32_t var = conf.sampling_set[j];
-            assert(model[var] != l_Undef);
-            solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
-        }
-    } else {
-        for(uint32_t var = 0; var < orig_num_vars; var++) {
-            assert(model[var] != l_Undef);
-            solution << ((model[var] != l_True) ? "-":"") << var + 1 << " ";
-        }
-    }
-    solution << "0";
-    return solution.str();
-}
 
 bool AppMC::gen_rhs()
 {
@@ -949,16 +713,6 @@ void AppMC::printVersionInfo() const
     cout << solver->get_text_version_info();
 }
 
-/* Number of solutions to return from one invocation of gen_n_samples. */
-uint32_t AppMC::sols_to_return(uint32_t numSolutions)
-{
-    if (conf.startiter == 0)   // TODO improve hack for ideal sampling case?
-        return numSolutions;
-    else if (conf.multisample)
-        return loThresh;
-    else
-        return 1;
-}
 
 void AppMC::openLogFile()
 {
