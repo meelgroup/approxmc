@@ -507,9 +507,13 @@ configure_file(approxmcConfig.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/${APPROXMC_CONFIG_FILENAME}" @ONLY
 )
 
+# Export this package to the CMake user package registry
+# Now the user can just use find_package(cryptominisat5) on their system
+export(PACKAGE approxmc)
+
+set(DEF_INSTALL_CMAKE_DIR lib/cmake/approxmc)
 set(APPROXMC_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
     "Installation directory for approxmc CMake files")
-
 
 
 # Create approxmcConfig file
