@@ -86,6 +86,8 @@ install(TARGETS approxmc
 )
 
 approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h )
+approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/constants.h )
+approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmcconfig.h )
 
 #     set_target_properties(
 #       approxmc PROPERTIES LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"

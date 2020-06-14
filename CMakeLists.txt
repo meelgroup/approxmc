@@ -284,12 +284,16 @@ endif()
 
 
 # -----------------------------------------------------------------------------
-# Uncomment these for static compilation under Linux (messes up Valgrind)
+# Perhaps not needed?
 # -----------------------------------------------------------------------------
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} -Wl,--discard-all -Wl,--build-id=sha1")
 endif()
 
+
+# -----------------------------------------------------------------------------
+# Staticcompile on Linux
+# -----------------------------------------------------------------------------
 if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
     if(STATICCOMPILE)
         MESSAGE(STATUS "Compiling for static library use")
@@ -315,9 +319,9 @@ if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Dar
     endif()
 endif()
 
-if(NOT MSVC)
-  set(DEF_INSTALL_CMAKE_DIR lib/cmake/approxmc)
-endif()
+set(DEF_INSTALL_CMAKE_DIR lib/cmake/approxmc)
+set(APPROXMC_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
+    "Installation directory for approxmc CMake files")
 
 # -----------------------------------------------------------------------------
 # Add GIT version
@@ -348,14 +352,6 @@ MESSAGE(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
 MESSAGE(STATUS "PROJECT_VERSION_MINOR: ${PROJECT_VERSION_MINOR}")
 MESSAGE(STATUS "PROJECT_VERSION_PATCH: ${PROJECT_VERSION_PATCH}")
 
-
-option(EMSCRIPTEN "Generate only emscripten JS" OFF)
-if (NOT EMSCRIPTEN)
-    set (boost_components "")
-    set(boost_components ${boost_components} program_options)
-    find_package( Boost 1.46 COMPONENTS ${boost_components})
-endif()
-
 # ----------
 # manpage
 # ----------
@@ -385,23 +381,6 @@ else()
     MESSAGE(STATUS "Not on Linux, not creating manpage")
 endif()
 
-# -----------------------------------------------------------------------------
-# Look for ZLIB (For reading zipped CNFs)
-# -----------------------------------------------------------------------------
-option(NOZLIB "Don't use zlib" OFF)
-
-# cannot currently compile static zlib under Windows
-if (NOT NOZLIB AND NOT (STATICCOMPILE AND WIN32))
-    find_package(ZLIB)
-    IF (ZLIB_FOUND)
-        MESSAGE(STATUS "OK, Found ZLIB!")
-        include_directories(${ZLIB_INCLUDE_DIR})
-        link_directories(${ZLIB_LIB_DIR})
-        add_definitions( -DUSE_ZLIB )
-    ELSE (ZLIB_FOUND)
-        MESSAGE(STATUS "WARNING: Did not find ZLIB, gzipped file support will be disabled")
-    ENDIF (ZLIB_FOUND)
-endif()
 
 #query definitions
 get_directory_property( DirDefs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS )
@@ -415,6 +394,9 @@ message(STATUS "All defines at startup: ${COMPILE_DEFINES}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 
+# -----------------------------------------------------------------------------
+# headers
+# -----------------------------------------------------------------------------
 macro(approxmc_add_public_header LIBTARGET HEADER)
     get_target_property(EXISTING_PUBLIC_HEADERS ${LIBTARGET} PUBLIC_HEADER)
     if(EXISTING_PUBLIC_HEADERS)
@@ -429,6 +411,26 @@ macro(approxmc_add_public_header LIBTARGET HEADER)
         PUBLIC_HEADER "${EXISTING_PUBLIC_HEADERS}"
      )
 endmacro()
+
+# -----------------------------------------------------------------------------
+# Dependencies
+# -----------------------------------------------------------------------------
+set (boost_components "")
+set(boost_components ${boost_components} program_options)
+find_package( Boost 1.46 COMPONENTS ${boost_components})
+
+option(NOZLIB "Don't use zlib" OFF)
+if (NOT NOZLIB AND NOT (STATICCOMPILE AND WIN32))
+    find_package(ZLIB)
+    IF (ZLIB_FOUND)
+        MESSAGE(STATUS "OK, Found ZLIB!")
+        include_directories(${ZLIB_INCLUDE_DIR})
+        link_directories(${ZLIB_LIB_DIR})
+        add_definitions( -DUSE_ZLIB )
+    ELSE (ZLIB_FOUND)
+        MESSAGE(STATUS "WARNING: Did not find ZLIB, gzipped file support will be disabled")
+    ENDIF (ZLIB_FOUND)
+endif()
 
 find_package(GMP)
 if (GMP_FOUND)
@@ -448,8 +450,6 @@ if (cryptominisat5_FOUND)
 else()
     message(FATAL_ERROR "Cannot find CryptoMiniSat5. Please install it! Exiting.")
 endif()
-# set(CRYPTOMINISAT5_INCLUDE_DIRS "/usr/local/include/")
-# set(CRYPTOMINISAT5_LIBRARIES "/usr/local/lib/libcryptominisat5.so")
 
 # -----------------------------------------------------------------------------
 # Provide an export name to be used by targets that wish to export themselves.
