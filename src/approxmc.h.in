@@ -67,8 +67,9 @@ public:
     std::string get_version_info();
     void set_up_log(std::string log_file_name);
     void set_verbosity(uint32_t verb);
+    void set_detach_warning();
     void setup();
-    void count();
+    ApproxMC::SolCount count();
     void set_sampling_set(const std::vector<uint32_t>& vars);
 
     uint32_t nVars();
