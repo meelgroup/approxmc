@@ -38,7 +38,6 @@ using std::vector;
 #include <signal.h>
 
 #include "approxmc.h"
-#include <cryptominisat5/cryptominisat.h>
 #include <cryptominisat5/dimacsparser.h>
 #include <cryptominisat5/streambuffer.h>
 
@@ -221,15 +220,14 @@ void add_supported_options(int argc, char** argv)
 //     exit(-1);
 // }
 
-void read_in_file(SATSolver* solver2, const string& filename)
+void read_in_file(const string& filename)
 {
-    solver2->add_sql_tag("filename", filename);
     #ifndef USE_ZLIB
     FILE * in = fopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<FILE*, FN>, CMSat::SATSolver> parser(solver2, NULL, 2);
+    DimacsParser<StreamBuffer<FILE*, FN>, ApproxMC::AppMC> parser(appmc, NULL, 2);
     #else
     gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ>, CMSat::SATSolver> parser(solver2, NULL, 2);
+    DimacsParser<StreamBuffer<gzFile, GZ>, ApproxMC::AppMC> parser(appmc, NULL, 2);
     #endif
 
     if (in == NULL) {
@@ -254,7 +252,7 @@ void read_in_file(SATSolver* solver2, const string& filename)
     #endif
 }
 
-void read_stdin(SATSolver* solver2)
+void read_stdin()
 {
     cout
     << "c Reading from standard input... Use '-h' or '--help' for help."
@@ -272,9 +270,9 @@ void read_stdin(SATSolver* solver2)
     }
 
     #ifndef USE_ZLIB
-    DimacsParser<StreamBuffer<FILE*, FN>, CMSat::SATSolver> parser(solver2, NULL, 2);
+    DimacsParser<StreamBuffer<FILE*, FN>, ApproxMC::AppMC> parser(appmc, NULL, 2);
     #else
-    DimacsParser<StreamBuffer<gzFile, GZ>, CMSat::SATSolver> parser(solver2, NULL, 2);
+    DimacsParser<StreamBuffer<gzFile, GZ>, ApproxMC::AppMC> parser(appmc, NULL, 2);
     #endif
 
     if (!parser.parse_DIMACS(in, false)) {
@@ -331,9 +329,9 @@ int main(int argc, char** argv)
         if (inp.size() > 1) {
             cout << "[appmc] ERROR: can only parse in one file" << endl;
         }
-        read_in_file(appmc->get_solver(), inp[0].c_str());
+        read_in_file(inp[0].c_str());
     } else {
-        read_stdin(appmc->get_solver());
+        read_stdin();
     }
 
     appmc->count();
