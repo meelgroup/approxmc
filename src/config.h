@@ -39,7 +39,7 @@ struct Config {
     double delta = 0.2;
     uint32_t num_threads = 1;
     int sparse = 0;
-    unsigned verb = 1;
+    unsigned verb = 0;
     unsigned verb_appmc_cls = 0;
     uint32_t seed = 1;
     int simplify = 1;

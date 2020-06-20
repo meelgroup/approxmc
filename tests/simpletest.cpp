@@ -37,9 +37,19 @@ using std::vector;
 TEST(normal_interface, start)
 {
     AppMC s;
-    s.count();
-    //EXPECT_EQ( ret, l_True);
-    //EXPECT_EQ( s.okay(), true);
+    SolCount c = s.count();
+    EXPECT_EQ(c.cellSolCount, 1);
+    EXPECT_EQ(c.hashCount, 0);
+}
+
+TEST(normal_interface, example1)
+{
+    AppMC s;
+    s.new_vars(2);
+    s.add_clause(str_to_cl("-1, 2"));
+    SolCount c = s.count();
+    EXPECT_EQ(c.cellSolCount, 1);
+    EXPECT_EQ(c.hashCount, 0);
 }
 
 

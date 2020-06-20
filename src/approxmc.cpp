@@ -26,9 +26,9 @@
  THE SOFTWARE.
  */
 
+#include "approxmc/approxmc.h"
 #include "counter.h"
 #include "constants.h"
-#include "approxmc/approxmc.h"
 #include "config.h"
 #include <iostream>
 
@@ -62,26 +62,31 @@ AppMC::~AppMC()
 void setup_sampling_vars(AppMCPrivateData* data)
 {
     if (data->conf.sampling_set.empty()) {
-        cout
-        << "c [appmc] WARNING! Sampling set was not declared with 'c ind var1 [var2 var3 ..] 0'"
-        " notation in the CNF." << endl
-        << "c [appmc] we may work substantially worse!" << endl;
+        if (data->conf.verb) {
+            cout
+            << "c [appmc] WARNING! Sampling set was not declared! We will be **VERY** slow"
+            << endl;
+        }
         for (size_t i = 0; i < data->counter.solver->nVars(); i++) {
             data->conf.sampling_set.push_back(i);
         }
     }
-    cout << "c [appmc] Sampling set size: " << data->conf.sampling_set.size() << endl;
-    if (data->conf.sampling_set.size() > 100) {
-        cout
-        << "c [appmc] Sampling var set contains over 100 variables, not displaying"
-        << endl;
-    } else {
-        cout << "c [appmc] Sampling set: ";
-        for (auto v: data->conf.sampling_set) {
-            cout << v+1 << ", ";
+
+    if (data->conf.verb) {
+        cout << "c [appmc] Sampling set size: " << data->conf.sampling_set.size() << endl;
+        if (data->conf.sampling_set.size() > 100) {
+            cout
+            << "c [appmc] Sampling var set contains over 100 variables, not displaying"
+            << endl;
+        } else {
+            cout << "c [appmc] Sampling set: ";
+            for (auto v: data->conf.sampling_set) {
+                cout << v+1 << ", ";
+            }
+            cout << endl;
         }
-        cout << endl;
     }
+
     data->counter.solver->set_sampling_vars(&(data->conf.sampling_set));
 }
 
@@ -121,12 +126,6 @@ ApproxMC::SolCount AppMC::count()
 
     setup_sampling_vars(data);
 
-    if (data->conf.startiter > data->conf.sampling_set.size()) {
-        cout << "c [appmc] ERROR: Manually-specified start_iter"
-             "is larger than the size of the sampling set.\n" << endl;
-        exit(-1);
-    }
-
     SolCount sol_count = data->counter.solve(data->conf);
     return sol_count;
 }
@@ -160,4 +159,9 @@ void AppMC::add_clause(const vector<CMSat::Lit>& lits)
 void AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
 {
     data->counter.solver->add_xor_clause(vars, rhs);
+}
+
+void AppMC::set_detach_warning()
+{
+    data->counter.solver->set_verbosity_detach_warning(true);
 }

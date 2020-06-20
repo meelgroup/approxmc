@@ -145,12 +145,14 @@ SolNum Counter::bounded_sol_count(
         const uint32_t hashCount,
         HashesModels* hm
 ) {
-    cout << "c [appmc] "
-    "[ " << std::setw(7) << std::setprecision(2) << std::fixed
-    << (cpuTimeTotal()-startTime)
-    << " ]"
-    << " bounded_sol_count looking for " << std::setw(4) << maxSolutions << " solutions"
-    << " -- hashes active: " << hashCount << endl;
+    if (conf.verb) {
+        cout << "c [appmc] "
+        "[ " << std::setw(7) << std::setprecision(2) << std::fixed
+        << (cpuTimeTotal()-startTime)
+        << " ]"
+        << " bounded_sol_count looking for " << std::setw(4) << maxSolutions << " solutions"
+        << " -- hashes active: " << hashCount << endl;
+    }
 
 
 
@@ -271,15 +273,17 @@ ApproxMC::SolCount Counter::solve(Config _conf)
 
     openLogFile();
     randomEngine.seed(conf.seed);
-    cout << "c [appmc] Using start iteration " << conf.startiter << endl;
-    cout << "c [appmc] Using start iteration " << conf.startiter << endl;
+
     ApproxMC::SolCount solCount = count();
     print_final_count_stats(solCount);
-    cout << "c [appmc] FINISHED ApproxMC T: "
+
+    if (conf.verb) {
+        cout << "c [appmc] FINISHED ApproxMC T: "
         << (cpuTimeTotal() - startTime) << " s"
         << endl;
-    if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-        cout << "c [appmc] Formula was UNSAT " << endl;
+        if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
+            cout << "c [appmc] Formula was UNSAT " << endl;
+        }
     }
     return solCount;
 }
@@ -377,9 +381,13 @@ ApproxMC::SolCount Counter::count()
     uint32_t measurements;
     set_up_probs_threshold_measurements(measurements, sparse_data);
     
-    cout << "c [appmc] Starting up, initial measurement" << endl;
+    if (conf.verb) {
+        cout << "c [appmc] Starting up, initial measurement" << endl;
+    }
     if (hashCount == 0) {
-        cout << "c [appmc] Checking if there are at least threshold+1 solutions..." << endl;
+        if (conf.verb) {
+            cout << "c [appmc] Checking if there are at least threshold+1 solutions..." << endl;
+        }
         double myTime = cpuTime();
         if (conf.simplify >= 1) {
             simplify();
@@ -396,9 +404,11 @@ ApproxMC::SolCount Counter::count()
 
         //Din't find at least threshold+1
         if (currentNumSolutions <= threshold) {
-            cout << "c [appmc] Did not find at least threshold+1 ("
-            << threshold << ") we found only " << currentNumSolutions
-            << ", i.e. we got exact count" << endl;
+            if (conf.verb) {
+                cout << "c [appmc] Did not find at least threshold+1 ("
+                << threshold << ") we found only " << currentNumSolutions
+                << ", i.e. we got exact count" << endl;
+            }
 
             ApproxMC::SolCount ret_count;
             ret_count.valid = true;
@@ -408,7 +418,9 @@ ApproxMC::SolCount Counter::count()
         }
         hashCount++;
     }
-    cout << "c [appmc] Starting at hash count: " << hashCount << endl;
+    if (conf.verb) {
+        cout << "c [appmc] Starting at hash count: " << hashCount << endl;
+    }
     int64_t mPrev = hashCount;
 
     count_mutex.lock();
@@ -469,13 +481,15 @@ int Counter::find_best_sparse_match()
 {
     for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
         if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampling_set.size()) {
-            cout << "c [sparse] Using match: " << i
-            << " sampling set size: " << conf.sampling_set.size()
-            << " prev end inclusive is: " << (i == 0 ? -1 : (int)constants.index_var_maps[i-1].vars_to_inclusive)
-            << " this end inclusive is: " << constants.index_var_maps[i].vars_to_inclusive
-            << " next end inclusive is: " << ((i+1 < (int)constants.index_var_maps.size()) ? ((int)constants.index_var_maps[i+1].vars_to_inclusive) : -1)
-            << " sampl size: " << conf.sampling_set.size()
-            << endl;
+            if (conf.verb) {
+                cout << "c [sparse] Using match: " << i
+                << " sampling set size: " << conf.sampling_set.size()
+                << " prev end inclusive is: " << (i == 0 ? -1 : (int)constants.index_var_maps[i-1].vars_to_inclusive)
+                << " this end inclusive is: " << constants.index_var_maps[i].vars_to_inclusive
+                << " next end inclusive is: " << ((i+1 < (int)constants.index_var_maps.size()) ? ((int)constants.index_var_maps[i+1].vars_to_inclusive) : -1)
+                << " sampl size: " << conf.sampling_set.size()
+                << endl;
+            }
 
             return i;
         }
