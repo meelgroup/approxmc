@@ -30,8 +30,10 @@
 #ifndef APPROXMC_H__
 #define APPROXMC_H__
 
-#include "cryptominisat5/cryptominisat.h"
-
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <cryptominisat5/solvertypesmini.h>
 
 namespace ApproxMC {
 
@@ -45,18 +47,18 @@ class AppMC
 public:
     AppMC();
     ~AppMC();
-    string get_version_info();
-    void set_up_log(string log_file_name);
+    std::string get_version_info();
+    void set_up_log(std::string log_file_name);
     void set_verbosity(uint32_t verb);
     void setup();
     void count();
-    void set_sampling_set(const vector<uint32_t>& vars);
+    void set_sampling_set(const std::vector<uint32_t>& vars);
 
     uint32_t nVars();
     void new_vars(uint32_t num);
     void new_var();
-    void add_clause(const vector<CMSat::Lit>& lits);
-    void add_xor_clause(const vector<uint32_t>& vars, bool rhs);
+    void add_clause(const std::vector<CMSat::Lit>& lits);
+    void add_xor_clause(const std::vector<uint32_t>& vars, bool rhs);
 
 
 private:

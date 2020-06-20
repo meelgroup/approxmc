@@ -252,7 +252,7 @@ SolNum Counter::bounded_sol_count(
     return SolNum(solutions, repeat);
 }
 
-void Counter::print_final_count_stats(SATCount solCount)
+void Counter::print_final_count_stats(ApproxMC::SolCount solCount)
 {
     if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
         cout << "c [appmc] Formula was UNSAT " << endl;
@@ -261,10 +261,9 @@ void Counter::print_final_count_stats(SATCount solCount)
     if (conf.verb > 2) {
         solver->print_stats();
     }
-    solCount.print_num_solutions();
 }
 
-SATCount Counter::solve(Config _conf)
+ApproxMC::SolCount Counter::solve(Config _conf)
 {
     conf = _conf;
     orig_num_vars = solver->nVars();
@@ -274,7 +273,7 @@ SATCount Counter::solve(Config _conf)
     randomEngine.seed(conf.seed);
     cout << "c [appmc] Using start iteration " << conf.startiter << endl;
     cout << "c [appmc] Using start iteration " << conf.startiter << endl;
-    SATCount solCount = count();
+    ApproxMC::SolCount solCount = count();
     print_final_count_stats(solCount);
     cout << "c [appmc] FINISHED ApproxMC T: "
         << (cpuTimeTotal() - startTime) << " s"
@@ -370,7 +369,7 @@ void Counter::set_up_probs_threshold_measurements(
     }
 }
 
-SATCount Counter::count()
+ApproxMC::SolCount Counter::count()
 {
     int64_t hashCount = conf.startiter;
 
@@ -401,7 +400,7 @@ SATCount Counter::count()
             << threshold << ") we found only " << currentNumSolutions
             << ", i.e. we got exact count" << endl;
 
-            SATCount ret_count;
+            ApproxMC::SolCount ret_count;
             ret_count.valid = true;
             ret_count.cellSolCount = currentNumSolutions;
             ret_count.hashCount = 0;
@@ -438,9 +437,9 @@ SATCount Counter::count()
     return calc_est_count();
 }
 
-SATCount Counter::calc_est_count()
+ApproxMC::SolCount Counter::calc_est_count()
 {
-    SATCount ret_count;
+    ApproxMC::SolCount ret_count;
     if (!count_mutex.try_lock()) {
         //in the middle of updating, can't lock mutex
         return ret_count;

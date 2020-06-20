@@ -31,13 +31,13 @@
 #define COUNTER_H_
 
 #include "config.h"
-#include <gmp.h>
 #include <fstream>
 #include <random>
 #include <map>
 #include <cstdint>
 #include <mutex>
 #include <cryptominisat5/cryptominisat.h>
+#include "approxmc/approxmc.h"
 #include "constants.h"
 
 
@@ -47,33 +47,6 @@ using std::map;
 using std::cout;
 using std::endl;
 using namespace CMSat;
-
-struct SATCount {
-    void clear()
-    {
-        SATCount tmp;
-        *this = tmp;
-    }
-    bool valid = false;
-    uint32_t hashCount = 0;
-    uint32_t cellSolCount = 0;
-
-    void print_num_solutions() {
-        cout << "c [appmc] Number of solutions is: "
-        << cellSolCount << "*2**" << hashCount << endl;
-
-        mpz_t num_sols;
-        mpz_init (num_sols);
-        mpz_ui_pow_ui(num_sols, 2, hashCount);
-        mpz_mul_ui(num_sols, num_sols, cellSolCount);
-
-        cout << "s mc " << std::flush;
-        mpz_out_str(0, 10, num_sols);
-        cout << endl;
-        mpz_clear(num_sols);
-
-    }
-};
 
 struct SavedModel
 {
@@ -128,7 +101,7 @@ struct SparseData {
 
 class Counter {
 public:
-    SATCount solve(Config _conf);
+    ApproxMC::SolCount solve(Config _conf);
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
     string binary(const uint32_t x, const uint32_t length);
@@ -136,16 +109,16 @@ public:
     uint32_t threshold_appmcgen;
     SATSolver* solver = NULL;
     string get_version_info() const;
-    SATCount calc_est_count();
+    ApproxMC::SolCount calc_est_count();
     std::mutex count_mutex;
-    void print_final_count_stats(SATCount sol_count);
+    void print_final_count_stats(ApproxMC::SolCount sol_count);
     const Constants constants;
 
 private:
     Config conf;
-    SATCount count();
+    ApproxMC::SolCount count();
     void add_appmc_options();
-    bool ScalCounter(SATCount& count);
+    bool ScalCounter(ApproxMC::SolCount& count);
     Hash add_hash(uint32_t total_num_hashes, SparseData& sparse_data);
     SolNum bounded_sol_count(
         uint32_t maxSolutions,

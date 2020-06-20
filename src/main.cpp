@@ -36,8 +36,9 @@ using std::vector;
 #include <fenv.h>
 #endif
 #include <signal.h>
+#include <gmp.h>
 
-#include "approxmc.h"
+#include "approxmc/approxmc.h"
 #include <cryptominisat5/dimacsparser.h>
 #include <cryptominisat5/streambuffer.h>
 
@@ -210,7 +211,7 @@ void add_supported_options(int argc, char** argv)
 //     if (!appmc) {
 //         return;
 //     }
-//     SATCount solCount = appmc->calc_est_count();
+//     SolCount solCount = appmc->calc_est_count();
 //     if (!solCount.valid) {
 //         cout << "c did not manage to get a single measurement, we have no estimate of the count" << endl;
 //         exit(-1);
@@ -286,6 +287,23 @@ void read_stdin()
     #endif
 }
 
+void print_num_solutions(uint32_t cellSolCount, uint32_t hashCount)
+{
+    cout << "c [appmc] Number of solutions is: "
+    << cellSolCount << "*2**" << hashCount << endl;
+
+    mpz_t num_sols;
+    mpz_init (num_sols);
+    mpz_ui_pow_ui(num_sols, 2, hashCount);
+    mpz_mul_ui(num_sols, num_sols, cellSolCount);
+
+    cout << "s mc " << std::flush;
+    mpz_out_str(0, 10, num_sols);
+    cout << endl;
+    mpz_clear(num_sols);
+
+}
+
 int main(int argc, char** argv)
 {
     #if defined(__GNUC__) && defined(__linux__)
@@ -334,5 +352,6 @@ int main(int argc, char** argv)
         read_stdin();
     }
 
-    appmc->count();
+    auto sol_count = appmc->count();
+    print_num_solutions(sol_count.cellSolCount, sol_count.hashCount);
 }

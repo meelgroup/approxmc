@@ -59,6 +59,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
 include_directories(${GMP_INCLUDE_DIRS})
 
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h.in" "${CMAKE_CURRENT_BINARY_DIR}/approxmc/approxmc.h" @ONLY)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" @ONLY)
 
 set(approxmc_lib_files
@@ -87,7 +88,7 @@ install(TARGETS approxmc
     PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/approxmc"
 )
 
-approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h )
+approxmc_add_public_header(approxmc ${CMAKE_CURRENT_BINARY_DIR}/approxmc/approxmc.h )
 
 
 # -----------------------------------------------------------------------------

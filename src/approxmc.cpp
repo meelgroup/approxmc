@@ -28,7 +28,7 @@
 
 #include "counter.h"
 #include "constants.h"
-#include "approxmc.h"
+#include "approxmc/approxmc.h"
 #include "config.h"
 #include <iostream>
 
@@ -103,7 +103,7 @@ void AppMC::set_verbosity(uint32_t verb)
     }
 }
 
-void AppMC::count()
+ApproxMC::SolCount AppMC::count()
 {
     if (data->conf.verb > 2) {
         cout << "c [appmc] using seed: " << data->conf.seed << endl;
@@ -127,8 +127,8 @@ void AppMC::count()
         exit(-1);
     }
 
-    SATCount solCount;
-    solCount = data->counter.solve(data->conf);
+    SolCount sol_count = data->counter.solve(data->conf);
+    return sol_count;
 }
 
 void AppMC::set_sampling_set(const vector<uint32_t>& vars)
