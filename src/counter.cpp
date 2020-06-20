@@ -45,7 +45,7 @@
 #include <complex>
 //#include <coz.h>
 
-#include "approxmc.h"
+#include "counter.h"
 #include "time_mem.h"
 #include "cryptominisat5/cryptominisat.h"
 #include "cryptominisat5/solvertypesmini.h"
@@ -57,7 +57,7 @@ using std::endl;
 using std::list;
 using std::map;
 
-Hash AppMC::add_hash(uint32_t hash_index, SparseData& sparse_data)
+Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
 {
     const string randomBits =
         gen_rnd_bits(conf.sampling_set.size(), hash_index, sparse_data);
@@ -83,7 +83,7 @@ Hash AppMC::add_hash(uint32_t hash_index, SparseData& sparse_data)
     return h;
 }
 
-void AppMC::ban_one(const uint32_t act_var, const vector<lbool>& model)
+void Counter::ban_one(const uint32_t act_var, const vector<lbool>& model)
 {
     vector<Lit> lits;
     lits.push_back(Lit(act_var, false));
@@ -94,7 +94,7 @@ void AppMC::ban_one(const uint32_t act_var, const vector<lbool>& model)
 }
 
 ///adding banning clauses for repeating solutions
-uint64_t AppMC::add_glob_banning_cls(
+uint64_t Counter::add_glob_banning_cls(
     const HashesModels* hm
     , const uint32_t act_var
     , const uint32_t num_hashes)
@@ -139,7 +139,7 @@ uint64_t AppMC::add_glob_banning_cls(
     return repeat;
 }
 
-SolNum AppMC::bounded_sol_count(
+SolNum Counter::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
         const uint32_t hashCount,
@@ -252,9 +252,9 @@ SolNum AppMC::bounded_sol_count(
     return SolNum(solutions, repeat);
 }
 
-void AppMC::print_final_count_stats(SATCount solCount)
+void Counter::print_final_count_stats(SATCount solCount)
 {
-    cout << "c [appmc] FINISHED AppMC T: "
+    cout << "c [appmc] FINISHED Counter T: "
     << (cpuTimeTotal() - startTime) << " s"
     << endl;
 
@@ -268,8 +268,7 @@ void AppMC::print_final_count_stats(SATCount solCount)
     solCount.print_num_solutions();
 }
 
-SATCount AppMC::solve(AppMCConfig _conf)
-
+SATCount Counter::solve(Config _conf)
 {
     conf = _conf;
     orig_num_vars = solver->nVars();
@@ -281,7 +280,7 @@ SATCount AppMC::solve(AppMCConfig _conf)
     cout << "c [appmc] Using start iteration " << conf.startiter << endl;
     SATCount solCount = count();
     print_final_count_stats(solCount);
-    cout << "c [appmc] FINISHED AppMC T: "
+    cout << "c [appmc] FINISHED Counter T: "
         << (cpuTimeTotal() - startTime) << " s"
         << endl;
     if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
@@ -290,7 +289,7 @@ SATCount AppMC::solve(AppMCConfig _conf)
     return solCount;
 }
 
-vector<Lit> AppMC::set_num_hashes(
+vector<Lit> Counter::set_num_hashes(
     uint32_t num_wanted,
     map<uint64_t, Hash>& hashes,
     SparseData& sparse_data
@@ -310,7 +309,7 @@ vector<Lit> AppMC::set_num_hashes(
     return assumps;
 }
 
-void AppMC::simplify()
+void Counter::simplify()
 {
     if (conf.verb >= 1) {
         cout << "c [appmc] simplifying" << endl;
@@ -334,7 +333,7 @@ void AppMC::simplify()
     //solver->set_scc(0);
 }
 
-void AppMC::set_up_probs_threshold_measurements(
+void Counter::set_up_probs_threshold_measurements(
     uint32_t& measurements, SparseData& sparse_data)
 {
     //Set up probabilities, threshold and measurements
@@ -375,7 +374,7 @@ void AppMC::set_up_probs_threshold_measurements(
     }
 }
 
-SATCount AppMC::count()
+SATCount Counter::count()
 {
     int64_t hashCount = conf.startiter;
 
@@ -443,7 +442,7 @@ SATCount AppMC::count()
     return calc_est_count();
 }
 
-SATCount AppMC::calc_est_count()
+SATCount Counter::calc_est_count()
 {
     SATCount ret_count;
     if (!count_mutex.try_lock()) {
@@ -471,7 +470,7 @@ SATCount AppMC::calc_est_count()
     return ret_count;
 }
 
-int AppMC::find_best_sparse_match()
+int Counter::find_best_sparse_match()
 {
     for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
         if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampling_set.size()) {
@@ -494,7 +493,7 @@ int AppMC::find_best_sparse_match()
 //See Algorithm 2+3 in paper "Algorithmic Improvements in Approximate Counting
 //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
 //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
-void AppMC::one_measurement_count(
+void Counter::one_measurement_count(
     int64_t& mPrev,
     const int iter,
     SparseData sparse_data
@@ -633,7 +632,7 @@ void AppMC::one_measurement_count(
         hashPrev = cur_hash_count;
     }
 }
-bool AppMC::gen_rhs()
+bool Counter::gen_rhs()
 {
     std::uniform_int_distribution<uint32_t> dist{0, 1};
     bool rhs = dist(randomEngine);
@@ -641,7 +640,7 @@ bool AppMC::gen_rhs()
     return rhs;
 }
 
-string AppMC::gen_rnd_bits(
+string Counter::gen_rnd_bits(
     const uint32_t size,
     // The name of parameter was changed to indicate that this is the index of hash function
     const uint32_t hash_index,
@@ -680,7 +679,7 @@ string AppMC::gen_rnd_bits(
     return randomBits;
 }
 
-void AppMC::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
+void Counter::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
     cout << "c [appmc] Added XOR ";
     for (size_t i = 0; i < vars.size(); i++) {
@@ -693,7 +692,7 @@ void AppMC::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 }
 
 template<class T>
-inline T AppMC::findMedian(vector<T>& numList)
+inline T Counter::findMedian(vector<T>& numList)
 {
     std::sort(numList.begin(), numList.end());
     size_t medIndex = (numList.size() + 1) / 2;
@@ -707,7 +706,7 @@ inline T AppMC::findMedian(vector<T>& numList)
 }
 
 template<class T>
-inline T AppMC::findMin(vector<T>& numList)
+inline T Counter::findMin(vector<T>& numList)
 {
     T min = std::numeric_limits<T>::max();
     for (const auto a: numList) {
@@ -718,31 +717,31 @@ inline T AppMC::findMin(vector<T>& numList)
     return min;
 }
 
-void printVersionInfoAppMC()
+void print_version_infoCounter()
 {
-    cout << "c AppMC SHA revision " << ::get_version_sha1() << endl;
-    cout << "c AppMC version " << ::get_version_tag() << endl;
-    cout << "c AppMC compilation env " << ::get_compilation_env() << endl;
+    cout << "c Counter SHA revision " << ::get_version_sha1() << endl;
+    cout << "c Counter version " << ::get_version_tag() << endl;
+    cout << "c Counter compilation env " << ::get_compilation_env() << endl;
     #ifdef __GNUC__
-    cout << "c AppMC compiled with gcc version " << __VERSION__ << endl;
+    cout << "c Counter compiled with gcc version " << __VERSION__ << endl;
     #else
-    cout << "c AppMC compiled with non-gcc compiler" << endl;
+    cout << "c Counter compiled with non-gcc compiler" << endl;
     #endif
 }
 
-void AppMC::printVersionInfo() const
+void Counter::print_version_info() const
 {
-    ::printVersionInfoAppMC();
+    ::print_version_infoCounter();
     cout << solver->get_text_version_info();
 }
 
 
-void AppMC::openLogFile()
+void Counter::openLogFile()
 {
     if (!conf.logfilename.empty()) {
         logfile.open(conf.logfilename.c_str());
         if (!logfile.is_open()) {
-            cout << "[appmc] Cannot open AppMC log file '" << conf.logfilename
+            cout << "[appmc] Cannot open Counter log file '" << conf.logfilename
                  << "' for writing." << endl;
             exit(1);
         }
@@ -761,7 +760,7 @@ void AppMC::openLogFile()
     }
 }
 
-void AppMC::write_log(
+void Counter::write_log(
     bool sampling,
     int iter,
     uint32_t hashCount,
@@ -787,7 +786,7 @@ void AppMC::write_log(
 }
 
 
-void AppMC::check_model(
+void Counter::check_model(
     const vector<lbool>& model,
     const HashesModels* const hm,
     const uint32_t hashCount
@@ -816,7 +815,7 @@ void AppMC::check_model(
     assert(ok);
 }
 
-bool AppMC::check_model_against_hash(const Hash& h, const vector<lbool>& model)
+bool Counter::check_model_against_hash(const Hash& h, const vector<lbool>& model)
 {
     bool rhs = h.rhs;
     for (const uint32_t var: h.hash_vars) {

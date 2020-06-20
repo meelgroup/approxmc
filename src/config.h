@@ -30,8 +30,10 @@
 #define APPMCCONFIG
 
 #include <vector>
+#include <cstdint>
+#include <string>
 
-struct AppMCConfig {
+struct Config {
     uint32_t startiter = 0;
     double epsilon = 0.80;
     double delta = 0.2;

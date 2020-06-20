@@ -53,6 +53,7 @@ macro(approxmc_add_public_header LIBTARGET HEADER)
      )
 endmacro()
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
@@ -62,6 +63,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BIN
 
 set(approxmc_lib_files
     approxmc.cpp
+    counter.cpp
     constants.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
 )
@@ -86,17 +88,6 @@ install(TARGETS approxmc
 )
 
 approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h )
-approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/constants.h )
-approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmcconfig.h )
-
-#     set_target_properties(
-#       approxmc PROPERTIES LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
-#     )
-#
-#
-#     SET_SOURCE_FILES_PROPERTIES(main_min.cpp
-#         PROPERTIES COMPILE_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'  -s LINKABLE=1 -s EXPORT_ALL=1"
-#     )
 
 
 # -----------------------------------------------------------------------------
@@ -124,6 +115,8 @@ add_executable(approxmc-bin
 set(approxmc_exec_link_libs
     ${Boost_LIBRARIES}
     ${GMP_LIBRARY}
+    ${CRYPTOMINISAT5_LIBRARIES}
+    ${cms_libs}
 )
 
 IF (ZLIB_FOUND)
@@ -131,8 +124,6 @@ IF (ZLIB_FOUND)
 ENDIF()
 
 target_link_libraries(approxmc-bin
-    ${cms_libs}
-    ${CRYPTOMINISAT5_LIBRARIES}
     ${approxmc_exec_link_libs}
     approxmc
 )

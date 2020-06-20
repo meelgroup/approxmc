@@ -37,43 +37,26 @@ using std::vector;
 #endif
 #include <signal.h>
 
-#include "approxmcconfig.h"
-#include "time_mem.h"
 #include "approxmc.h"
 #include <cryptominisat5/cryptominisat.h>
-#include "cryptominisat5/dimacsparser.h"
-#include "cryptominisat5/streambuffer.h"
+#include <cryptominisat5/dimacsparser.h>
+#include <cryptominisat5/streambuffer.h>
 
 using namespace CMSat;
 using std::cout;
 using std::cerr;
 using std::endl;
 string command_line;
-AppMC* appmc = NULL;
+ApproxMC::AppMC* appmc = NULL;
 
-AppMCConfig conf;
 po::options_description appmc_options = po::options_description("Main options");
-po::options_description appmcgen_options = po::options_description("Sampling options");
-po::options_description appmc4_options = po::options_description("ApproxMC4 paper options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
+uint32_t verbosity;
+uint32_t seed;
 
-//signal code
-void SIGINT_handler(int)
-{
-    if (!appmc) {
-        return;
-    }
-    SATCount solCount = appmc->calc_est_count();
-    if (!solCount.valid) {
-        cout << "c did not manage to get a single measurement, we have no estimate of the count" << endl;
-        exit(-1);
-    }
-    cout << "c Below count is NOT FULLY APPROXIMIATE due to early-abort!" << endl;
-    solCount.print_num_solutions();
-    exit(-1);
-}
+
 
 
 void add_appmc_options()
@@ -81,15 +64,17 @@ void add_appmc_options()
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;
 
-    my_epsilon << std::setprecision(8) << conf.epsilon;
-    my_delta << std::setprecision(8) << conf.delta;
+    /*my_epsilon << std::setprecision(8) << conf.epsilon;
+    my_delta << std::setprecision(8) << conf.delta;*/
  
     appmc_options.add_options()
     ("help,h", "Prints help")
-    ("version", "Print version info")
     ("input", po::value< vector<string> >(), "file(s) to read")
-    ("verb,v", po::value(&conf.verb)->default_value(conf.verb), "verbosity")
-    ("seed,s", po::value(&conf.seed)->default_value(conf.seed), "Seed")
+    ("verb,v", po::value(&verbosity)->default_value(verbosity), "verbosity")
+    ("seed,s", po::value(&seed)->default_value(seed), "Seed")
+    ("version", "Print version info")
+
+    /*
     ("epsilon", po::value(&conf.epsilon)->default_value(conf.epsilon, my_epsilon.str())
         , "epsilon parameter as per PAC guarantees")
     ("delta", po::value(&conf.delta)->default_value(conf.delta, my_delta.str())
@@ -106,27 +91,18 @@ void add_appmc_options()
         , "Generate sparse XORs when possible")
     ("simplify", po::value(&conf.simplify)->default_value(conf.simplify)
         , "Simplify agressiveness")
-    //blasted_TR_ptb_1_linear.cnf.gz.no_w.cnf.gz is sensitive to below.
-    //1.0 will mess it up. 0.3 will work.
     ("velimratio", po::value(&conf.var_elim_ratio)->default_value(conf.var_elim_ratio)
         , "Variable elimination ratio for each simplify run")
-    ;
-
-    //Improvements from ApproxMC4 paper
-    appmc4_options.add_options()
     ("detachxor", po::value(&conf.cms_detach_xor)->default_value(conf.cms_detach_xor)
         , "Detach XORs in CMS")
     ("reusemodels", po::value(&conf.reuse_models)->default_value(conf.reuse_models)
         , "Reuse models while counting solutions")
     ("forcesolextension", po::value(&conf.force_sol_extension)->default_value(conf.force_sol_extension)
-        , "Use trick of not extending solutions in the SAT solver to full solution");
-
-    appmcgen_options.add_options()
+        , "Use trick of not extending solutions in the SAT solver to full solution")
+        */
     ;
 
     help_options.add(appmc_options);
-    help_options.add(appmcgen_options);
-    help_options.add(appmc4_options);
 }
 
 void add_supported_options(int argc, char** argv)
@@ -149,7 +125,7 @@ void add_supported_options(int argc, char** argv)
         }
 
         if (vm.count("version")) {
-            appmc->printVersionInfo();
+            appmc->print_version_info();
             std::exit(0);
         }
 
@@ -231,15 +207,30 @@ void add_supported_options(int argc, char** argv)
 
 }
 
-void readInAFile(SATSolver* solver2, const string& filename)
+// void SIGINT_handler(int)
+// {
+//     if (!appmc) {
+//         return;
+//     }
+//     SATCount solCount = appmc->calc_est_count();
+//     if (!solCount.valid) {
+//         cout << "c did not manage to get a single measurement, we have no estimate of the count" << endl;
+//         exit(-1);
+//     }
+//     cout << "c Below count is NOT FULLY APPROXIMIATE due to early-abort!" << endl;
+//     solCount.print_num_solutions();
+//     exit(-1);
+// }
+
+void read_in_file(SATSolver* solver2, const string& filename)
 {
     solver2->add_sql_tag("filename", filename);
     #ifndef USE_ZLIB
     FILE * in = fopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<FILE*, FN> > parser(solver, NULL, 2);
+    DimacsParser<StreamBuffer<FILE*, FN>, CMSat::SATSolver> parser(solver2, NULL, 2);
     #else
     gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ> > parser(appmc->solver, NULL, 2);
+    DimacsParser<StreamBuffer<gzFile, GZ>, CMSat::SATSolver> parser(solver2, NULL, 2);
     #endif
 
     if (in == NULL) {
@@ -255,16 +246,16 @@ void readInAFile(SATSolver* solver2, const string& filename)
         exit(-1);
     }
 
-    conf.sampling_set.swap(parser.sampling_vars);
+    appmc->set_sampling_set(parser.sampling_vars);
 
     #ifndef USE_ZLIB
-        fclose(in);
+    fclose(in);
     #else
-        gzclose(in);
+    gzclose(in);
     #endif
 }
 
-void readInStandardInput(SATSolver* solver2)
+void read_stdin(SATSolver* solver2)
 {
     cout
     << "c Reading from standard input... Use '-h' or '--help' for help."
@@ -282,48 +273,21 @@ void readInStandardInput(SATSolver* solver2)
     }
 
     #ifndef USE_ZLIB
-    DimacsParser<StreamBuffer<FILE*, FN> > parser(solver2, NULL, 2);
+    DimacsParser<StreamBuffer<FILE*, FN>, CMSat::SATSolver> parser(solver2, NULL, 2);
     #else
-    DimacsParser<StreamBuffer<gzFile, GZ> > parser(solver2, NULL, 2);
+    DimacsParser<StreamBuffer<gzFile, GZ>, CMSat::SATSolver> parser(solver2, NULL, 2);
     #endif
 
     if (!parser.parse_DIMACS(in, false)) {
         exit(-1);
     }
 
-    conf.sampling_set.swap(parser.sampling_vars);
+    appmc->set_sampling_set(parser.sampling_vars);
 
     #ifdef USE_ZLIB
-        gzclose(in);
+    gzclose(in);
     #endif
 }
-
-void set_sampling_vars()
-{
-    if (conf.sampling_set.empty()) {
-        cout
-        << "c [appmc] WARNING! Sampling set was not declared with 'c ind var1 [var2 var3 ..] 0'"
-        " notation in the CNF." << endl
-        << "c [appmc] we may work substantially worse!" << endl;
-        for (size_t i = 0; i < appmc->solver->nVars(); i++) {
-            conf.sampling_set.push_back(i);
-        }
-    }
-    cout << "c [appmc] Sampling set size: " << conf.sampling_set.size() << endl;
-    if (conf.sampling_set.size() > 100) {
-        cout
-        << "c [appmc] Sampling var set contains over 100 variables, not displaying"
-        << endl;
-    } else {
-        cout << "c [appmc] Sampling set: ";
-        for (auto v: conf.sampling_set) {
-            cout << v+1 << ", ";
-        }
-        cout << endl;
-    }
-    appmc->solver->set_sampling_vars(&conf.sampling_set);
-}
-
 
 int main(int argc, char** argv)
 {
@@ -333,10 +297,9 @@ int main(int argc, char** argv)
                    FE_OVERFLOW
                   );
     #endif
-    signal(SIGINT, SIGINT_handler);
-    signal(SIGALRM, SIGINT_handler);
-    signal(SIGTERM, SIGINT_handler);
-    signal(SIGKILL, SIGINT_handler);
+//     signal(SIGALRM, SIGINT_handler);
+//     signal(SIGTERM, SIGINT_handler);
+
     //Reconstruct the command line so we can emit it later if needed
     for(int i = 0; i < argc; i++) {
         command_line += string(argv[i]);
@@ -345,47 +308,26 @@ int main(int argc, char** argv)
         }
     }
 
-    appmc = new AppMC;
     add_supported_options(argc, argv);
-    appmc->printVersionInfo();
+
+    appmc = new ApproxMC::AppMC;
+    appmc->print_version_info();
     cout
     << "c executed with command line: "
     << command_line
     << endl;
 
-    cout << "c [appmc] using seed: " << conf.seed << endl;
+    appmc->set_verbosity(vm.count("verbosity"));
 
     if (vm.count("log") == 0) {
         if (vm.count("input") != 0) {
-            conf.logfilename = vm["input"].as<vector<string> >()[0] + ".log";
-            cout << "c [appmc] Logfile name not given, assumed to be " << conf.logfilename << endl;
+            string logfilename = vm["input"].as<vector<string> >()[0] + ".log";
+            appmc->set_up_log(logfilename);
+            cout << "c [appmc] Logfile name not given, assumed to be " << logfilename << endl;
         } else {
-            std::cerr << "[appmc] ERROR: You must provide the logfile name" << endl;
+            cout << "[appmc] ERROR: You must provide the logfile name" << endl;
             exit(-1);
         }
-    }
-    //startTime = cpuTimeTotal();
-    appmc->solver = new SATSolver();
-    appmc->solver->set_up_for_scalmc();
-
-    if (conf.verb > 2) {
-        appmc->solver->set_verbosity(conf.verb-2);
-    }
-    appmc->solver->set_allow_otf_gauss();
-    appmc->solver->set_xor_detach(conf.cms_detach_xor);
-
-    if (conf.num_threads > 1) {
-        appmc->solver->set_num_threads(conf.num_threads);
-    }
-
-    if (conf.epsilon < 0.0) {
-        cout << "[appmc] ERROR: invalid epsilon" << endl;
-        exit(-1);
-    }
-
-    if (conf.delta <= 0.0 || conf.delta > 1.0) {
-        cout << "[appmc] ERROR: invalid delta" << endl;
-        exit(-1);
     }
 
     //parsing the input
@@ -394,17 +336,10 @@ int main(int argc, char** argv)
         if (inp.size() > 1) {
             cout << "[appmc] ERROR: can only parse in one file" << endl;
         }
-        readInAFile(appmc->solver, inp[0].c_str());
+        read_in_file(appmc->get_solver(), inp[0].c_str());
     } else {
-        readInStandardInput(appmc->solver);
+        read_stdin(appmc->get_solver());
     }
-    set_sampling_vars();
-    if (conf.startiter > conf.sampling_set.size()) {
-        cout << "c [appmc] ERROR: Manually-specified start_iter"
-             "is larger than the size of the sampling set.\n" << endl;
-        exit(-1);
-    }
-    SATCount solCount;
-    solCount = appmc->solve(conf);
-    return 0;
+
+    appmc->count();
 }

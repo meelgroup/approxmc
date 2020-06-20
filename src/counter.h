@@ -27,10 +27,10 @@
  */
 
 
-#ifndef AppMC_H_
-#define AppMC_H_
+#ifndef COUNTER_H_
+#define COUNTER_H_
 
-#include "approxmcconfig.h"
+#include "config.h"
 #include <gmp.h>
 #include <fstream>
 #include <random>
@@ -126,26 +126,26 @@ struct SparseData {
     int table_no = -1;
 };
 
-class AppMC {
+class Counter {
 public:
-    SATCount solve(AppMCConfig _conf);
+    SATCount solve(Config _conf);
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
     string binary(const uint32_t x, const uint32_t length);
     bool gen_rhs();
     uint32_t threshold_appmcgen;
     SATSolver* solver = NULL;
-    void printVersionInfo() const;
+    void print_version_info() const;
     SATCount calc_est_count();
     std::mutex count_mutex;
     void print_final_count_stats(SATCount sol_count);
     const Constants constants;
 
 private:
-    AppMCConfig conf;
+    Config conf;
     SATCount count();
     void add_appmc_options();
-    bool ScalAppMC(SATCount& count);
+    bool ScalCounter(SATCount& count);
     Hash add_hash(uint32_t total_num_hashes, SparseData& sparse_data);
     SolNum bounded_sol_count(
         uint32_t maxSolutions,
@@ -221,4 +221,4 @@ private:
 
 
 
-#endif //AppMC_H_
+#endif //COUNTER_H_
