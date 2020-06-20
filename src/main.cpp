@@ -313,7 +313,7 @@ int main(int argc, char** argv)
     cout << appmc->get_version_info();
     cout << "c executed with command line: " << command_line << endl;
 
-    appmc->set_verbosity(vm.count("verbosity"));
+    appmc->set_verbosity(vm["verb"].as<uint32_t>());
 
     if (vm.count("log") == 0) {
         if (vm.count("input") != 0) {

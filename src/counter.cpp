@@ -254,10 +254,6 @@ SolNum Counter::bounded_sol_count(
 
 void Counter::print_final_count_stats(SATCount solCount)
 {
-    cout << "c [appmc] FINISHED Counter T: "
-    << (cpuTimeTotal() - startTime) << " s"
-    << endl;
-
     if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
         cout << "c [appmc] Formula was UNSAT " << endl;
     }
@@ -280,7 +276,7 @@ SATCount Counter::solve(Config _conf)
     cout << "c [appmc] Using start iteration " << conf.startiter << endl;
     SATCount solCount = count();
     print_final_count_stats(solCount);
-    cout << "c [appmc] FINISHED Counter T: "
+    cout << "c [appmc] FINISHED ApproxMC T: "
         << (cpuTimeTotal() - startTime) << " s"
         << endl;
     if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
