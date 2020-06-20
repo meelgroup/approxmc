@@ -46,7 +46,6 @@ using namespace CMSat;
 using std::cout;
 using std::cerr;
 using std::endl;
-string command_line;
 ApproxMC::AppMC* appmc = NULL;
 
 po::options_description appmc_options = po::options_description("Main options");
@@ -125,7 +124,7 @@ void add_supported_options(int argc, char** argv)
         }
 
         if (vm.count("version")) {
-            appmc->print_version_info();
+            cout << appmc->get_version_info();
             std::exit(0);
         }
 
@@ -301,6 +300,7 @@ int main(int argc, char** argv)
 //     signal(SIGTERM, SIGINT_handler);
 
     //Reconstruct the command line so we can emit it later if needed
+    string command_line;
     for(int i = 0; i < argc; i++) {
         command_line += string(argv[i]);
         if (i+1 < argc) {
@@ -308,14 +308,10 @@ int main(int argc, char** argv)
         }
     }
 
-    add_supported_options(argc, argv);
-
     appmc = new ApproxMC::AppMC;
-    appmc->print_version_info();
-    cout
-    << "c executed with command line: "
-    << command_line
-    << endl;
+    add_supported_options(argc, argv);
+    cout << appmc->get_version_info();
+    cout << "c executed with command line: " << command_line << endl;
 
     appmc->set_verbosity(vm.count("verbosity"));
 
@@ -330,7 +326,6 @@ int main(int argc, char** argv)
         }
     }
 
-    //parsing the input
     if (vm.count("input") != 0) {
         vector<string> inp = vm["input"].as<vector<string> >();
         if (inp.size() > 1) {

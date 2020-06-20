@@ -135,7 +135,7 @@ public:
     bool gen_rhs();
     uint32_t threshold_appmcgen;
     SATSolver* solver = NULL;
-    void print_version_info() const;
+    string get_version_info() const;
     SATCount calc_est_count();
     std::mutex count_mutex;
     void print_final_count_stats(SATCount sol_count);

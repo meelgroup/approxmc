@@ -717,22 +717,27 @@ inline T Counter::findMin(vector<T>& numList)
     return min;
 }
 
-void print_version_infoCounter()
+string get_version_info()
 {
-    cout << "c Counter SHA revision " << ::get_version_sha1() << endl;
-    cout << "c Counter version " << ::get_version_tag() << endl;
-    cout << "c Counter compilation env " << ::get_compilation_env() << endl;
+    std::stringstream ss;
+    ss << "c ApproxMC SHA revision " << ::get_version_sha1() << endl;
+    ss << "c ApproxMC version " << ::get_version_tag() << endl;
+    ss << "c ApproxMC compilation env " << ::get_compilation_env() << endl;
     #ifdef __GNUC__
-    cout << "c Counter compiled with gcc version " << __VERSION__ << endl;
+    ss << "c ApproxMC compiled with gcc version " << __VERSION__ << endl;
     #else
-    cout << "c Counter compiled with non-gcc compiler" << endl;
+    ss << "c ApproxMC compiled with non-gcc compiler" << endl;
     #endif
+
+    return ss.str();
 }
 
-void Counter::print_version_info() const
+string Counter::get_version_info() const
 {
-    ::print_version_infoCounter();
-    cout << solver->get_text_version_info();
+    string ret = ::get_version_info();
+    ret += solver->get_text_version_info();
+
+    return ret;
 }
 
 
