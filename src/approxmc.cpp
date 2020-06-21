@@ -44,7 +44,7 @@ namespace ApproxMC {
 
 using namespace ApproxMC;
 
-AppMC::AppMC()
+DLL_PUBLIC AppMC::AppMC()
 {
     data = new AppMCPrivateData;
     data->counter.solver = new SATSolver();
@@ -53,13 +53,13 @@ AppMC::AppMC()
     data->counter.solver->set_xor_detach(data->conf.cms_detach_xor);
 }
 
-AppMC::~AppMC()
+DLL_PUBLIC AppMC::~AppMC()
 {
     delete data->counter.solver;
     delete data;
 }
 
-void setup_sampling_vars(AppMCPrivateData* data)
+DLL_PUBLIC void setup_sampling_vars(AppMCPrivateData* data)
 {
     if (data->conf.sampling_set.empty()) {
         if (data->conf.verb) {
@@ -90,17 +90,17 @@ void setup_sampling_vars(AppMCPrivateData* data)
     data->counter.solver->set_sampling_vars(&(data->conf.sampling_set));
 }
 
-string AppMC::get_version_info()
+DLL_PUBLIC string AppMC::get_version_info()
 {
     return data->counter.get_version_info();
 }
 
-void AppMC::set_up_log(string log_file_name)
+DLL_PUBLIC void AppMC::set_up_log(string log_file_name)
 {
     data->conf.logfilename = log_file_name;
 }
 
-void AppMC::set_verbosity(uint32_t verb)
+DLL_PUBLIC void AppMC::set_verbosity(uint32_t verb)
 {
     data->conf.verb = verb;
     if (verb > 2) {
@@ -108,48 +108,47 @@ void AppMC::set_verbosity(uint32_t verb)
     }
 }
 
-void AppMC::set_seed(uint32_t seed)
+DLL_PUBLIC void AppMC::set_seed(uint32_t seed)
 {
     data->conf.seed = seed;
 }
 
-void AppMC::set_epsilon(double epsilon)
+DLL_PUBLIC void AppMC::set_epsilon(double epsilon)
 {
     data->conf.epsilon = epsilon;
 }
 
-void AppMC::set_delta(double delta)
+DLL_PUBLIC void AppMC::set_delta(double delta)
 {
     data->conf.delta = delta;
 }
 
-void AppMC::set_start_iter(uint32_t start_iter)
+DLL_PUBLIC void AppMC::set_start_iter(uint32_t start_iter)
 {
     data->conf.start_iter = start_iter;
 }
 
-void AppMC::set_verb_cls(uint32_t verb_cls)
+DLL_PUBLIC void AppMC::set_verb_cls(uint32_t verb_cls)
 {
     data->conf.verb_cls = verb_cls;
 }
 
-void AppMC::set_num_threads(uint32_t num_threads)
+DLL_PUBLIC void AppMC::set_num_threads(uint32_t num_threads)
 {
     data->conf.num_threads = num_threads;
 }
 
-void AppMC::set_simplify(uint32_t simplify)
+DLL_PUBLIC void AppMC::set_simplify(uint32_t simplify)
 {
     data->conf.simplify = simplify;
 }
 
-void AppMC::set_var_elim_ratio(double var_elim_ratio)
+DLL_PUBLIC void AppMC::set_var_elim_ratio(double var_elim_ratio)
 {
     data->conf.var_elim_ratio = var_elim_ratio;
 }
 
-
-void AppMC::set_detach_xors(uint32_t detach_xors)
+DLL_PUBLIC void AppMC::set_detach_xors(uint32_t detach_xors)
 {
     data->conf.cms_detach_xor = detach_xors;
 }
@@ -159,43 +158,42 @@ void AppMC::set_reuse_models(uint32_t reuse_models)
     data->conf.reuse_models = reuse_models;
 }
 
-void AppMC::set_force_sol_extension(uint32_t force_sol_extension)
+DLL_PUBLIC void AppMC::set_force_sol_extension(uint32_t force_sol_extension)
 {
     data->conf.force_sol_extension = force_sol_extension;
 }
 
-void AppMC::set_sparse(uint32_t sparse)
+DLL_PUBLIC void AppMC::set_sparse(uint32_t sparse)
 {
     data->conf.sparse = sparse;
 }
 
-double AppMC::get_default_epsilon()
+DLL_PUBLIC double AppMC::get_default_epsilon()
 {
     return data->conf.epsilon;
 }
 
-
-double AppMC::get_default_delta()
+DLL_PUBLIC double AppMC::get_default_delta()
 {
     return data->conf.delta;
 }
 
-uint32_t AppMC::get_default_simplify()
+DLL_PUBLIC uint32_t AppMC::get_default_simplify()
 {
     return data->conf.simplify;
 }
 
-double AppMC::get_default_var_elim_ratio()
+DLL_PUBLIC double AppMC::get_default_var_elim_ratio()
 {
     return data->conf.var_elim_ratio;
 }
 
-uint32_t AppMC::get_default_sparse()
+DLL_PUBLIC uint32_t AppMC::get_default_sparse()
 {
     return data->conf.sparse;
 }
 
-ApproxMC::SolCount AppMC::count()
+DLL_PUBLIC ApproxMC::SolCount AppMC::count()
 {
     if (data->conf.verb > 2) {
         cout << "c [appmc] using seed: " << data->conf.seed << endl;
@@ -217,37 +215,37 @@ ApproxMC::SolCount AppMC::count()
     return sol_count;
 }
 
-void AppMC::set_projection_set(const vector<uint32_t>& vars)
+DLL_PUBLIC void AppMC::set_projection_set(const vector<uint32_t>& vars)
 {
     data->conf.sampling_set = vars;
 }
 
 
-uint32_t AppMC::nVars() {
+DLL_PUBLIC uint32_t AppMC::nVars() {
     return data->counter.solver->nVars();
 }
 
-void AppMC::new_vars(uint32_t num)
+DLL_PUBLIC void AppMC::new_vars(uint32_t num)
 {
     data->counter.solver->new_vars(num);
 }
 
-void AppMC::new_var()
+DLL_PUBLIC void AppMC::new_var()
 {
     data->counter.solver->new_var();
 }
 
-void AppMC::add_clause(const vector<CMSat::Lit>& lits)
+DLL_PUBLIC void AppMC::add_clause(const vector<CMSat::Lit>& lits)
 {
     data->counter.solver->add_clause(lits);
 }
 
-void AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
+DLL_PUBLIC void AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
 {
     data->counter.solver->add_xor_clause(vars, rhs);
 }
 
-void AppMC::set_detach_warning()
+DLL_PUBLIC void AppMC::set_detach_warning()
 {
     data->counter.solver->set_verbosity_detach_warning(true);
 }

@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "test_helper.h"
 #include <string>
 #include <vector>
+#include <complex>
 using std::string;
 using std::vector;
 
@@ -50,6 +51,36 @@ TEST(normal_interface, example1)
     SolCount c = s.count();
     EXPECT_EQ(0, c.hashCount);
     EXPECT_EQ(3, c.cellSolCount);
+}
+
+TEST(normal_interface, example2)
+{
+    AppMC s;
+    s.new_vars(10);
+    SolCount c = s.count();
+    uint32_t x = std::pow(2, c.hashCount)*c.cellSolCount;
+    EXPECT_EQ(std::pow(2, 10), x);
+}
+
+TEST(normal_interface, example3)
+{
+    AppMC s;
+    s.new_vars(10);
+    s.add_clause(str_to_cl("-3"));
+    SolCount c = s.count();
+    uint32_t cnt = std::pow(2, c.hashCount)*c.cellSolCount;
+    EXPECT_EQ(std::pow(2, 9), cnt);
+}
+
+TEST(normal_interface, example4)
+{
+    AppMC s;
+    s.new_vars(10);
+    s.add_clause(str_to_cl("-3, 4"));
+    s.add_clause(str_to_cl("3, -4"));
+    SolCount c = s.count();
+    uint32_t cnt = std::pow(2, c.hashCount)*c.cellSolCount;
+    EXPECT_EQ(std::pow(2, 9), cnt);
 }
 
 

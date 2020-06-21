@@ -277,6 +277,10 @@ if (NOT WIN32)
     #add_cxx_flag_if_supported("-fno-exceptions")
 endif()
 
+if ((NOT WIN32) AND (NOT ENABLE_TESTING))
+    add_cxx_flag_if_supported("-fvisibility=hidden")
+endif()
+
 if (COVERAGE)
     add_compile_options("--coverage")
     SET(CMAKE_EXE_LINKER_FLAGS "--coverage")
