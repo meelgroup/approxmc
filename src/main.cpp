@@ -395,4 +395,5 @@ int main(int argc, char** argv)
 
     auto sol_count = appmc->count();
     print_num_solutions(sol_count.cellSolCount, sol_count.hashCount);
+    delete appmc;
 }
