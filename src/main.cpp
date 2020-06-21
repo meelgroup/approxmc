@@ -48,60 +48,86 @@ using std::cerr;
 using std::endl;
 ApproxMC::AppMC* appmc = NULL;
 
-po::options_description appmc_options = po::options_description("Main options");
+po::options_description main_options = po::options_description("Main options");
+po::options_description improvement_options = po::options_description("Improvement options");
+po::options_description misc_options = po::options_description("Misc options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
 uint32_t verbosity;
 uint32_t seed;
-
-
-
+double epsilon;
+double delta;
+string logfilename;
+uint32_t start_iter = 1;
+uint32_t verb_cls = 0;
+uint32_t num_threads = 1;
+uint32_t simplify;
+double var_elim_ratio;
+uint32_t detach_xors = 1;
+uint32_t reuse_models = 1;
+uint32_t force_sol_extension = 0;
+uint32_t sparse;
 
 void add_appmc_options()
 {
+    ApproxMC::AppMC tmp;
+    epsilon = tmp.get_default_epsilon();
+    delta = tmp.get_default_delta();
+    simplify = tmp.get_default_simplify();
+    var_elim_ratio = tmp.get_default_var_elim_ratio();
+    sparse = tmp.get_default_sparse();
+
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;
+    std::ostringstream my_var_elim_ratio;
 
-    /*my_epsilon << std::setprecision(8) << conf.epsilon;
-    my_delta << std::setprecision(8) << conf.delta;*/
+    my_epsilon << std::setprecision(8) << epsilon;
+    my_delta << std::setprecision(8) << delta;
+    my_var_elim_ratio << std::setprecision(8) << var_elim_ratio;
  
-    appmc_options.add_options()
+    main_options.add_options()
     ("help,h", "Prints help")
     ("input", po::value< vector<string> >(), "file(s) to read")
     ("verb,v", po::value(&verbosity)->default_value(verbosity), "verbosity")
     ("seed,s", po::value(&seed)->default_value(seed), "Seed")
     ("version", "Print version info")
 
-    /*
-    ("epsilon", po::value(&conf.epsilon)->default_value(conf.epsilon, my_epsilon.str())
+    ("epsilon", po::value(&epsilon)->default_value(epsilon, my_epsilon.str())
         , "epsilon parameter as per PAC guarantees")
-    ("delta", po::value(&conf.delta)->default_value(conf.delta, my_delta.str())
+    ("delta", po::value(&delta)->default_value(delta, my_delta.str())
         , "delta parameter as per PAC guarantees; 1-delta is the confidence")
-    ("start", po::value(&conf.startiter)->default_value(conf.startiter),
-         "Start at this many XORs")
-    ("log", po::value(&conf.logfilename)->default_value(conf.logfilename),
+    ("log", po::value(&logfilename),
          "Logs of ApproxMC execution")
-    ("th", po::value(&conf.num_threads)->default_value(conf.num_threads),
-         "How many solving threads to use per solver call")
-    ("vcl", po::value(&conf.verb_appmc_cls)->default_value(conf.verb_appmc_cls)
-        ,"Print banning clause + xor clauses. Highly verbose.")
-    ("sparse", po::value(&conf.sparse)->default_value(conf.sparse)
-        , "Generate sparse XORs when possible")
-    ("simplify", po::value(&conf.simplify)->default_value(conf.simplify)
-        , "Simplify agressiveness")
-    ("velimratio", po::value(&conf.var_elim_ratio)->default_value(conf.var_elim_ratio)
-        , "Variable elimination ratio for each simplify run")
-    ("detachxor", po::value(&conf.cms_detach_xor)->default_value(conf.cms_detach_xor)
-        , "Detach XORs in CMS")
-    ("reusemodels", po::value(&conf.reuse_models)->default_value(conf.reuse_models)
-        , "Reuse models while counting solutions")
-    ("forcesolextension", po::value(&conf.force_sol_extension)->default_value(conf.force_sol_extension)
-        , "Use trick of not extending solutions in the SAT solver to full solution")
-        */
     ;
 
-    help_options.add(appmc_options);
+    improvement_options.add_options()
+    ("sparse", po::value(&sparse)->default_value(sparse)
+        , "Generate sparse XORs when possible")
+    ("detachxor", po::value(&detach_xors)->default_value(detach_xors)
+        , "Detach XORs in CMS")
+    ("reusemodels", po::value(&reuse_models)->default_value(reuse_models)
+        , "Reuse models while counting solutions")
+    ("forcesolextension", po::value(&force_sol_extension)->default_value(force_sol_extension)
+        , "Use trick of not extending solutions in the SAT solver to full solution")
+    ;
+
+    misc_options.add_options()
+    ("start", po::value(&start_iter)->default_value(start_iter),
+         "Start at this many XORs")
+    ("verbcls", po::value(&verb_cls)->default_value(verb_cls)
+        ,"Print banning clause + xor clauses. Highly verbose.")
+    ("th", po::value(&num_threads)->default_value(num_threads),
+         "How many solving threads to use per solver call")
+    ("simplify", po::value(&simplify)->default_value(simplify)
+        , "Simplify agressiveness")
+    ("velimratio", po::value(&var_elim_ratio)->default_value(var_elim_ratio)
+        , "Variable elimination ratio for each simplify run")
+    ;
+
+    help_options.add(main_options);
+    help_options.add(improvement_options);
+    help_options.add(misc_options);
 }
 
 void add_supported_options(int argc, char** argv)
@@ -225,10 +251,10 @@ void read_in_file(const string& filename)
 {
     #ifndef USE_ZLIB
     FILE * in = fopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<FILE*, FN>, ApproxMC::AppMC> parser(appmc, NULL, 2);
+    DimacsParser<StreamBuffer<FILE*, FN>, ApproxMC::AppMC> parser(appmc, NULL, verbosity);
     #else
     gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ>, ApproxMC::AppMC> parser(appmc, NULL, 2);
+    DimacsParser<StreamBuffer<gzFile, GZ>, ApproxMC::AppMC> parser(appmc, NULL, verbosity);
     #endif
 
     if (in == NULL) {
@@ -244,7 +270,7 @@ void read_in_file(const string& filename)
         exit(-1);
     }
 
-    appmc->set_sampling_set(parser.sampling_vars);
+    appmc->set_projection_set(parser.sampling_vars);
 
     #ifndef USE_ZLIB
     fclose(in);
@@ -271,16 +297,16 @@ void read_stdin()
     }
 
     #ifndef USE_ZLIB
-    DimacsParser<StreamBuffer<FILE*, FN>, ApproxMC::AppMC> parser(appmc, NULL, 2);
+    DimacsParser<StreamBuffer<FILE*, FN>, ApproxMC::AppMC> parser(appmc, NULL, verbosity);
     #else
-    DimacsParser<StreamBuffer<gzFile, GZ>, ApproxMC::AppMC> parser(appmc, NULL, 2);
+    DimacsParser<StreamBuffer<gzFile, GZ>, ApproxMC::AppMC> parser(appmc, NULL, verbosity);
     #endif
 
     if (!parser.parse_DIMACS(in, false)) {
         exit(-1);
     }
 
-    appmc->set_sampling_set(parser.sampling_vars);
+    appmc->set_projection_set(parser.sampling_vars);
 
     #ifdef USE_ZLIB
     gzclose(in);
@@ -326,27 +352,41 @@ int main(int argc, char** argv)
 
     appmc = new ApproxMC::AppMC;
     add_supported_options(argc, argv);
-    cout << appmc->get_version_info();
-    cout << "c executed with command line: " << command_line << endl;
+    if (verbosity) {
+        cout << appmc->get_version_info();
+        cout << "c executed with command line: " << command_line << endl;
+    }
 
-    appmc->set_verbosity(vm["verb"].as<uint32_t>());
-    appmc->set_detach_warning();
+    //Main options
+    appmc->set_verbosity(verbosity);
+    if (verbosity) {
+        appmc->set_detach_warning();
+    }
+    appmc->set_seed(seed);
 
-    if (vm.count("log") == 0) {
-        if (vm.count("input") != 0) {
-            string logfilename = vm["input"].as<vector<string> >()[0] + ".log";
-            appmc->set_up_log(logfilename);
-            cout << "c [appmc] Logfile name not given, assumed to be " << logfilename << endl;
-        } else {
-            cout << "[appmc] ERROR: You must provide the logfile name" << endl;
-            exit(-1);
-        }
+    //Improvement options
+    appmc->set_detach_xors(detach_xors);
+    appmc->set_reuse_models(reuse_models);
+    appmc->set_force_sol_extension(force_sol_extension);
+    appmc->set_sparse(sparse);
+
+    //Misc options
+    appmc->set_start_iter(start_iter);
+    appmc->set_verb_cls(verb_cls);
+    appmc->set_num_threads(num_threads);
+    appmc->set_simplify(simplify);
+    appmc->set_var_elim_ratio(var_elim_ratio);
+
+    if (logfilename != "") {
+        appmc->set_up_log(logfilename);
+        cout << "c [appmc] Logfile set " << logfilename << endl;
     }
 
     if (vm.count("input") != 0) {
         vector<string> inp = vm["input"].as<vector<string> >();
         if (inp.size() > 1) {
-            cout << "[appmc] ERROR: can only parse in one file" << endl;
+            cout << "[appmc] ERROR: you must only give one CNF as input" << endl;
+            exit(-1);
         }
         read_in_file(inp[0].c_str());
     } else {

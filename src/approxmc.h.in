@@ -65,19 +65,41 @@ public:
     AppMC();
     ~AppMC();
     std::string get_version_info();
+    void set_projection_set(const std::vector<uint32_t>& vars);
+    ApproxMC::SolCount count();
+    void new_vars(uint32_t num);
+    void add_clause(const std::vector<CMSat::Lit>& lits);
+
+    //Main options
     void set_up_log(std::string log_file_name);
     void set_verbosity(uint32_t verb);
     void set_detach_warning();
-    void setup();
-    ApproxMC::SolCount count();
-    void set_sampling_set(const std::vector<uint32_t>& vars);
+    void set_seed(uint32_t seed);
+    void set_epsilon(double epsilon);
+    void set_delta(double delta);
 
+    //Misc options -- do NOT to change unless you know what you are doing!
+    void set_start_iter(uint32_t start_iter);
+    void set_verb_cls(uint32_t verb_cls);
+    void set_num_threads(uint32_t num_threads);
+    void set_var_elim_ratio(double var_elim_ratio);
+    void set_detach_xors(uint32_t detach_xors);
+    void set_reuse_models(uint32_t reuse_models);
+    void set_force_sol_extension(uint32_t force_sol_extension);
+    void set_sparse(uint32_t sparse);
+    void set_simplify(uint32_t simplify);
+
+    //Querying default values
+    double get_default_epsilon();
+    double get_default_delta();
+    uint32_t get_default_simplify();
+    double get_default_var_elim_ratio();
+    uint32_t get_default_sparse();
+
+    //Misc
     uint32_t nVars();
-    void new_vars(uint32_t num);
     void new_var();
-    void add_clause(const std::vector<CMSat::Lit>& lits);
     void add_xor_clause(const std::vector<uint32_t>& vars, bool rhs);
-
 
 private:
     ////////////////////////////

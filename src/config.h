@@ -34,13 +34,13 @@
 #include <string>
 
 struct Config {
-    uint32_t startiter = 0;
+    uint32_t start_iter = 0;
     double epsilon = 0.80;
     double delta = 0.2;
     uint32_t num_threads = 1;
     int sparse = 0;
     unsigned verb = 0;
-    unsigned verb_appmc_cls = 0;
+    unsigned verb_cls = 0;
     uint32_t seed = 1;
     int simplify = 1;
     double var_elim_ratio = 1.6;

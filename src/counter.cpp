@@ -76,7 +76,7 @@ Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
 
     vars.push_back(act_var);
     solver->add_xor_clause(vars, rhs);
-    if (conf.verb_appmc_cls) {
+    if (conf.verb_cls) {
         print_xor(vars, rhs);
     }
 
@@ -232,7 +232,7 @@ SolNum Counter::bounded_sol_count(
             assert(solver->get_model()[var] != l_Undef);
             lits.push_back(Lit(var, solver->get_model()[var] == l_True));
         }
-        if (conf.verb_appmc_cls) {
+        if (conf.verb_cls) {
             cout << "c [appmc] Adding banning clause: " << lits << endl;
         }
         solver->add_clause(lits);
@@ -375,7 +375,7 @@ void Counter::set_up_probs_threshold_measurements(
 
 ApproxMC::SolCount Counter::count()
 {
-    int64_t hashCount = conf.startiter;
+    int64_t hashCount = conf.start_iter;
 
     SparseData sparse_data(-1);
     uint32_t measurements;
@@ -532,12 +532,14 @@ void Counter::one_measurement_count(
         uint64_t cur_hash_count = hashCount;
         const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes, sparse_data);
 
-        cout << "c [appmc] "
-        "[ " << std::setw(7) << std::setprecision(2) << std::fixed
-        << (cpuTimeTotal()-startTime)
-        << " ]"
-        << " round: " << std::setw(2) << iter
-        << " hashes: " << std::setw(6) << hashCount << endl;
+        if (conf.verb) {
+            cout << "c [appmc] "
+            "[ " << std::setw(7) << std::setprecision(2) << std::fixed
+            << (cpuTimeTotal()-startTime)
+            << " ]"
+            << " round: " << std::setw(2) << iter
+            << " hashes: " << std::setw(6) << hashCount << endl;
+        }
         double myTime = cpuTime();
         SolNum sols = bounded_sol_count(
             threshold + 1, //max no. solutions
