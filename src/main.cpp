@@ -54,7 +54,7 @@ po::options_description misc_options = po::options_description("Misc options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
-uint32_t verbosity;
+uint32_t verbosity = 1;
 uint32_t seed;
 double epsilon;
 double delta;
@@ -77,6 +77,7 @@ void add_appmc_options()
     simplify = tmp.get_default_simplify();
     var_elim_ratio = tmp.get_default_var_elim_ratio();
     sparse = tmp.get_default_sparse();
+    seed = tmp.get_default_seed();
 
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;
@@ -89,7 +90,7 @@ void add_appmc_options()
     main_options.add_options()
     ("help,h", "Prints help")
     ("input", po::value< vector<string> >(), "file(s) to read")
-    ("verb,v", po::value(&verbosity)->default_value(verbosity), "verbosity")
+    ("verb,v", po::value(&verbosity)->default_value(1), "verbosity")
     ("seed,s", po::value(&seed)->default_value(seed), "Seed")
     ("version", "Print version info")
 

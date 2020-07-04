@@ -193,6 +193,11 @@ DLL_PUBLIC uint32_t AppMC::get_default_sparse()
     return data->conf.sparse;
 }
 
+DLL_PUBLIC uint32_t AppMC::get_default_seed()
+{
+    return data->conf.seed;
+}
+
 DLL_PUBLIC ApproxMC::SolCount AppMC::count()
 {
     if (data->conf.verb > 2) {

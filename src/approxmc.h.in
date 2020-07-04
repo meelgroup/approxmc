@@ -91,6 +91,7 @@ public:
 
     //Querying default values
     double get_default_epsilon();
+    uint32_t get_default_seed();
     double get_default_delta();
     uint32_t get_default_simplify();
     double get_default_var_elim_ratio();
