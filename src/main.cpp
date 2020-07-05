@@ -72,12 +72,12 @@ uint32_t sparse;
 void add_appmc_options()
 {
     ApproxMC::AppMC tmp;
-    epsilon = tmp.get_default_epsilon();
-    delta = tmp.get_default_delta();
-    simplify = tmp.get_default_simplify();
-    var_elim_ratio = tmp.get_default_var_elim_ratio();
-    sparse = tmp.get_default_sparse();
-    seed = tmp.get_default_seed();
+    epsilon = tmp.get_epsilon();
+    delta = tmp.get_delta();
+    simplify = tmp.get_simplify();
+    var_elim_ratio = tmp.get_var_elim_ratio();
+    sparse = tmp.get_sparse();
+    seed = tmp.get_seed();
 
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;

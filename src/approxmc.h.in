@@ -33,6 +33,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <cryptominisat5/cryptominisat.h>
 #include <cryptominisat5/solvertypesmini.h>
 
 namespace ApproxMC {
@@ -77,6 +78,7 @@ public:
     void set_seed(uint32_t seed);
     void set_epsilon(double epsilon);
     void set_delta(double delta);
+    CMSat::SATSolver* get_solver();
 
     //Misc options -- do NOT to change unless you know what you are doing!
     void set_start_iter(uint32_t start_iter);
@@ -90,12 +92,14 @@ public:
     void set_simplify(uint32_t simplify);
 
     //Querying default values
-    double get_default_epsilon();
-    uint32_t get_default_seed();
-    double get_default_delta();
-    uint32_t get_default_simplify();
-    double get_default_var_elim_ratio();
-    uint32_t get_default_sparse();
+    const std::vector<uint32_t>& get_sampling_set() const;
+    double get_epsilon();
+    uint32_t get_seed();
+    double get_delta();
+    uint32_t get_simplify();
+    double get_var_elim_ratio();
+    uint32_t get_sparse();
+    bool get_reuse_models();
 
     //Misc
     uint32_t nVars();

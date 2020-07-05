@@ -168,34 +168,39 @@ DLL_PUBLIC void AppMC::set_sparse(uint32_t sparse)
     data->conf.sparse = sparse;
 }
 
-DLL_PUBLIC double AppMC::get_default_epsilon()
+DLL_PUBLIC double AppMC::get_epsilon()
 {
     return data->conf.epsilon;
 }
 
-DLL_PUBLIC double AppMC::get_default_delta()
+DLL_PUBLIC double AppMC::get_delta()
 {
     return data->conf.delta;
 }
 
-DLL_PUBLIC uint32_t AppMC::get_default_simplify()
+DLL_PUBLIC uint32_t AppMC::get_simplify()
 {
     return data->conf.simplify;
 }
 
-DLL_PUBLIC double AppMC::get_default_var_elim_ratio()
+DLL_PUBLIC double AppMC::get_var_elim_ratio()
 {
     return data->conf.var_elim_ratio;
 }
 
-DLL_PUBLIC uint32_t AppMC::get_default_sparse()
+DLL_PUBLIC uint32_t AppMC::get_sparse()
 {
     return data->conf.sparse;
 }
 
-DLL_PUBLIC uint32_t AppMC::get_default_seed()
+DLL_PUBLIC uint32_t AppMC::get_seed()
 {
     return data->conf.seed;
+}
+
+DLL_PUBLIC bool AppMC::get_reuse_models()
+{
+    return data->conf.reuse_models;
 }
 
 DLL_PUBLIC ApproxMC::SolCount AppMC::count()
@@ -253,4 +258,15 @@ DLL_PUBLIC void AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
 DLL_PUBLIC void AppMC::set_detach_warning()
 {
     data->counter.solver->set_verbosity_detach_warning(true);
+}
+
+DLL_PUBLIC CMSat::SATSolver* AppMC::get_solver()
+{
+    return data->counter.solver;
+}
+
+
+DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampling_set() const
+{
+    return data->conf.sampling_set;
 }
