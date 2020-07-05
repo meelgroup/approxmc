@@ -728,7 +728,7 @@ inline T Counter::findMin(vector<T>& numList)
     return min;
 }
 
-string get_version_info()
+string scalmc_version_info()
 {
     std::stringstream ss;
     ss << "c ApproxMC SHA revision " << ::get_version_sha1() << endl;
@@ -745,7 +745,7 @@ string get_version_info()
 
 string Counter::get_version_info() const
 {
-    string ret = ::get_version_info();
+    string ret = ::scalmc_version_info();
     ret += solver->get_text_version_info();
 
     return ret;
