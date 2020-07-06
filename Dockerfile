@@ -8,7 +8,7 @@ LABEL Description="Approxmc"
 RUN apt-get update && apt-get install --no-install-recommends -y software-properties-common
 # RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 # RUN apt-get update
-RUN apt-get install --no-install-recommends -y libboost-program-options-dev gcc g++ make cmake zlib1g-dev wget make
+RUN apt-get install --no-install-recommends -y libboost-program-options-dev gcc g++ make cmake zlib1g-dev wget make libgmp-dev
 
 # get M4RI
 WORKDIR /
