@@ -1,7 +1,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# ApproxMCv3: Approximate Model Counter
-ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
+# ApproxMCv4: Approximate Model Counter
+ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before.
+
+This work is by Kuldeep Meel, Stephan Gocht, and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf) and [in CAV2020](https://www.comp.nus.edu.sg/~meel/Papers/cav20-sgm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
 
 ApproxMC handles CNF formulas. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting).
 
@@ -32,7 +34,7 @@ Then, build CryptoMiniSat and ApproxMC:
 git clone https://github.com/msoos/cryptominisat
 cd cryptominisat
 mkdir build && cd build
-cmake -DUSE_GAUSS=ON ..
+cmake ..
 make
 sudo make install
 cd ../..
