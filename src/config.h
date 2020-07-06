@@ -26,7 +26,7 @@
  THE SOFTWARE.
  */
 
-#ifndef APPMC_CONFIG_H_
+#ifndef APPMC_CONFIG_H__
 #define APPMC_CONFIG_H__
 
 #include <vector>
