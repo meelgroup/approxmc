@@ -78,8 +78,7 @@ In our case, the maximum number of solutions could at most be 2^7=128, but our C
 $ approxmc --seed 5 myfile.cnf
 c ApproxMC version 3.0
 [...]
-c CryptoMiniSat SHA revision 17a1aed4956848404e33d514eef257ca1ed2382b
-c CMS is MIT licensed
+c CryptoMiniSat SHA revision [...]
 c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 [...]
 [appmc] using seed: 5
@@ -91,12 +90,53 @@ c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 [appmc] [    0.01 ] bounded_sol_count looking for   73 solutions -- hashes active: 0
 [...]
 [appmc] FINISHED ApproxMC T: 0.04 s
-[appmc] Number of solutions is: 48 x 2^1
+c [appmc] Number of solutions is: 48*2**1
+s mc 96
 ```
 ApproxMC reports that we have approximately `96 (=48*2)` solutions to the CNF's independent support. This is because for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
 
 ### Guarantees
 ApproxMC provides so-called "PAC", or Probably Approximately Correct, guarantees. In less fancy words, the system guarntees that the solution found is within a certain tolerance (called "epsilon") with a certain probability (called "delta"). The default tolerance and probability, i.e. epsilon and delta values, are set to 0.8 and 0.2, respectively. Both values are configurable.
+
+### Library usage
+
+The system can be used as a library:
+
+```
+#include <approxmc/approxmc.h>
+#include <vector>
+#include <complex>
+#include <cassert>
+
+using std::vector;
+using namespace ApproxMC;
+using namespace CMSat;
+
+int main() {
+    AppMC appmc;
+    appmc.new_vars(10);
+
+    vector<Lit> clause;
+
+    //add "-3 4 0"
+    clause.clear();
+    clause.push_back(Lit(2, true));
+    clause.push_back(Lit(3, false));
+    appmc.add_clause(clause);
+
+    //add "3 -4 0"
+    clause.clear();
+    clause.push_back(Lit(2, false));
+    clause.push_back(Lit(3, true));
+    appmc.add_clause(clause);
+
+    SolCount c = appmc.count();
+    uint32_t cnt = std::pow(2, c.hashCount)*c.cellSolCount;
+    assert(cnt == std::pow(2, 9));
+
+    return 0;
+}
+```
 
 ### Issues, questions, bugs, etc.
 Please click on "issues" at the top and [create a new issue](https://github.com/meelgroup/mis/issues/new). All issues are responded to promptly.
