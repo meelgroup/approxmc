@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# ApproxMCv4: Approximate Model Counter
+# ApproxMC4: Approximate Model Counter
 ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before.
 
 This work is by Kuldeep Meel, Stephan Gocht, and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf) and [in CAV2020](https://www.comp.nus.edu.sg/~meel/Papers/cav20-sgm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
