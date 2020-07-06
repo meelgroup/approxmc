@@ -12,7 +12,7 @@ RUN apt-get install --no-install-recommends -y libboost-program-options-dev gcc 
 
 # get M4RI
 WORKDIR /
-RUN https://bitbucket.org/malb/m4ri/downloads/m4ri-20200125.tar.gz
+RUN wget https://bitbucket.org/malb/m4ri/downloads/m4ri-20200125.tar.gz
 RUN tar -xvf m4ri-20200125.tar.gz
 WORKDIR m4ri-20200125
 RUN ./configure
