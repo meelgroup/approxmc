@@ -79,14 +79,6 @@ set_target_properties(approxmc PROPERTIES
     SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
 )
 
-install(TARGETS approxmc
-    EXPORT ${CRYPTOMINISAT5_EXPORT_NAME}
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/approxmc"
-)
-
 approxmc_add_public_header(approxmc ${CMAKE_CURRENT_BINARY_DIR}/approxmc/approxmc.h )
 
 
@@ -107,6 +99,14 @@ foreach(public_header ${approxmc_public_headers})
     )
 endforeach()
 
+install(TARGETS approxmc
+    EXPORT ${CRYPTOMINISAT5_EXPORT_NAME}
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/approxmc"
+)
+
 add_executable(approxmc-bin
     main.cpp
     ${approxmc_lib_files}
@@ -116,7 +116,6 @@ set(approxmc_exec_link_libs
     ${Boost_LIBRARIES}
     ${GMP_LIBRARY}
     ${CRYPTOMINISAT5_LIBRARIES}
-    ${cms_libs}
 )
 
 IF (ZLIB_FOUND)
