@@ -26,8 +26,8 @@
  THE SOFTWARE.
  */
 
-#ifndef APPMC_CONFIG__
-#define APPMC_CONFIG__
+#ifndef APPMC_CONFIG_H_
+#define APPMC_CONFIG_H__
 
 #include <vector>
 #include <cstdint>
