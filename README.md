@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # ApproxMC4: Approximate Model Counter
-ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before.
+ApproxMCv4 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before.
 
 This work is by Kuldeep Meel, Stephan Gocht, and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf) and [in CAV2020](https://www.comp.nus.edu.sg/~meel/Papers/cav20-sgm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
 
@@ -9,6 +9,10 @@ ApproxMC handles CNF formulas and performs approximate counting.
 
 1. If you are interested in exact model counting, visit our exact counter [Ganak](http://github.com/meelgroup/ganak)
 2. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting).
+
+# ApproxMC5 (In Beta Version): Sparse-XOR based Approximate Model Counter
+
+We are currently working on a tight integration of sparse XORs into ApproxMC based on our [LICS-20](http://comp.nus.edu.sg/~meel/Papers/lics20-ma.pdf) paper. You can turn on the sparse XORs using the flag "sparse" but beware as reported in LICS-20 paper, this may slow down in some cases; it is likely to give a significant speedup if the number of solutions is very large. 
 
 ## Docker image
 If you don't have or don't know what an independent set is, first run our MIS tool:
@@ -145,7 +149,9 @@ int main() {
 Please click on "issues" at the top and [create a new issue](https://github.com/meelgroup/mis/issues/new). All issues are responded to promptly.
 
 ## How to Cite
-If you use ApproxMC, please cite the following papers: [AAAI19](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib) and [IJCAI16](https://www.comp.nus.edu.sg/~meel/bib/CMV16.bib).
+If you use ApproxMC, please cite the following papers: [CAV20](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib), [AAAI19](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib) and [IJCAI16](https://www.comp.nus.edu.sg/~meel/bib/CMV16.bib).
+
+If you use sparse XORs, please also cite the [LICS20](https://www.comp.nus.edu.sg/~meel/bib/MA20.bib) paper. 
 
 ApproxMC builds on a series of papers on hashing-based approach: [Related Publications](https://www.comp.nus.edu.sg/~meel/publications.html)
 
