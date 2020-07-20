@@ -360,7 +360,7 @@ int main(int argc, char** argv)
 
     //Main options
     appmc->set_verbosity(verbosity);
-    if (verbosity) {
+    if (verbosity > 2) {
         appmc->set_detach_warning();
     }
     appmc->set_seed(seed);
