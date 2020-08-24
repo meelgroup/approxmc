@@ -75,8 +75,8 @@ foreach(F ${MY_TESTS})
     target_link_libraries(${F}
         ${GMP_LIBRARY}
         ${GTEST_BOTH_LIBRARIES}
-        ${CRYPTOMINISAT5_LIBRARIES}
         approxmc
+        ${CRYPTOMINISAT5_LIBRARIES}
     )
     add_test (
         NAME ${F}
