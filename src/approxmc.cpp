@@ -153,7 +153,7 @@ DLL_PUBLIC void AppMC::set_detach_xors(uint32_t detach_xors)
     data->conf.cms_detach_xor = detach_xors;
 }
 
-void AppMC::set_reuse_models(uint32_t reuse_models)
+DLL_PUBLIC void AppMC::set_reuse_models(uint32_t reuse_models)
 {
     data->conf.reuse_models = reuse_models;
 }
