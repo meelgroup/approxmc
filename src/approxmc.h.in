@@ -83,7 +83,6 @@ public:
     //Misc options -- do NOT to change unless you know what you are doing!
     void set_start_iter(uint32_t start_iter);
     void set_verb_cls(uint32_t verb_cls);
-    void set_num_threads(uint32_t num_threads);
     void set_var_elim_ratio(double var_elim_ratio);
     void set_detach_xors(uint32_t detach_xors);
     void set_reuse_models(uint32_t reuse_models);

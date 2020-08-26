@@ -61,7 +61,6 @@ double delta;
 string logfilename;
 uint32_t start_iter = 1;
 uint32_t verb_cls = 0;
-uint32_t num_threads = 1;
 uint32_t simplify;
 double var_elim_ratio;
 uint32_t detach_xors = 1;
@@ -118,8 +117,6 @@ void add_appmc_options()
          "Start at this many XORs")
     ("verbcls", po::value(&verb_cls)->default_value(verb_cls)
         ,"Print banning clause + xor clauses. Highly verbose.")
-    ("th", po::value(&num_threads)->default_value(num_threads),
-         "How many solving threads to use per solver call")
     ("simplify", po::value(&simplify)->default_value(simplify)
         , "Simplify agressiveness")
     ("velimratio", po::value(&var_elim_ratio)->default_value(var_elim_ratio)
@@ -374,7 +371,6 @@ int main(int argc, char** argv)
     //Misc options
     appmc->set_start_iter(start_iter);
     appmc->set_verb_cls(verb_cls);
-    appmc->set_num_threads(num_threads);
     appmc->set_simplify(simplify);
     appmc->set_var_elim_ratio(var_elim_ratio);
 

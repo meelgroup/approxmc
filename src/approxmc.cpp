@@ -133,11 +133,6 @@ DLL_PUBLIC void AppMC::set_verb_cls(uint32_t verb_cls)
     data->conf.verb_cls = verb_cls;
 }
 
-DLL_PUBLIC void AppMC::set_num_threads(uint32_t num_threads)
-{
-    data->conf.num_threads = num_threads;
-}
-
 DLL_PUBLIC void AppMC::set_simplify(uint32_t simplify)
 {
     data->conf.simplify = simplify;
