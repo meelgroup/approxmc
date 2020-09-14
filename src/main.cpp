@@ -59,7 +59,7 @@ uint32_t seed;
 double epsilon;
 double delta;
 string logfilename;
-uint32_t start_iter = 1;
+uint32_t start_iter = 0;
 uint32_t verb_cls = 0;
 uint32_t simplify;
 double var_elim_ratio;
