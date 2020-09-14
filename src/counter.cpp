@@ -392,27 +392,32 @@ ApproxMC::SolCount Counter::count()
         if (conf.simplify >= 1) {
             simplify();
         }
-        int64_t currentNumSolutions = bounded_sol_count(
+        int64_t init_num_sols = bounded_sol_count(
             threshold+1, //max solutions
             NULL, // no assumptions
             hashCount
         ).solutions;
+
+        if (conf.verb >= 2) {
+            cout << "c [appmc] Initial number of solutions: " << init_num_sols << endl;
+        }
+
         write_log(false, //not sampling
                   0, 0,
-                  currentNumSolutions == (threshold + 1),
-                  currentNumSolutions, 0, cpuTime() - myTime);
+                  init_num_sols == (threshold + 1),
+                  init_num_sols, 0, cpuTime() - myTime);
 
         //Din't find at least threshold+1
-        if (currentNumSolutions <= threshold) {
+        if (init_num_sols <= threshold) {
             if (conf.verb) {
                 cout << "c [appmc] Did not find at least threshold+1 ("
-                << threshold << ") we found only " << currentNumSolutions
+                << threshold << ") we found only " << init_num_sols
                 << ", i.e. we got exact count" << endl;
             }
 
             ApproxMC::SolCount ret_count;
             ret_count.valid = true;
-            ret_count.cellSolCount = currentNumSolutions;
+            ret_count.cellSolCount = init_num_sols;
             ret_count.hashCount = 0;
             return ret_count;
         }
