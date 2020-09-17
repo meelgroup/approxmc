@@ -361,6 +361,8 @@ int main(int argc, char** argv)
         appmc->set_detach_warning();
     }
     appmc->set_seed(seed);
+    appmc->set_epsilon(epsilon);
+    appmc->set_delta(delta);
 
     //Improvement options
     appmc->set_detach_xors(detach_xors);
