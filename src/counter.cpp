@@ -532,7 +532,7 @@ void Counter::one_measurement_count(
     int64_t upperFib = total_max_xors;
 
     int64_t hashCount = mPrev;
-    int64_t hashPrev = hashCount;
+    int64_t hashPrev = 0;
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
         const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes, sparse_data);
