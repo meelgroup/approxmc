@@ -146,6 +146,7 @@ DLL_PUBLIC void AppMC::set_var_elim_ratio(double var_elim_ratio)
 DLL_PUBLIC void AppMC::set_detach_xors(uint32_t detach_xors)
 {
     data->conf.cms_detach_xor = detach_xors;
+    data->counter.solver->set_xor_detach(data->conf.cms_detach_xor);
 }
 
 DLL_PUBLIC void AppMC::set_reuse_models(uint32_t reuse_models)
