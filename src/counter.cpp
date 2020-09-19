@@ -428,10 +428,8 @@ ApproxMC::SolCount Counter::count()
     }
     int64_t mPrev = hashCount;
 
-    count_mutex.lock();
     numHashList.clear();
     numCountList.clear();
-    count_mutex.unlock();
 
     //See Algorithm 1 in paper "Algorithmic Improvements in Approximate Counting
     //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
@@ -457,12 +455,7 @@ ApproxMC::SolCount Counter::count()
 ApproxMC::SolCount Counter::calc_est_count()
 {
     ApproxMC::SolCount ret_count;
-    if (!count_mutex.try_lock()) {
-        //in the middle of updating, can't lock mutex
-        return ret_count;
-    }
     if (numHashList.empty() || numCountList.empty()) {
-        count_mutex.unlock();
         return ret_count;
     }
 
@@ -477,7 +470,6 @@ ApproxMC::SolCount Counter::calc_est_count()
     ret_count.valid = true;
     ret_count.cellSolCount = findMedian(numCountList);
     ret_count.hashCount = minHash;
-    count_mutex.unlock();
 
     return ret_count;
 }
@@ -570,10 +562,8 @@ void Counter::one_measurement_count(
             if (threshold_sols.find(hashCount-1) != threshold_sols.end()
                 && threshold_sols[hashCount-1] == 1
             ) {
-                count_mutex.lock();
                 numHashList.push_back(hashCount);
                 numCountList.push_back(num_sols);
-                count_mutex.unlock();
                 mPrev = hashCount;
                 return;
             }

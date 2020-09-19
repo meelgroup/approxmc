@@ -110,7 +110,6 @@ public:
     SATSolver* solver = NULL;
     string get_version_info() const;
     ApproxMC::SolCount calc_est_count();
-    std::mutex count_mutex;
     void print_final_count_stats(ApproxMC::SolCount sol_count);
     const Constants constants;
 
