@@ -22,7 +22,7 @@ THE SOFTWARE.
 
 #include "gtest/gtest.h"
 
-#include "approxmc/approxmc.h"
+#include "approxmc.h"
 #include "test_helper.h"
 #include <string>
 #include <vector>

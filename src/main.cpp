@@ -38,7 +38,7 @@ using std::vector;
 #include <signal.h>
 #include <gmp.h>
 
-#include "approxmc/approxmc.h"
+#include "approxmc.h"
 #include <cryptominisat5/dimacsparser.h>
 #include <cryptominisat5/streambuffer.h>
 

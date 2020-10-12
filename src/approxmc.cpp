@@ -26,7 +26,7 @@
  THE SOFTWARE.
  */
 
-#include "approxmc/approxmc.h"
+#include "approxmc.h"
 #include "counter.h"
 #include "constants.h"
 #include "config.h"
