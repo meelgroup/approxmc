@@ -39,8 +39,8 @@ TEST(normal_interface, start)
 {
     AppMC s;
     SolCount c = s.count();
-    EXPECT_EQ(c.cellSolCount, 1);
-    EXPECT_EQ(c.hashCount, 0);
+    EXPECT_EQ(1U, c.cellSolCount);
+    EXPECT_EQ(0U, c.hashCount);
 }
 
 TEST(normal_interface, example1)
