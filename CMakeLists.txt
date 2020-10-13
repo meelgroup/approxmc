@@ -457,6 +457,25 @@ else()
     message(FATAL_ERROR "Cannot find CryptoMiniSat5. Please install it! Exiting.")
 endif()
 
+
+find_package(arjun CONFIG)
+if (arjun_FOUND)
+    message(STATUS "Found Arjun")
+    message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
+    message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
+else()
+    message(FATAL_ERROR "Cannot find Arjun. Please install it! Exiting.")
+endif()
+
+find_package(louvain_communities CONFIG)
+if (louvain_communities_FOUND)
+    message(STATUS "Found Louvain Communities library")
+    message(STATUS "Louvain Communities dynamic lib: ${LOUVAIN_COMMUNITIES_LIBRARIES}")
+    message(STATUS "Louvain Communities include dirs: ${LOUVAIN_COMMUNITIES_INCLUDE_DIRS}")
+else()
+    message(FATAL_ERROR "Cannot find Louvain Communities libraries. Please install it! Exiting.")
+endif()
+
 # -----------------------------------------------------------------------------
 # Provide an export name to be used by targets that wish to export themselves.
 # -----------------------------------------------------------------------------
