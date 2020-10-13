@@ -38,6 +38,26 @@ jobs:
        cmake ..
        make
        cd ../../..
+   
+    - name: Build Louvain Community
+      run: |
+       mkdir louvain_git && cd louvain_git
+       git clone --depth 1 https://github.com/meelgroup/louvain-community
+       cd louvain-community
+       mkdir build && cd build
+       cmake ..
+       make
+       cd ../../..
+     
+    - name: Build Arjun
+      run: |
+       mkdir arjun_git && cd arjun_git
+       git clone --depth 1 https://github.com/meelgroup/arjun
+       cd arjun
+       mkdir build && cd build
+       cmake ..
+       make
+       cd ../../..
 
     - name: Build Arjun
       run: |
