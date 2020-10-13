@@ -456,12 +456,17 @@ void set_approxmc_options()
 
 void print_orig_sampling_vars(const vector<uint32_t>& orig_sampling_vars)
 {
-    cout << "Original sampling vars: ";
-    for(auto v: orig_sampling_vars) {
-        cout << v << " ";
+    if (!orig_sampling_vars.empty()) {
+        cout << "Original sampling vars: ";
+        for(auto v: orig_sampling_vars) {
+            cout << v << " ";
+        }
+        cout << endl;
+        cout << "Orig sampling vars size: " << orig_sampling_vars.size() << endl;
+    } else {
+        cout << "No original sampling vars given" << endl;
+        cout << "Orig sampling vars size: " << arjun->nVars() << endl;
     }
-    cout << endl;
-    cout << "Orig sampling vars size: " << orig_sampling_vars.size() << endl;
 }
 
 int main(int argc, char** argv)
