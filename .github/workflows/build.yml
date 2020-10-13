@@ -33,6 +33,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: meelgroup/cryptominisat
+        ref: 'devel'
         path: cryptominisat
     
     - name: Build CMS
