@@ -72,6 +72,7 @@ uint32_t force_sol_extension = 0;
 uint32_t sparse;
 vector<uint32_t> sampling_vars;
 int recompute_sampling_set = 0;
+int do_arjun = 1;
 
 void add_appmc_options()
 {
@@ -106,6 +107,8 @@ void add_appmc_options()
          "Logs of ApproxMC execution")
     ("recomp", po::value(&recompute_sampling_set)->default_value(recompute_sampling_set)
         , "Ignore given sampling set and recompute it")
+    ("arjun", po::value(&do_arjun)->default_value(do_arjun)
+        , "Use arjun to minimize sampling set")
     ;
 
     improvement_options.add_options()
@@ -250,14 +253,15 @@ void add_supported_options(int argc, char** argv)
 //     exit(-1);
 // }
 
-void read_in_file(const string& filename)
+template<class T>
+void read_in_file(const string& filename, T* myreader)
 {
     #ifndef USE_ZLIB
     FILE * in = fopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<FILE*, FN>, ArjunNS::Arjun> parser(arjun, NULL, verbosity);
+    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, NULL, verbosity);
     #else
     gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ>, ArjunNS::Arjun> parser(arjun, NULL, verbosity);
+    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, NULL, verbosity);
     #endif
 
     if (in == NULL) {
@@ -298,7 +302,8 @@ void print_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_s
     << endl << std::flush;
 }
 
-void read_stdin()
+template<class T>
+void read_stdin(T* myreader)
 {
     cout
     << "c Reading from standard input... Use '-h' or '--help' for help."
@@ -316,9 +321,9 @@ void read_stdin()
     }
 
     #ifndef USE_ZLIB
-    DimacsParser<StreamBuffer<FILE*, FN>, ArjunNS::Arjun> parser(arjun, NULL, verbosity);
+    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, NULL, verbosity);
     #else
-    DimacsParser<StreamBuffer<gzFile, GZ>, ArjunNS::Arjun> parser(arjun, NULL, verbosity);
+    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, NULL, verbosity);
     #endif
 
     if (!parser.parse_DIMACS(in, false)) {
@@ -381,20 +386,26 @@ void get_cnf_from_arjun()
     arjun->end_getting_small_clauses();
 }
 
-void read_input_cnf_to_arjun()
+void read_input_cnf()
 {
     //Init Arjun, read in file, get minimal indep set
-    arjun->set_seed(seed);
-    arjun->set_verbosity(verbosity);
     if (vm.count("input") != 0) {
         vector<string> inp = vm["input"].as<vector<string> >();
         if (inp.size() > 1) {
             cout << "[appmc] ERROR: you must only give one CNF as input" << endl;
             exit(-1);
         }
-        read_in_file(inp[0].c_str());
+        if (do_arjun) {
+            read_in_file(inp[0].c_str(), arjun);
+        } else {
+            read_in_file(inp[0].c_str(), appmc);
+        }
     } else {
-        read_stdin();
+        if (do_arjun) {
+            read_stdin(arjun);
+        } else {
+            read_stdin(appmc);
+        }
     }
 }
 
@@ -470,13 +481,22 @@ int main(int argc, char** argv)
 
     set_approxmc_options();
 
-    //Arjun-based minimization
-    arjun = new ArjunNS::Arjun;
-    read_input_cnf_to_arjun();
-    minimize_sampling_set();
-    get_cnf_from_arjun();
-    appmc->set_projection_set(sampling_vars);
-    delete arjun;
+    if (do_arjun) {
+        //Arjun-based minimization
+        arjun = new ArjunNS::Arjun;
+        arjun->set_seed(seed);
+        arjun->set_verbosity(verbosity);
+        read_input_cnf();
+        auto old_sampling_vars = sampling_vars;
+        minimize_sampling_set();
+        get_cnf_from_arjun();
+//         appmc->set_projection_set(sampling_vars);
+        appmc->set_projection_set(old_sampling_vars);
+        delete arjun;
+    } else {
+        read_input_cnf();
+        appmc->set_projection_set(sampling_vars);
+    }
 
     //Count with ApproxMC
     auto sol_count = appmc->count();
