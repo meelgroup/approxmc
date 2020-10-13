@@ -29,35 +29,47 @@ jobs:
     - name: Get Dependencies
       run: sudo apt-get update && sudo apt-get install -yq libboost-dev libboost-program-options-dev help2man
     
+    - name: Checkout CMS
+      uses: actions/checkout@v2
+      with:
+        repository: meelgroup/cryptominisat
+        path: cryptominisat
+    
     - name: Build CMS
       run: |
-       mkdir cms_git && cd cms_git
-       git clone --depth 1 https://github.com/msoos/cryptominisat
        cd cryptominisat
        mkdir build && cd build
        cmake ..
        make
-       cd ../../..
+       cd ../..
+   
+    - name: Checkout Louvain
+      uses: actions/checkout@v2
+      with:
+        repository: meelgroup/louvain-community
+        path: louvain-community
    
     - name: Build Louvain Community
       run: |
-       mkdir louvain_git && cd louvain_git
-       git clone --depth 1 https://github.com/meelgroup/louvain-community
        cd louvain-community
        mkdir build && cd build
        cmake ..
        make
-       cd ../../..
+       cd ../..
+   
+    - name: Checkout Arjun
+      uses: actions/checkout@v2
+      with:
+        repository: meelgroup/arjun
+        path: arjun
      
     - name: Build Arjun
       run: |
-       mkdir arjun_git && cd arjun_git
-       git clone --depth 1 https://github.com/meelgroup/arjun
        cd arjun
        mkdir build && cd build
        cmake ..
        make
-       cd ../../..
+       cd ../..
 
     - name: Build Arjun
       run: |
