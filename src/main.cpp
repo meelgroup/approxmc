@@ -71,8 +71,9 @@ uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
 uint32_t sparse;
 vector<uint32_t> sampling_vars;
-int recompute_sampling_set = 0;
+int ignore_sampl_set = 0;
 int do_arjun = 1;
+int debug_arjun = 0;
 
 void add_appmc_options()
 {
@@ -105,10 +106,12 @@ void add_appmc_options()
         , "delta parameter as per PAC guarantees; 1-delta is the confidence")
     ("log", po::value(&logfilename),
          "Logs of ApproxMC execution")
-    ("recomp", po::value(&recompute_sampling_set)->default_value(recompute_sampling_set)
-        , "Ignore given sampling set and recompute it")
+    ("ignore", po::value(&ignore_sampl_set)->default_value(ignore_sampl_set)
+        , "Ignore given sampling set and recompute it with Arjun")
     ("arjun", po::value(&do_arjun)->default_value(do_arjun)
         , "Use arjun to minimize sampling set")
+    ("debugarjun", po::value(&debug_arjun)->default_value(debug_arjun)
+        , "Use CNF from Arjun, but use sampling set from CNF")
     ;
 
     improvement_options.add_options()
@@ -412,7 +415,7 @@ void read_input_cnf()
 void minimize_sampling_set()
 {
     uint32_t orig_sampling_set_size;
-    if (sampling_vars.empty() || recompute_sampling_set) {
+    if (sampling_vars.empty() || ignore_sampl_set) {
         orig_sampling_set_size = arjun->start_with_clean_sampling_set();
     } else {
         orig_sampling_set_size = arjun->set_starting_sampling_set(sampling_vars);
@@ -451,6 +454,16 @@ void set_approxmc_options()
     }
 }
 
+void print_orig_sampling_vars(const vector<uint32_t>& orig_sampling_vars)
+{
+    cout << "Original sampling vars: ";
+    for(auto v: orig_sampling_vars) {
+        cout << v << " ";
+    }
+    cout << endl;
+    cout << "Orig sampling vars size: " << orig_sampling_vars.size() << endl;
+}
+
 int main(int argc, char** argv)
 {
     #if defined(__GNUC__) && defined(__linux__)
@@ -487,16 +500,25 @@ int main(int argc, char** argv)
         arjun->set_seed(seed);
         arjun->set_verbosity(verbosity);
         read_input_cnf();
+        print_orig_sampling_vars(sampling_vars);
         auto old_sampling_vars = sampling_vars;
+
         minimize_sampling_set();
         get_cnf_from_arjun();
-//         appmc->set_projection_set(sampling_vars);
-        appmc->set_projection_set(old_sampling_vars);
+        if (debug_arjun) {
+            sampling_vars = old_sampling_vars;
+        }
         delete arjun;
     } else {
         read_input_cnf();
-        appmc->set_projection_set(sampling_vars);
+        if (ignore_sampl_set) {
+            sampling_vars.clear();
+            for(uint32_t i = 0; i < appmc->nVars(); i++) {
+                sampling_vars.push_back(i);
+            }
+        }
     }
+    appmc->set_projection_set(sampling_vars);
 
     //Count with ApproxMC
     auto sol_count = appmc->count();
