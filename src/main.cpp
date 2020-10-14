@@ -69,7 +69,7 @@ double var_elim_ratio;
 uint32_t detach_xors = 1;
 uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
-uint32_t sparse;
+uint32_t sparse = 0;
 vector<uint32_t> sampling_vars;
 int ignore_sampl_set = 0;
 int do_arjun = 1;
@@ -389,7 +389,8 @@ void get_cnf_from_arjun()
     arjun->end_getting_small_clauses();
 }
 
-void read_input_cnf()
+template<class T>
+void read_input_cnf(T* reader)
 {
     //Init Arjun, read in file, get minimal indep set
     if (vm.count("input") != 0) {
@@ -398,17 +399,10 @@ void read_input_cnf()
             cout << "[appmc] ERROR: you must only give one CNF as input" << endl;
             exit(-1);
         }
-        if (do_arjun) {
-            read_in_file(inp[0].c_str(), arjun);
-        } else {
-            read_in_file(inp[0].c_str(), appmc);
-        }
+
+        read_in_file(inp[0].c_str(), reader);
     } else {
-        if (do_arjun) {
-            read_stdin(arjun);
-        } else {
-            read_stdin(appmc);
-        }
+        read_stdin(reader);
     }
 }
 
@@ -504,7 +498,7 @@ int main(int argc, char** argv)
         arjun = new ArjunNS::Arjun;
         arjun->set_seed(seed);
         arjun->set_verbosity(verbosity);
-        read_input_cnf();
+        read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars);
         auto old_sampling_vars = sampling_vars;
 
@@ -515,7 +509,7 @@ int main(int argc, char** argv)
         }
         delete arjun;
     } else {
-        read_input_cnf();
+        read_input_cnf(appmc);
         if (ignore_sampl_set) {
             sampling_vars.clear();
             for(uint32_t i = 0; i < appmc->nVars(); i++) {
