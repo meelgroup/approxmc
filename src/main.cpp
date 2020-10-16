@@ -74,6 +74,7 @@ vector<uint32_t> sampling_vars;
 int ignore_sampl_set = 0;
 int do_arjun = 1;
 int debug_arjun = 0;
+int arjun_incidence_sort;
 
 void add_appmc_options()
 {
@@ -84,6 +85,9 @@ void add_appmc_options()
     var_elim_ratio = tmp.get_var_elim_ratio();
     sparse = tmp.get_sparse();
     seed = tmp.get_seed();
+
+    ArjunNS::Arjun tmpa;
+    arjun_incidence_sort = tmpa.get_incidence_sort();
 
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;
@@ -110,6 +114,8 @@ void add_appmc_options()
         , "Ignore given sampling set and recompute it with Arjun")
     ("arjun", po::value(&do_arjun)->default_value(do_arjun)
         , "Use arjun to minimize sampling set")
+    ("arjuninc", po::value(&arjun_incidence_sort)->default_value(arjun_incidence_sort)
+        , "Select incidence sorting. Probe-based is 3. Simple incidence-based is 1. Component-to-other-component based is 5. Random is 5")
     ("debugarjun", po::value(&debug_arjun)->default_value(debug_arjun)
         , "Use CNF from Arjun, but use sampling set from CNF")
     ;
@@ -498,6 +504,7 @@ int main(int argc, char** argv)
         arjun = new ArjunNS::Arjun;
         arjun->set_seed(seed);
         arjun->set_verbosity(verbosity);
+        arjun->set_incidence_sort(arjun_incidence_sort);
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars);
         auto old_sampling_vars = sampling_vars;
