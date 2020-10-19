@@ -50,6 +50,7 @@
 #include "cryptominisat5/cryptominisat.h"
 #include "cryptominisat5/solvertypesmini.h"
 #include "GitSHA1.h"
+#include <arjun/arjun.h>
 
 using std::cout;
 using std::cerr;
@@ -500,6 +501,52 @@ int Counter::find_best_sparse_match()
     return -1;
 }
 
+void Counter::recompute_indep_set(const vector<Lit>& assumps)
+{
+    ArjunNS::Arjun arjun;
+    arjun.set_verbosity(0);
+    bool ret = true;
+    solver->start_getting_small_clauses(
+        std::numeric_limits<uint32_t>::max(),
+        std::numeric_limits<uint32_t>::max(),
+        false,
+        true);
+    vector<Lit> clause;
+    arjun.new_vars(solver->nVars());
+    while (ret) {
+        ret = solver->get_next_small_clause(clause);
+        if (!ret) {
+            break;
+        }
+
+        //Deal with variables that we never added but are used to blast XORs
+        //inside CMS. So, we actually can get variables back that we never added
+        for(const auto l: clause) {
+            if (l.var() >= arjun.nVars()) {
+                arjun.new_vars(1+l.var()-arjun.nVars());
+            }
+        }
+        arjun.add_clause(clause);
+
+    }
+
+    //Add assumptions
+    for(auto x: assumps) {
+        clause.clear();
+        clause.push_back(x);
+        arjun.add_clause(clause);
+    }
+    cout << "Arjun has more vars by: "
+    << (arjun.nVars() - solver->nVars()) << endl;
+
+    solver->end_getting_small_clauses();
+    arjun.set_starting_sampling_set(conf.sampling_set);
+    auto sampl_set = arjun.get_indep_set();
+    cout << "Arjun says new indep set size is: " << sampl_set.size()
+    << " -- gain: " << (conf.sampling_set.size()-sampl_set.size())
+    << endl;
+}
+
 //See Algorithm 2+3 in paper "Algorithmic Improvements in Approximate Counting
 //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
 //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
@@ -539,6 +586,9 @@ void Counter::one_measurement_count(
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
         const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes, sparse_data);
+        if (conf.recompute_indep_set) {
+            recompute_indep_set(assumps);
+        }
 
         if (conf.verb) {
             cout << "c [appmc] "

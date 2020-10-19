@@ -75,6 +75,7 @@ int ignore_sampl_set = 0;
 int do_arjun = 1;
 int debug_arjun = 0;
 int arjun_incidence_sort;
+int recompute_indep_set = 0;
 
 void add_appmc_options()
 {
@@ -85,6 +86,7 @@ void add_appmc_options()
     var_elim_ratio = tmp.get_var_elim_ratio();
     sparse = tmp.get_sparse();
     seed = tmp.get_seed();
+    recompute_indep_set = tmp.get_recompute_indep_set();
 
     ArjunNS::Arjun tmpa;
     arjun_incidence_sort = tmpa.get_incidence_sort();
@@ -118,6 +120,8 @@ void add_appmc_options()
         , "Select incidence sorting. Probe-based is 3. Simple incidence-based is 1. Component-to-other-component based is 5. Random is 5")
     ("debugarjun", po::value(&debug_arjun)->default_value(debug_arjun)
         , "Use CNF from Arjun, but use sampling set from CNF")
+    ("arjunrecom", po::value(&recompute_indep_set)->default_value(recompute_indep_set)
+        , "Recompute the independent set at every XOR addition")
     ;
 
     improvement_options.add_options()
@@ -447,6 +451,9 @@ void set_approxmc_options()
     appmc->set_verb_cls(verb_cls);
     appmc->set_simplify(simplify);
     appmc->set_var_elim_ratio(var_elim_ratio);
+
+    //Arjun options
+    appmc->set_recompute_indep_set(recompute_indep_set);
 
     if (logfilename != "") {
         appmc->set_up_log(logfilename);

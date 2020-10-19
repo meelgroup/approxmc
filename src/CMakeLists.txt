@@ -99,6 +99,12 @@ foreach(public_header ${approxmc_public_headers})
     )
 endforeach()
 
+target_link_libraries(approxmc
+    ${ARJUN_LIBRARIES}
+    ${LOUVAIN_COMMUNITIES_LIBRARIES}
+    ${CRYPTOMINISAT5_LIBRARIES}
+)
+
 install(TARGETS approxmc
     EXPORT ${APPROXMC_EXPORT_NAME}
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
@@ -115,9 +121,6 @@ add_executable(approxmc-bin
 set(approxmc_exec_link_libs
     ${Boost_LIBRARIES}
     ${GMP_LIBRARY}
-    ${CRYPTOMINISAT5_LIBRARIES}
-    ${ARJUN_LIBRARIES}
-    ${LOUVAIN_COMMUNITIES_LIBRARIES}
 )
 
 IF (ZLIB_FOUND)

@@ -131,6 +131,7 @@ private:
         SparseData& sparse_data
     );
     void simplify();
+    void recompute_indep_set(const vector<Lit>& assumps);
 
     ////////////////
     //Helper functions
