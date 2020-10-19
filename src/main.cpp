@@ -52,6 +52,7 @@ ApproxMC::AppMC* appmc = NULL;
 ArjunNS::Arjun* arjun = NULL;
 
 po::options_description main_options = po::options_description("Main options");
+po::options_description arjun_options = po::options_description("Arjun options");
 po::options_description improvement_options = po::options_description("Improvement options");
 po::options_description misc_options = po::options_description("Misc options");
 po::options_description help_options;
@@ -76,6 +77,7 @@ int do_arjun = 1;
 int debug_arjun = 0;
 int arjun_incidence_sort;
 int recompute_indep_set = 0;
+int arjun_do_xor;
 
 void add_appmc_options()
 {
@@ -87,9 +89,6 @@ void add_appmc_options()
     sparse = tmp.get_sparse();
     seed = tmp.get_seed();
     recompute_indep_set = tmp.get_recompute_indep_set();
-
-    ArjunNS::Arjun tmpa;
-    arjun_incidence_sort = tmpa.get_incidence_sort();
 
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;
@@ -114,6 +113,13 @@ void add_appmc_options()
          "Logs of ApproxMC execution")
     ("ignore", po::value(&ignore_sampl_set)->default_value(ignore_sampl_set)
         , "Ignore given sampling set and recompute it with Arjun")
+    ;
+
+    ArjunNS::Arjun tmpa;
+    arjun_incidence_sort = tmpa.get_incidence_sort();
+    arjun_do_xor = tmpa.get_do_xors();
+
+    arjun_options.add_options()
     ("arjun", po::value(&do_arjun)->default_value(do_arjun)
         , "Use arjun to minimize sampling set")
     ("arjuninc", po::value(&arjun_incidence_sort)->default_value(arjun_incidence_sort)
@@ -122,6 +128,8 @@ void add_appmc_options()
         , "Use CNF from Arjun, but use sampling set from CNF")
     ("arjunrecom", po::value(&recompute_indep_set)->default_value(recompute_indep_set)
         , "Recompute the independent set at every XOR addition")
+    ("arjunxor", po::value(&arjun_do_xor)->default_value(arjun_do_xor)
+        , "Should Arjun use XORs")
     ;
 
     improvement_options.add_options()
@@ -146,6 +154,7 @@ void add_appmc_options()
 
     help_options.add(main_options);
     help_options.add(improvement_options);
+    help_options.add(arjun_options);
     help_options.add(misc_options);
 }
 
@@ -512,6 +521,7 @@ int main(int argc, char** argv)
         arjun->set_seed(seed);
         arjun->set_verbosity(verbosity);
         arjun->set_incidence_sort(arjun_incidence_sort);
+        arjun->set_do_xors(arjun_do_xor);
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars);
         auto old_sampling_vars = sampling_vars;
