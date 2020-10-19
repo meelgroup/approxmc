@@ -332,15 +332,19 @@ void Counter::simplify()
     //solver->set_scc(0);
 }
 
+//Set up probabilities, threshold and measurements
 void Counter::set_up_probs_threshold_measurements(
     uint32_t& measurements, SparseData& sparse_data)
 {
-    //Set up probabilities, threshold and measurements
-    int best_match = find_best_sparse_match();
-
+    int best_match = -1;
     bool using_sparse = false;
     double thresh_factor;
-    if (conf.sparse && best_match != -1) {
+
+    if (conf.sparse) {
+        best_match = find_best_sparse_match();
+    }
+
+    if (best_match != -1) {
         sparse_data = SparseData(best_match);
         thresh_factor = 1.1;
         using_sparse = true;
