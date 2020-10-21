@@ -38,6 +38,7 @@ using std::vector;
 #include <signal.h>
 #include <gmp.h>
 
+#include "time_mem.h"
 #include "approxmc.h"
 #include "time_mem.h"
 #include <cryptominisat5/dimacsparser.h>
@@ -425,7 +426,7 @@ void read_input_cnf(T* reader)
     }
 }
 
-void minimize_sampling_set()
+uint32_t set_up_sampling_set()
 {
     uint32_t orig_sampling_set_size;
     if (sampling_vars.empty() || ignore_sampl_set) {
@@ -434,8 +435,7 @@ void minimize_sampling_set()
         orig_sampling_set_size = arjun->set_starting_sampling_set(sampling_vars);
     }
 
-    sampling_vars = arjun->get_indep_set();
-    print_indep_set(sampling_vars , orig_sampling_set_size);
+    return orig_sampling_set_size;
 }
 
 void set_approxmc_options()
@@ -525,9 +525,10 @@ int main(int argc, char** argv)
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars);
         auto old_sampling_vars = sampling_vars;
-
-        minimize_sampling_set();
+        uint32_t orig_sampling_set_size = set_up_sampling_set();
         get_cnf_from_arjun();
+        sampling_vars = arjun->get_indep_set();
+        print_indep_set(sampling_vars , orig_sampling_set_size);
         if (debug_arjun) {
             sampling_vars = old_sampling_vars;
         }
@@ -545,8 +546,12 @@ int main(int argc, char** argv)
 
     //Count with ApproxMC
     auto sol_count = appmc->count();
+<<<<<<< HEAD
     appmc->print_stats(start_time);
 
+=======
+    cout << "c [appmc+arjun] Total time: " << (cpuTime() - startTime) << endl;
+>>>>>>> 1f2f595 (Fixing issue with taking simplified CNF)
     print_num_solutions(sol_count.cellSolCount, sol_count.hashCount);
     delete appmc;
 }
