@@ -309,7 +309,16 @@ void read_in_file(const string& filename, T* myreader)
     #endif
 }
 
-void print_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size)
+inline double stats_line_percent(double num, double total)
+{
+    if (total == 0) {
+        return 0;
+    } else {
+        return num/total*100.0;
+    }
+}
+
+void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size)
 {
     cout << "vp ";
     for(const uint32_t s: indep_set) {
@@ -317,12 +326,12 @@ void print_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_s
     }
     cout << "0" << endl;
 
-    cout << "c set size: " << std::setw(8)
+    cout << "c [arjun] final set size: " << std::setw(8)
     << indep_set.size()
-    << " fraction of original: "
+    << " percent of original: "
     <<  std::setw(6) << std::setprecision(4)
-    << (double)indep_set.size()/(double)orig_sampling_set_size
-    << endl << std::flush;
+    << stats_line_percent(indep_set.size(), orig_sampling_set_size)
+    << " %" << endl << std::flush;
 }
 
 template<class T>
@@ -470,7 +479,8 @@ void set_approxmc_options()
     }
 }
 
-void print_orig_sampling_vars(const vector<uint32_t>& orig_sampling_vars)
+template<class T>
+void print_orig_sampling_vars(const vector<uint32_t>& orig_sampling_vars, T* ptr)
 {
     if (!orig_sampling_vars.empty()) {
         cout << "Original sampling vars: ";
@@ -478,10 +488,10 @@ void print_orig_sampling_vars(const vector<uint32_t>& orig_sampling_vars)
             cout << v << " ";
         }
         cout << endl;
-        cout << "Orig sampling vars size: " << orig_sampling_vars.size() << endl;
+        cout << "c [appmc] Orig sampling vars size: " << orig_sampling_vars.size() << endl;
     } else {
-        cout << "No original sampling vars given" << endl;
-        cout << "Orig sampling vars size: " << arjun->nVars() << endl;
+        cout << "c [appmc] No original sampling vars given" << endl;
+        cout << "c [appmc] Orig sampling vars size: " << ptr->nVars() << endl;
     }
 }
 
@@ -523,12 +533,12 @@ int main(int argc, char** argv)
         arjun->set_incidence_sort(arjun_incidence_sort);
         arjun->set_do_xors(arjun_do_xor);
         read_input_cnf(arjun);
-        print_orig_sampling_vars(sampling_vars);
+        print_orig_sampling_vars(sampling_vars, arjun);
         auto old_sampling_vars = sampling_vars;
         uint32_t orig_sampling_set_size = set_up_sampling_set();
         get_cnf_from_arjun();
         sampling_vars = arjun->get_indep_set();
-        print_indep_set(sampling_vars , orig_sampling_set_size);
+        print_final_indep_set(sampling_vars , orig_sampling_set_size);
         if (debug_arjun) {
             sampling_vars = old_sampling_vars;
         }
@@ -541,6 +551,7 @@ int main(int argc, char** argv)
                 sampling_vars.push_back(i);
             }
         }
+        //print_orig_sampling_vars(sampling_vars, appmc);
     }
     appmc->set_projection_set(sampling_vars);
 
