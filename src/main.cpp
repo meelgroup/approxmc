@@ -79,6 +79,7 @@ int debug_arjun = 0;
 int arjun_incidence_sort;
 int recompute_indep_set = 0;
 int arjun_do_xor;
+int arjun_forward;
 
 void add_appmc_options()
 {
@@ -119,6 +120,7 @@ void add_appmc_options()
     ArjunNS::Arjun tmpa;
     arjun_incidence_sort = tmpa.get_incidence_sort();
     arjun_do_xor = tmpa.get_do_xors();
+    arjun_forward = tmpa.get_forward();
 
     arjun_options.add_options()
     ("arjun", po::value(&do_arjun)->default_value(do_arjun)
@@ -131,6 +133,8 @@ void add_appmc_options()
         , "Recompute the independent set at every XOR addition")
     ("arjunxor", po::value(&arjun_do_xor)->default_value(arjun_do_xor)
         , "Should Arjun use XORs")
+    ("arjunfwd", po::value(&arjun_forward)->default_value(arjun_forward)
+        , "Should Arjun use forward")
     ;
 
     improvement_options.add_options()
@@ -532,6 +536,7 @@ int main(int argc, char** argv)
         arjun->set_verbosity(verbosity);
         arjun->set_incidence_sort(arjun_incidence_sort);
         arjun->set_do_xors(arjun_do_xor);
+        arjun->set_forward(arjun_forward);
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars, arjun);
         auto old_sampling_vars = sampling_vars;
