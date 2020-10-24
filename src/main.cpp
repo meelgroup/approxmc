@@ -499,6 +499,18 @@ void print_orig_sampling_vars(const vector<uint32_t>& orig_sampling_vars, T* ptr
     }
 }
 
+void transfer_unit_clauses_from_arjun()
+{
+    vector<Lit> cl(1);
+    auto units = arjun->get_zero_assigned_lits();
+    for(const auto& unit: units) {
+        if (unit.var() < appmc->nVars()) {
+            cl[0] = unit;
+            appmc->add_clause(cl);
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     #if defined(__GNUC__) && defined(__linux__)
@@ -542,6 +554,7 @@ int main(int argc, char** argv)
         auto old_sampling_vars = sampling_vars;
         uint32_t orig_sampling_set_size = set_up_sampling_set();
         get_cnf_from_arjun();
+        transfer_unit_clauses_from_arjun();
         sampling_vars = arjun->get_indep_set();
         print_final_indep_set(sampling_vars , orig_sampling_set_size);
         if (debug_arjun) {
