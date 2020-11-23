@@ -523,6 +523,8 @@ void Counter::one_measurement_count(
     //number of solutions.
     //if it's not set, we have no clue.
     map<uint64_t,bool> threshold_sols;
+    //When hashCount == 0, the previous hashCount (i.e. -1) should have threshold solutions by default.
+    threshold_sols[-1] = 1;
 
     HashesModels hm;
 
