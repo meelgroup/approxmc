@@ -807,6 +807,11 @@ string Counter::get_version_info() const
 {
     string ret = ::scalmc_version_info();
     ret += solver->get_text_version_info();
+    ArjunNS::Arjun* arjun = new ArjunNS::Arjun;
+    std::stringstream ss;
+    ss << "c Arjun SHA revision " << arjun->get_version_info() << endl;
+    ret += ss.str();
+    delete arjun;
 
     return ret;
 }

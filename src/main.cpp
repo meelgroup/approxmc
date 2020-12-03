@@ -536,12 +536,6 @@ int main(int argc, char** argv)
     add_supported_options(argc, argv);
     if (verbosity) {
         cout << appmc->get_version_info();
-        delete arjun;
-        arjun = new ArjunNS::Arjun;
-        cout << "c Arjun SHA revision " << arjun->get_version_info() << endl;
-        delete arjun;
-        arjun = NULL;
-
         cout << "c executed with command line: " << command_line << endl;
     }
 
