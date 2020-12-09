@@ -115,7 +115,7 @@ uint64_t Counter::add_glob_banning_cls(
         if (sm.hash_num >= num_hashes) {
             ban_one(act_var, sm.model);
             repeat++;
-        } else if ((int)num_hashes - (int)sm.hash_num < 9) {
+        } else {
             //Model has to fit all hashes
             bool ok = true;
             uint32_t checked = 0;
