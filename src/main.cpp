@@ -113,8 +113,6 @@ void add_appmc_options()
     ;
 
     misc_options.add_options()
-    ("start", po::value(&start_iter)->default_value(start_iter),
-         "Start at this many XORs")
     ("verbcls", po::value(&verb_cls)->default_value(verb_cls)
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("simplify", po::value(&simplify)->default_value(simplify)
