@@ -78,7 +78,7 @@ int do_arjun = 1;
 int debug_arjun = 0;
 int arjun_incidence_sort;
 int recompute_indep_set = 0;
-int arjun_do_xor;
+int arjun_gauss_jordan;
 int arjun_forward;
 
 void add_appmc_options()
@@ -119,7 +119,7 @@ void add_appmc_options()
 
     ArjunNS::Arjun tmpa;
     arjun_incidence_sort = tmpa.get_incidence_sort();
-    arjun_do_xor = tmpa.get_do_xors();
+    arjun_gauss_jordan = tmpa.get_gauss_jordan();
     arjun_forward = tmpa.get_forward();
 
     arjun_options.add_options()
@@ -131,7 +131,7 @@ void add_appmc_options()
         , "Use CNF from Arjun, but use sampling set from CNF")
     ("arjunrecom", po::value(&recompute_indep_set)->default_value(recompute_indep_set)
         , "Recompute the independent set at every XOR addition")
-    ("arjunxor", po::value(&arjun_do_xor)->default_value(arjun_do_xor)
+    ("arjunxor", po::value(&arjun_gauss_jordan)->default_value(arjun_gauss_jordan)
         , "Should Arjun use XORs")
     ("arjunfwd", po::value(&arjun_forward)->default_value(arjun_forward)
         , "Should Arjun use forward")
@@ -547,7 +547,7 @@ int main(int argc, char** argv)
         arjun->set_seed(seed);
         arjun->set_verbosity(verbosity);
         arjun->set_incidence_sort(arjun_incidence_sort);
-        arjun->set_do_xors(arjun_do_xor);
+        arjun->set_gauss_jordan(arjun_gauss_jordan);
         arjun->set_forward(arjun_forward);
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars, arjun);
