@@ -35,8 +35,8 @@
 
 struct Config {
     uint32_t start_iter = 0;
-    double epsilon = 0.80;
-    double delta = 0.2;
+    double epsilon = 0.80; //Tolerance.  CAV-2020 paper default
+    double delta = 0.2;    //Confidence. CAV-2020 paper default
     int sparse = 0;
     unsigned verb = 0;
     unsigned verb_cls = 0;

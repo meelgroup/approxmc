@@ -108,9 +108,9 @@ void add_appmc_options()
     ("version", "Print version info")
 
     ("epsilon", po::value(&epsilon)->default_value(epsilon, my_epsilon.str())
-        , "epsilon parameter as per PAC guarantees")
+        , "Tolerance parameter, i.e. what level of error we expect of the result? CAV-2020 paper default is 0.80")
     ("delta", po::value(&delta)->default_value(delta, my_delta.str())
-        , "delta parameter as per PAC guarantees; 1-delta is the confidence")
+        , "Confidence parameter, i.e. how sure are we of the result? CAV-2020 paper default is 0.20")
     ("log", po::value(&logfilename),
          "Logs of ApproxMC execution")
     ("ignore", po::value(&ignore_sampl_set)->default_value(ignore_sampl_set)
