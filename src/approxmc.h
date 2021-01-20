@@ -90,7 +90,7 @@ public:
     void set_force_sol_extension(uint32_t force_sol_extension);
     void set_sparse(uint32_t sparse);
     void set_simplify(uint32_t simplify);
-    void set_recompute_indep_set(bool recompute_indep_set);
+    void set_cont_recomp_indep_set(bool cont_recomp_indep_set);
 
     //Querying default values
     const std::vector<uint32_t>& get_sampling_set() const;
@@ -101,7 +101,7 @@ public:
     double get_var_elim_ratio();
     uint32_t get_sparse();
     bool get_reuse_models();
-    bool get_recompute_indep_set();
+    bool get_cont_recomp_indep_set();
 
     //Misc
     uint32_t nVars();

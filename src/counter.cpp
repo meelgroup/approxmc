@@ -501,7 +501,7 @@ int Counter::find_best_sparse_match()
     return -1;
 }
 
-void Counter::recompute_indep_set(const vector<Lit>& assumps)
+void Counter::cont_recomp_indep_set(const vector<Lit>& assumps)
 {
     ArjunNS::Arjun arjun;
     arjun.set_verbosity(0);
@@ -586,8 +586,8 @@ void Counter::one_measurement_count(
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
         const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes, sparse_data);
-        if (conf.recompute_indep_set) {
-            recompute_indep_set(assumps);
+        if (conf.cont_recomp_indep_set) {
+            cont_recomp_indep_set(assumps);
         }
 
         if (conf.verb) {

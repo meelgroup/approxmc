@@ -42,7 +42,7 @@ struct Config {
     unsigned verb_cls = 0;
     uint32_t seed = 1;
     int simplify = 1;
-    int recompute_indep_set = 0;
+    int cont_recomp_indep_set = 0;
     double var_elim_ratio = 1.6;
     int reuse_models = 1;
     int force_sol_extension = 0;
