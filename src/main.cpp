@@ -541,6 +541,10 @@ int main(int argc, char** argv)
         arjun->set_seed(seed);
         arjun->set_verbosity(verbosity);
         arjun->set_incidence_sort(arjun_incidence_sort);
+        if (verbosity) {
+            cout << arjun->get_version_info();
+        }
+
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars, arjun);
         auto old_sampling_vars = sampling_vars;
