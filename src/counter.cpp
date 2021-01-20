@@ -791,9 +791,9 @@ inline T Counter::findMin(vector<T>& numList)
 string scalmc_version_info()
 {
     std::stringstream ss;
-    ss << "c ApproxMC SHA revision " << ::get_version_sha1() << endl;
-    ss << "c ApproxMC version " << ::get_version_tag() << endl;
-    ss << "c ApproxMC compilation env " << ::get_compilation_env() << endl;
+    ss << "c ApproxMC SHA revision " << AppMCIntNS::get_version_sha1() << endl;
+    ss << "c ApproxMC version " << AppMCIntNS::get_version_tag() << endl;
+    ss << "c ApproxMC compilation env " << AppMCIntNS::get_compilation_env() << endl;
     #ifdef __GNUC__
     ss << "c ApproxMC compiled with gcc version " << __VERSION__ << endl;
     #else
