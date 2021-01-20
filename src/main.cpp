@@ -542,7 +542,7 @@ int main(int argc, char** argv)
         arjun->set_verbosity(verbosity);
         arjun->set_incidence_sort(arjun_incidence_sort);
         if (verbosity) {
-            cout << "c Using Arjun SHA revision " <<  arjun->get_version_info() << endl;
+            cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
         }
 
         read_input_cnf(arjun);
