@@ -25,7 +25,7 @@ Then:
 
 ```
 git clone https://github.com/meelgroup/approxmc
-git checkout ver2
+git checkout approxmc2
 cd approxmc
 cd approx
 make -f Makefile.cvs
