@@ -1,24 +1,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # ApproxMCv3: Approximate Model Counter
-ApproxMCv3 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
+ApproxMCv3 is an approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before. This work is by Kuldeep Meel and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat).
 
 ApproxMC handles CNF formulas. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting).
 
-## Docker image
-If you don't have or don't know what an independent set is, first run our MIS tool:
-```
-docker run --rm -v `pwd`/formula.cnf:/in msoos/mis --timeout 300 /in
-[...]
-** Copy-paste the following line in the top of your CNF for ApproxMC **
-c ind 3 4 7 8 10 11 14 17 18 26 30 35 36 39 42 47 60 62 67 0
-```
-Then copy-paste that line into your CNF.
-
-Then run the updated CNF through approxmc:
-```
-cat formula.cnf | docker run --rm -i -a stdin -a stdout msoos/approxmc
-```
+## Note on old versions
+This is an outdated version of ApproxMC. In case you wish to use this outdated version, ApproxMC3, you **must** use CryptoMiniSat revision `e440d535cb4500706b38ec5d655111a735dbb60e` and ApproxMC revision `2996841d457bf372b84610db4328ed15e61b1021`. Any other revision will give you a more advanced version of ApproxMC. This is especially important in case you wish to improve ApproxMC3.
 
 ## How to Build
 To build on Linux, you will need the following:
@@ -30,6 +18,7 @@ sudo apt-get install zlib1g-dev libboost-program-options-dev libm4ri-dev
 Then, build CryptoMiniSat and ApproxMC:
 ```
 git clone https://github.com/msoos/cryptominisat
+git checkout e440d535cb4500706b38ec5d655111a735dbb60e
 cd cryptominisat
 mkdir build && cd build
 cmake -DUSE_GAUSS=ON ..
@@ -37,6 +26,7 @@ make
 sudo make install
 cd ../..
 git clone https://github.com/meelgroup/approxmc/
+git checkout 2996841d457bf372b84610db4328ed15e61b1021
 cd approxmc
 mkdir build && cd build
 cmake ..
