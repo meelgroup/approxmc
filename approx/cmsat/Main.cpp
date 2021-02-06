@@ -1240,7 +1240,7 @@ int Main::singleThreadSolve() {
     if (ret == l_Undef && conf.verbosity >= 1) {
         std::cout << "c Not finished running -- signal caught or maximum restart reached" << std::endl;
     }
-    if (conf.verbosity >= 1) solver.printStats();
+    solver.printStats();
 
     // printResultFunc(solver, ret, res, current_nr_of_solutions == 1);
 
