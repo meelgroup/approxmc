@@ -19,15 +19,13 @@ You will need the following libraries to compile the sources:
 Building the source
 -----------------
 
-If you got your source from the GIT/SVN, then you should do the following
-before doing the above::
-* Install automake, autoconf, libtool
-* Issue 'make -f Makefile.cvs' in the root dir
-
-$ mkdir build
-$ cd build
-$ ../configure
-$ make
+```
+autoreconf -vfi
+mkdir build
+cd build
+../configure
+make -j4
+```
 
 This should produce binary "approxmc" in the build directory.  ProbMapFile_36.txt and ProbMapFile_40.txt should be present in the directory from which approxmc is being invoked.
 
