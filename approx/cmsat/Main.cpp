@@ -1003,9 +1003,9 @@ SATCount Main::ApproxMC(Solver &solver, FILE* resLog) {
             }
             double currentTime = totalTime();
             elapsedTime = currentTime-startTime;
-            if (elapsedTime > conf.totalTimeout - 3000){
-                break;
-            }
+//             if (elapsedTime > conf.totalTimeout - 3000){
+//                 break;
+//             }
             swapVar = hashCount;
             double myTime = totalTime();
             SetHash(hashCount, hashVars, solver,assumptions);
