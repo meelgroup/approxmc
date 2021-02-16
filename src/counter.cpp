@@ -525,6 +525,13 @@ void Counter::one_measurement_count(
 
     int64_t hashCount = mPrev;
     int64_t hashPrev = hashCount;
+    
+    //We are doing a galloping search here (see our IJCAI-16 paper for more details). 
+    //lowerFib is referred to as loIndex and upperFib is referred to as hiIndex
+    //The key idea is that we first do an exponential search and then do binary search 
+    //This is implemented by using two sentinels: lowerFib and upperFib. The correct answer 
+    // is always between lowFib and upperFib. We do exponential search until upperFib < lowerFib/2
+    // Once upperFib < lowerFib/2; we do a binary search. 
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
         const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes, sparse_data);
@@ -629,9 +636,13 @@ void Counter::one_measurement_count(
                 lowerFib = hashCount;
                 hashCount++;
             } else if (lowerFib + (hashCount-lowerFib)*2 >= upperFib-1) {
+                
+                // Whenever the above condition is satisfied, we are in binary sesarch mode
                 lowerFib = hashCount;
                 hashCount = (lowerFib+upperFib)/2;
             } else {
+                
+                // We are in exponential search mode.
                 hashCount = lowerFib + (hashCount-lowerFib)*2;
             }
         }
