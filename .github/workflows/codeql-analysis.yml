@@ -42,7 +42,7 @@ jobs:
       if: ${{ github.event_name == 'pull_request' }}
     
     - name: Get Dependencies
-      run: sudo apt-get update && sudo apt-get install -yq libboost1.65-dev libboost-program-options-dev help2man
+      run: sudo apt-get update && sudo apt-get install -yq libboost-dev libboost-program-options-dev help2man
     
     - name: Build CMS
       run: |
