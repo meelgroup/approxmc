@@ -13,9 +13,6 @@ ApproxMC handles CNF formulas and performs approximate counting.
 1. If you are interested in exact model counting, visit our exact counter [Ganak](http://github.com/meelgroup/ganak)
 2. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting).
 
-# ApproxMC5: Sparse-XOR based Approximate Model Counter
-Note: this is beta version release, not recommended for general use. We are currently working on a tight integration of sparse XORs into ApproxMC based on our [LICS-20](http://comp.nus.edu.sg/~meel/Papers/lics20-ma.pdf) paper. You can turn on the sparse XORs using the flag "sparse" but beware as reported in LICS-20 paper, this may slow down in some cases; it is likely to give a significant speedup if the number of solutions is very large. 
-
 ## Docker image
 If you don't have or don't know what an independent set is, first run our MIS tool:
 ```
@@ -146,6 +143,9 @@ int main() {
     return 0;
 }
 ```
+
+# ApproxMC5: Sparse-XOR based Approximate Model Counter
+This is *beta release, not recommended for general use*. We are currently working on a tight integration of sparse XORs into ApproxMC based on our [LICS-20](http://comp.nus.edu.sg/~meel/Papers/lics20-ma.pdf) paper. You can turn on the sparse XORs using the flag "sparse" but beware as reported in LICS-20 paper, this may slow down in some cases; it is likely to give a significant speedup if the number of solutions is very large. 
 
 ### Issues, questions, bugs, etc.
 Please click on "issues" at the top and [create a new issue](https://github.com/meelgroup/mis/issues/new). All issues are responded to promptly.
