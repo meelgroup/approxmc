@@ -73,6 +73,13 @@ add_library(approxmc
     ${approxmc_lib_files}
 )
 
+
+# Make sure the exported target has the include directory set
+target_include_directories(approxmc PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
+
 set_target_properties(approxmc PROPERTIES
     PUBLIC_HEADER "${approxmc_public_headers}"
     VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
