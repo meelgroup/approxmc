@@ -56,6 +56,7 @@ po::options_description main_options = po::options_description("Main options");
 po::options_description arjun_options = po::options_description("Arjun options");
 po::options_description improvement_options = po::options_description("Improvement options");
 po::options_description misc_options = po::options_description("Misc options");
+po::options_description predict_options = po::options_description("Predictive options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
@@ -80,6 +81,13 @@ int do_arjun = 1;
 int debug_arjun = 0;
 int arjun_incidence_sort;
 int cont_recomp_indep_set = 0;
+
+//predict
+int32_t pred_short_size = -1;
+int32_t pred_long_size = -1;
+int32_t pred_forever_size = 2800;
+int32_t pred_long_chunk = -1;
+int32_t pred_forever_chunk = 600;
 
 void add_appmc_options()
 {
@@ -140,6 +148,22 @@ void add_appmc_options()
         , "Reuse models while counting solutions")
     ("forcesolextension", po::value(&force_sol_extension)->default_value(force_sol_extension)
         , "Use trick of not extending solutions in the SAT solver to full solution")
+    ;
+
+    predict_options.add_options()
+    //size
+    ("predshortsize", po::value(&pred_short_size)->default_value(pred_short_size)
+        , "Pred short multiplier")
+    ("predlongsize", po::value(&pred_long_size)->default_value(pred_long_size)
+        , "Pred long multiplier")
+    ("predforeversize", po::value(&pred_forever_size)->default_value(pred_forever_size)
+        , "Pred forever multiplier")
+
+    //chunk
+    ("predlongchunk", po::value(&pred_long_chunk)->default_value(pred_long_chunk)
+        , "Pred long chunk multiplier")
+    ("predforeverchunk", po::value(&pred_forever_chunk)->default_value(pred_forever_chunk)
+        , "Pred forever chunk multiplier")
     ;
 
     misc_options.add_options()
@@ -461,6 +485,13 @@ void set_approxmc_options()
     appmc->set_reuse_models(reuse_models);
     appmc->set_force_sol_extension(force_sol_extension);
     appmc->set_sparse(sparse);
+
+    //Predict options
+    appmc->set_pred_short_size(pred_short_size);
+    appmc->set_pred_long_size(pred_long_size);
+    appmc->set_pred_forever_size(pred_forever_size);
+    appmc->set_pred_long_chunk(pred_long_chunk);
+    appmc->set_pred_forever_chunk(pred_forever_chunk);
 
     //Misc options
     appmc->set_start_iter(start_iter);

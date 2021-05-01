@@ -281,3 +281,28 @@ DLL_PUBLIC void AppMC::print_stats(const double /*start_time*/)
         data->counter.solver->set_verbosity(data->conf.verb);
     }
 }
+
+DLL_PUBLIC void AppMC::set_pred_short_size(int32_t sz)
+{
+    data->counter.solver->set_pred_short_size(sz);
+}
+
+DLL_PUBLIC void AppMC::set_pred_long_size(int32_t sz)
+{
+    data->counter.solver->set_pred_long_size(sz);
+}
+
+DLL_PUBLIC void AppMC::set_pred_forever_size(int32_t sz)
+{
+    data->counter.solver->set_pred_forever_size(sz);
+}
+
+DLL_PUBLIC void AppMC::set_pred_long_chunk(int32_t sz)
+{
+    data->counter.solver->set_pred_long_chunk(sz);
+}
+
+DLL_PUBLIC void AppMC::set_pred_forever_chunk(int32_t sz)
+{
+    data->counter.solver->set_pred_forever_chunk(sz);
+}
