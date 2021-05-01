@@ -81,6 +81,7 @@ int do_arjun = 1;
 int debug_arjun = 0;
 int arjun_incidence_sort;
 int cont_recomp_indep_set = 0;
+int with_e = 0;
 
 //predict
 int32_t pred_short_size = -1;
@@ -147,6 +148,8 @@ void add_appmc_options()
     ("reusemodels", po::value(&reuse_models)->default_value(reuse_models)
         , "Reuse models while counting solutions")
     ("forcesolextension", po::value(&force_sol_extension)->default_value(force_sol_extension)
+        , "Use trick of not extending solutions in the SAT solver to full solution")
+    ("withe", po::value(&with_e)->default_value(with_e)
         , "Use trick of not extending solutions in the SAT solver to full solution")
     ;
 
@@ -441,6 +444,28 @@ void get_cnf_from_arjun()
     arjun->end_getting_small_clauses();
 }
 
+void get_cnf_and_sampl_from_arjun_fully_simplified()
+{
+    auto cnf_sampl = arjun->get_fully_simplified_cnf(sampling_vars, arjun->get_orig_num_vars());
+
+    //Get num vars
+    uint32_t max_var = 0;
+    for(const auto& cl: cnf_sampl.first) {
+        for(const auto& l: cl) {
+            if (l.var()+1 > max_var) {
+                max_var = l.var()+1;
+            }
+        }
+    }
+    appmc->new_vars(max_var);
+
+    //Add clauses
+    for(const auto& cl: cnf_sampl.first) {
+        appmc->add_clause(cl);
+    }
+    sampling_vars = cnf_sampl.second;
+}
+
 template<class T>
 void read_input_cnf(T* reader)
 {
@@ -581,9 +606,14 @@ int main(int argc, char** argv)
         print_orig_sampling_vars(sampling_vars, arjun);
         auto old_sampling_vars = sampling_vars;
         uint32_t orig_sampling_set_size = set_up_sampling_set();
-        get_cnf_from_arjun();
-        transfer_unit_clauses_from_arjun();
-        sampling_vars = arjun->get_indep_set();
+        if (with_e) {
+            sampling_vars = arjun->get_indep_set();
+            get_cnf_and_sampl_from_arjun_fully_simplified();
+        } else {
+            get_cnf_from_arjun();
+            transfer_unit_clauses_from_arjun();
+            sampling_vars = arjun->get_indep_set();
+        }
         print_final_indep_set(sampling_vars , orig_sampling_set_size);
         if (debug_arjun) {
             sampling_vars = old_sampling_vars;
