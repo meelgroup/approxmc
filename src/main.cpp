@@ -178,6 +178,7 @@ void add_appmc_options()
     help_options.add(main_options);
     help_options.add(improvement_options);
     help_options.add(arjun_options);
+    help_options.add(predict_options);
     help_options.add(misc_options);
 }
 
