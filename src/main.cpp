@@ -86,9 +86,11 @@ int with_e = 0;
 //predict
 int32_t pred_short_size = -1;
 int32_t pred_long_size = -1;
-int32_t pred_forever_size = 2800;
+int32_t pred_forever_size = -1;
 int32_t pred_long_chunk = -1;
-int32_t pred_forever_chunk = 600;
+int32_t pred_forever_chunk = -1;
+int32_t pred_forever_cutoff = -1;
+int32_t every_pred_reduce = -1;
 
 void add_appmc_options()
 {
@@ -167,6 +169,12 @@ void add_appmc_options()
         , "Pred long chunk multiplier")
     ("predforeverchunk", po::value(&pred_forever_chunk)->default_value(pred_forever_chunk)
         , "Pred forever chunk multiplier")
+
+    //other
+    ("predforevercutoff", po::value(&pred_forever_cutoff)->default_value(pred_forever_cutoff)
+        , "If non-zero, ONLY this determines what's MOVED to or KEPT IN 'forever'.")
+    ("everypred", po::value(&every_pred_reduce)->default_value(every_pred_reduce)
+        , "Reduce final predictor (lev3) clauses every N, and produce data at every N")
     ;
 
     misc_options.add_options()
@@ -518,6 +526,9 @@ void set_approxmc_options()
     appmc->set_pred_forever_size(pred_forever_size);
     appmc->set_pred_long_chunk(pred_long_chunk);
     appmc->set_pred_forever_chunk(pred_forever_chunk);
+    appmc->set_pred_forever_cutoff(pred_forever_cutoff);
+    appmc->set_every_pred_reduce(every_pred_reduce);
+
 
     //Misc options
     appmc->set_start_iter(start_iter);
@@ -598,6 +609,9 @@ int main(int argc, char** argv)
         arjun->set_seed(seed);
         arjun->set_verbosity(verbosity);
         arjun->set_incidence_sort(arjun_incidence_sort);
+        arjun->set_pred_forever_cutoff(pred_forever_cutoff);
+        arjun->set_every_pred_reduce(every_pred_reduce);
+
         if (verbosity) {
             cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
         }

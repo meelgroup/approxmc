@@ -306,3 +306,13 @@ DLL_PUBLIC void AppMC::set_pred_forever_chunk(int32_t sz)
 {
     data->counter.solver->set_pred_forever_chunk(sz);
 }
+
+DLL_PUBLIC void AppMC::set_pred_forever_cutoff(int sz)
+{
+    data->counter.solver->set_pred_forever_cutoff(sz);
+}
+
+DLL_PUBLIC void AppMC::set_every_pred_reduce(int sz)
+{
+    data->counter.solver->set_every_pred_reduce(sz);
+}

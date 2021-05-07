@@ -98,6 +98,8 @@ public:
     void set_pred_forever_size(int32_t sz = -1);
     void set_pred_long_chunk(int32_t sz = -1);
     void set_pred_forever_chunk(int32_t sz = -1);
+    void set_pred_forever_cutoff(int sz = -1);
+    void set_every_pred_reduce(int sz = -1);
 
     //Querying default values
     const std::vector<uint32_t>& get_sampling_set() const;
