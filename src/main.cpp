@@ -354,7 +354,7 @@ inline double stats_line_percent(double num, double total)
 
 void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size)
 {
-    cout << "vp ";
+    cout << "c ind ";
     for(const uint32_t s: indep_set) {
         cout << s+1 << " ";
     }
@@ -407,6 +407,11 @@ void print_num_solutions(uint32_t cellSolCount, uint32_t hashCount)
 {
     cout << "c [appmc] Number of solutions is: "
     << cellSolCount << "*2**" << hashCount << endl;
+    if (cellSolCount == 0 && hashCount == 0) {
+        cout << "s UNSATISFIABLE" << endl;
+    } else {
+        cout << "s SATISFIABLE" << endl;
+    }
 
     mpz_t num_sols;
     mpz_init (num_sols);

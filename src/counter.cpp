@@ -279,12 +279,9 @@ ApproxMC::SolCount Counter::solve(Config _conf)
     print_final_count_stats(solCount);
 
     if (conf.verb) {
-        cout << "c [appmc] FINISHED ApproxMC T: "
+        cout << "c [appmc] ApproxMC T: "
         << (cpuTimeTotal() - startTime) << " s"
         << endl;
-        if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-            cout << "c [appmc] Formula was UNSAT " << endl;
-        }
     }
     return solCount;
 }
