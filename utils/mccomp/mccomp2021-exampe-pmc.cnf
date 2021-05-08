@@ -1,0 +1,11 @@
+c c This file describes a projected CNF in MC 2021 format
+c c with 6 variables and 4 clauses and 2 projected variables
+p cnf 6 4 2
+c t pmc
+c p show 1 2
+c p show 3
+-1 -2 0
+2  3 -4 0
+cc this is a comment and will be ignored
+4  5 0
+4  6 0

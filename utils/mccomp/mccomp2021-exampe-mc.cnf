@@ -1,0 +1,10 @@
+c c This file describes a DIMACS-line CNF in MC 2021 format
+c c The instance has 6 variables and 4 clauses.
+p cnf 6 4
+c t mc
+-1 -2    0
+2  3 -4 0
+c c This line is a comment and can be ignored.
+4 5 0
+c The line contains a comment and can be ignored as well.
+4 6 0
