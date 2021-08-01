@@ -107,9 +107,8 @@ foreach(public_header ${approxmc_public_headers})
 endforeach()
 
 target_link_libraries(approxmc
-    ${ARJUN_LIBRARIES}
-    ${LOUVAIN_COMMUNITIES_LIBRARIES}
-    ${CRYPTOMINISAT5_LIBRARIES}
+    LINK_PUBLIC ${ARJUN_LIBRARIES}
+    LINK_PUBLIC ${CRYPTOMINISAT5_LIBRARIES}
 )
 
 install(TARGETS approxmc
