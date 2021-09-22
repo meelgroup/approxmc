@@ -103,7 +103,7 @@ void add_appmc_options()
 
     improvement_options.add_options()
     ("sparse", po::value(&sparse)->default_value(sparse)
-        , "Generate sparse XORs when possible")
+        , "0 = (default) Do not use sparse method. 1 = Generate sparse XORs when possible.")
     ("detachxor", po::value(&detach_xors)->default_value(detach_xors)
         , "Detach XORs in CMS")
     ("reusemodels", po::value(&reuse_models)->default_value(reuse_models)
