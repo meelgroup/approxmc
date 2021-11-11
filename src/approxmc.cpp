@@ -266,3 +266,13 @@ DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampling_set() const
 {
     return data->conf.sampling_set;
 }
+
+DLL_PUBLIC void AppMC::print_stats(const double start_time)
+{
+    data->counter.solver->set_verbosity(1);
+    data->counter.solver->print_stats(start_time);
+    data->counter.solver->set_verbosity(0);
+    if (data->conf.verb > 2) {
+        data->counter.solver->set_verbosity(data->conf.verb);
+    }
+}

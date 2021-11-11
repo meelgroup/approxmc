@@ -39,6 +39,7 @@ using std::vector;
 #include <gmp.h>
 
 #include "approxmc.h"
+#include "time_mem.h"
 #include <cryptominisat5/dimacsparser.h>
 #include <cryptominisat5/streambuffer.h>
 
@@ -336,6 +337,7 @@ int main(int argc, char** argv)
     #endif
 //     signal(SIGALRM, SIGINT_handler);
 //     signal(SIGTERM, SIGINT_handler);
+    double start_time = cpuTime();
 
     //Reconstruct the command line so we can emit it later if needed
     string command_line;
@@ -391,6 +393,8 @@ int main(int argc, char** argv)
     }
 
     auto sol_count = appmc->count();
+    appmc->print_stats(start_time);
+
     print_num_solutions(sol_count.cellSolCount, sol_count.hashCount);
     delete appmc;
 }

@@ -104,6 +104,7 @@ public:
     uint32_t nVars();
     void new_var();
     void add_xor_clause(const std::vector<uint32_t>& vars, bool rhs);
+    void print_stats(const double start_time);
 
 private:
     ////////////////////////////
