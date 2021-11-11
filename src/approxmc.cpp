@@ -321,3 +321,13 @@ DLL_PUBLIC void AppMC::set_fast_confl_break(const bool fast_confl_break)
 {
     data->counter.solver->set_fast_confl_break(fast_confl_break);
 }
+
+DLL_PUBLIC void AppMC::print_stats(const double start_time)
+{
+    data->counter.solver->set_verbosity(1);
+    data->counter.solver->print_stats(start_time);
+    data->counter.solver->set_verbosity(0);
+    if (data->conf.verb > 2) {
+        data->counter.solver->set_verbosity(data->conf.verb);
+    }
+}

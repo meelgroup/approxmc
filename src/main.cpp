@@ -655,12 +655,10 @@ int main(int argc, char** argv)
 
     //Count with ApproxMC
     auto sol_count = appmc->count();
-<<<<<<< HEAD
     appmc->print_stats(start_time);
 
-=======
-    cout << "c [appmc+arjun] Total time: " << (cpuTime() - startTime) << endl;
->>>>>>> 1f2f595 (Fixing issue with taking simplified CNF)
+    appmc->print_stats(start_time);
+    cout << "c [appmc+arjun] Total time: " << (cpuTime() - start_time) << endl;
     print_num_solutions(sol_count.cellSolCount, sol_count.hashCount);
     delete appmc;
 }
