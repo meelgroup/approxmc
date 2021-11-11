@@ -89,7 +89,6 @@ public:
     void set_force_sol_extension(uint32_t force_sol_extension);
     void set_sparse(uint32_t sparse);
     void set_simplify(uint32_t simplify);
-    void set_fast_confl_break(const bool fast_confl_break);
 
     //Querying default values
     const std::vector<uint32_t>& get_sampling_set() const;

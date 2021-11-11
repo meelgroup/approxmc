@@ -68,7 +68,6 @@ uint32_t detach_xors = 1;
 uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
 uint32_t sparse;
-int fast_confl_break = 0;
 
 void add_appmc_options()
 {
@@ -112,7 +111,6 @@ void add_appmc_options()
         , "Reuse models while counting solutions")
     ("forcesolextension", po::value(&force_sol_extension)->default_value(force_sol_extension)
         , "Use trick of not extending solutions in the SAT solver to full solution")
-    ("fastconfl", po::value(&fast_confl_break)->default_value(fast_confl_break), "Fast breaking from conflicts")
     ;
 
     misc_options.add_options()
@@ -377,7 +375,6 @@ int main(int argc, char** argv)
     appmc->set_verb_cls(verb_cls);
     appmc->set_simplify(simplify);
     appmc->set_var_elim_ratio(var_elim_ratio);
-    appmc->set_fast_confl_break(fast_confl_break);
 
     if (logfilename != "") {
         appmc->set_up_log(logfilename);
