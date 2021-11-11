@@ -91,6 +91,7 @@ int32_t pred_long_chunk = -1;
 int32_t pred_forever_chunk = -1;
 int32_t pred_forever_cutoff = -1;
 int32_t every_pred_reduce = -1;
+int fast_confl_break = 0;
 
 void add_appmc_options()
 {
@@ -175,6 +176,7 @@ void add_appmc_options()
         , "If non-zero, ONLY this determines what's MOVED to or KEPT IN 'forever'.")
     ("everypred", po::value(&every_pred_reduce)->default_value(every_pred_reduce)
         , "Reduce final predictor (lev3) clauses every N, and produce data at every N")
+    ("fastconfl", po::value(&fast_confl_break)->default_value(fast_confl_break), "Fast breaking from conflicts")
     ;
 
     misc_options.add_options()
@@ -540,6 +542,7 @@ void set_approxmc_options()
     appmc->set_verb_cls(verb_cls);
     appmc->set_simplify(simplify);
     appmc->set_var_elim_ratio(var_elim_ratio);
+    appmc->set_fast_confl_break(fast_confl_break);
 
     //Arjun options
     appmc->set_cont_recomp_indep_set(cont_recomp_indep_set);

@@ -316,3 +316,8 @@ DLL_PUBLIC void AppMC::set_every_pred_reduce(int sz)
 {
     data->counter.solver->set_every_pred_reduce(sz);
 }
+
+DLL_PUBLIC void AppMC::set_fast_confl_break(const bool fast_confl_break)
+{
+    data->counter.solver->set_fast_confl_break(fast_confl_break);
+}
