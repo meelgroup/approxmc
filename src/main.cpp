@@ -153,7 +153,7 @@ void add_appmc_options()
     ("forcesolextension", po::value(&force_sol_extension)->default_value(force_sol_extension)
         , "Use trick of not extending solutions in the SAT solver to full solution")
     ("withe", po::value(&with_e)->default_value(with_e)
-        , "Use trick of not extending solutions in the SAT solver to full solution")
+        , "Eliminate variables and simplify CNF as well")
     ;
 
     predict_options.add_options()
