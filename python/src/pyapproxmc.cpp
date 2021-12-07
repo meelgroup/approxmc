@@ -1,3 +1,5 @@
+// Python bindings for ApproxMC, heavily based on the Python bindings written for CryptoMiniSat.
+
 #include <Python.h>
 #include <approxmc/approxmc.h>
 #include <cryptominisat5/cryptominisat.h>

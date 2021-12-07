@@ -1,5 +1,4 @@
 from pyapproxmc import Counter
-import random
 
 def minimal_test():
     counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
@@ -8,7 +7,7 @@ def minimal_test():
 
 def sampling_set_test():
     counter = Counter(seed=2157, epsilon=0.8, delta=0.2, sampling_set=list(range(1,50)))
-    counter.add_clause([i for i in range(1,100)])
+    counter.add_clause(range(1,100))
     assert counter.count() == (64, 43)
 
 def real_example_test():
