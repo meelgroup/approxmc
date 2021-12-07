@@ -60,7 +60,9 @@ static int parse_sampling_set(Counter *self, PyObject *sample_set_obj)
 
         long var = val - 1;
         self->sampling_set.push_back(var);
+        Py_DECREF(lit);
     }
+    Py_DECREF(iterator)
 
     return 0;
 }
