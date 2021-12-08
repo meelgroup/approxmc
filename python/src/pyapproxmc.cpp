@@ -218,7 +218,7 @@ static PyObject* add_clause(Counter *self, PyObject *args, PyObject *kwds)
 /* count function */
 
 PyDoc_STRVAR(count_doc,
-"count(sampling_set=None)\n\
+"count()\n\
 Approximately count the number of solutions for the clauses that have been \n\
 added with add_clause().\n\
 \n\
