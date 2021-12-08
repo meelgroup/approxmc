@@ -199,6 +199,11 @@ DLL_PUBLIC bool AppMC::get_reuse_models()
     return data->conf.reuse_models;
 }
 
+DLL_PUBLIC void AppMC::setup_vars()
+{
+    setup_sampling_vars(data);
+}
+
 DLL_PUBLIC ApproxMC::SolCount AppMC::count()
 {
     if (data->conf.verb > 2) {
