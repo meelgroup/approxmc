@@ -192,11 +192,7 @@ PyDoc_STRVAR(add_clause_doc,
 "add_clause(clause)\n\
 Add a clause to the solver.\n\
 \n\
-:param clause: A clause contains literals (ints)\n\
-:type clause: <list>\n\
-:return: None\n\
-:rtype: <None>"
-);
+:param clause: An iterator contains literals (ints)");
 
 static PyObject* add_clause(Counter *self, PyObject *args, PyObject *kwds)
 {
