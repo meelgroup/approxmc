@@ -67,6 +67,7 @@ public:
     ~AppMC();
     std::string get_version_info();
     void set_projection_set(const std::vector<uint32_t>& vars);
+    void setup_vars();
     ApproxMC::SolCount count();
     void new_vars(uint32_t num);
     void add_clause(const std::vector<CMSat::Lit>& lits);
