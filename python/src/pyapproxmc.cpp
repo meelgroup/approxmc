@@ -62,7 +62,7 @@ static int parse_sampling_set(Counter *self, PyObject *sample_set_obj)
         self->sampling_set.push_back(var);
         Py_DECREF(lit);
     }
-    Py_DECREF(iterator)
+    Py_DECREF(iterator);
 
     return 0;
 }
