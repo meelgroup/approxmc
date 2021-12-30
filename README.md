@@ -6,7 +6,7 @@
 # ApproxMC4: Approximate Model Counter
 ApproxMCv4 is a state-of-the-art approximate model counter utilizing an improved version of CryptoMiniSat to give approximate model counts to problems of size and complexity that were not possible before.
 
-This work is by Kuldeep Meel, Stephan Gocht, and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf) and [in CAV2020](https://www.comp.nus.edu.sg/~meel/Papers/cav20-sgm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat). CAV20 paper GIT revisions are as follows, AppMC `c51fa3bbac4`, CMS: `30dc420ff7a6d5`.
+This work is by Kuldeep Meel, Stephan Gocht, and Mate Soos, as [published in AAAI-19](https://www.comp.nus.edu.sg/~meel/Papers/aaai19-sm.pdf) and [in CAV2020](https://www.comp.nus.edu.sg/~meel/Papers/cav20-sgm.pdf). A large part of the work is in CryptoMiniSat [here](https://github.com/msoos/cryptominisat). AAAI19 paper GIT revisions are as follows, AppMC: `2996841d457bf372`, CMS: `e440d535cb45007`. CAV20 paper GIT revisions are as follows, AppMC `c51fa3bbac4`, CMS: `30dc420ff7a6d5`.
 
 ApproxMC handles CNF formulas and performs approximate counting. 
 
