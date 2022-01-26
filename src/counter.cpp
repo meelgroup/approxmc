@@ -140,6 +140,51 @@ uint64_t Counter::add_glob_banning_cls(
     return repeat;
 }
 
+void Counter::dump_cnf_from_solver(const vector<Lit>& assumps)
+{
+    vector<vector<Lit>> cnf;
+    solver->start_getting_small_clauses(
+        std::numeric_limits<uint32_t>::max(),
+        std::numeric_limits<uint32_t>::max(),
+        false, true);
+
+    uint32_t maxvars = 0;
+    bool ret = true;
+    vector<Lit> cl;
+    while(ret) {
+        ret = solver->get_next_small_clause(cl);
+        if (!ret) {
+            continue;
+        }
+        cnf.push_back(cl);
+        for(const auto& l: cl) {
+            maxvars = std::max<uint32_t>(l.var(), maxvars);
+        }
+    }
+
+    for(const auto& l: assumps) {
+        maxvars = std::max<uint32_t>(l.var(), maxvars);
+    }
+
+    solver->end_getting_small_clauses();
+
+    std::stringstream ss;
+    ss << "cnf_dump-" << cnf_dump_no << ".cnf";
+    cnf_dump_no++;
+
+    std::ofstream f;
+    f.open(ss.str(), std::ios::out);
+    f << "p cnf " << maxvars+1 << " " << cnf.size()+assumps.size() << "\n";
+    for(const auto& l: assumps) {
+        f << l << " 0\n";
+    }
+
+    for(const auto& c: cnf) {
+        f << c << " 0\n";
+    }
+    f.close();
+}
+
 SolNum Counter::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
@@ -191,6 +236,12 @@ SolNum Counter::bounded_sol_count(
     while (solutions < maxSolutions) {
         lbool ret = solver->solve(&new_assumps);
         assert(ret == l_False || ret == l_True);
+        if (conf.dump_intermediary_cnf >= 2 && ret == l_True) {
+            dump_cnf_from_solver(new_assumps);
+        }
+        if (conf.dump_intermediary_cnf >= 1 && ret == l_False) {
+            dump_cnf_from_solver(new_assumps);
+        }
 
         if (conf.verb >= 2) {
             cout << "c [appmc] bounded_sol_count ret: " << std::setw(7) << ret;

@@ -73,6 +73,7 @@ uint32_t detach_xors = 1;
 uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
 uint32_t sparse = 0;
+int dump_intermediary_cnf = 0;
 
 //Arjun
 vector<uint32_t> sampling_vars;
@@ -186,6 +187,8 @@ void add_appmc_options()
         , "Simplify agressiveness")
     ("velimratio", po::value(&var_elim_ratio)->default_value(var_elim_ratio)
         , "Variable elimination ratio for each simplify run")
+    ("dumpintercnf", po::value(&dump_intermediary_cnf)->default_value(dump_intermediary_cnf)
+        , "Dump intermediary CNFs during solving into files cnf_dump-X.cnf. If set to 1 only UNSAT is dumped, if set to 2, all are dumped");
     ;
 
     help_options.add(main_options);
@@ -543,6 +546,7 @@ void set_approxmc_options()
     appmc->set_simplify(simplify);
     appmc->set_var_elim_ratio(var_elim_ratio);
     appmc->set_fast_confl_break(fast_confl_break);
+    appmc->set_dump_intermediary_cnf(dump_intermediary_cnf);
 
     //Arjun options
     appmc->set_cont_recomp_indep_set(cont_recomp_indep_set);

@@ -136,6 +136,7 @@ private:
     ////////////////
     //Helper functions
     ////////////////
+    void dump_cnf_from_solver(const vector<Lit>& assumps);
     void print_xor(const vector<uint32_t>& vars, const uint32_t rhs);
     void one_measurement_count(
         int64_t& mPrev,
@@ -186,6 +187,7 @@ private:
     uint32_t orig_num_vars;
     double total_inter_simp_time = 0;
     uint32_t threshold; //precision, it's computed
+    uint32_t cnf_dump_no = 0;
 
     int argc;
     char** argv;
