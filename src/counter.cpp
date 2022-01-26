@@ -190,7 +190,6 @@ SolNum Counter::bounded_sol_count(
     vector<vector<lbool>> models;
     while (solutions < maxSolutions) {
         lbool ret = solver->solve(&new_assumps);
-        //COZ_PROGRESS_NAMED("one solution")
         assert(ret == l_False || ret == l_True);
 
         if (conf.verb >= 2) {
