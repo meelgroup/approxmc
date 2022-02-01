@@ -812,15 +812,14 @@ void Counter::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 template<class T>
 inline T Counter::findMedian(vector<T>& numList)
 {
+    assert(!numList.empty());
     std::sort(numList.begin(), numList.end());
     size_t medIndex = numList.size() / 2;
     size_t at = 0;
     if (medIndex >= numList.size()) {
-        at += numList.size() - 1;
-        return numList[at];
+        return numList[numList.size() - 1];
     }
-    at += medIndex;
-    return numList[at];
+    return numList[medIndex];
 }
 
 template<class T>
