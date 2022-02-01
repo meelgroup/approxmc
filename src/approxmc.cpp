@@ -136,6 +136,12 @@ DLL_PUBLIC void AppMC::set_verb_cls(uint32_t verb_cls)
 DLL_PUBLIC void AppMC::set_simplify(uint32_t simplify)
 {
     data->conf.simplify = simplify;
+    if (!simplify) {
+        data->counter.solver->set_no_bve();
+        data->counter.solver->set_no_bva();
+        data->counter.solver->set_scc(0);
+        data->counter.solver->set_simplify(0);
+    }
 }
 
 DLL_PUBLIC void AppMC::set_var_elim_ratio(double var_elim_ratio)
