@@ -70,7 +70,12 @@ public:
     void setup_vars();
     ApproxMC::SolCount count();
     void new_vars(uint32_t num);
-    void add_clause(const std::vector<CMSat::Lit>& lits);
+    bool add_clause(const std::vector<CMSat::Lit>& lits);
+    bool add_xor_clause(const std::vector<uint32_t>& vars, bool rhs);
+    bool add_bnn_clause(
+        const std::vector<CMSat::Lit>& lits,
+        signed cutoff,
+        unsigned out_var);
 
     //Main options
     void set_up_log(std::string log_file_name);
@@ -117,7 +122,8 @@ public:
     //Misc
     uint32_t nVars();
     void new_var();
-    void add_xor_clause(const std::vector<uint32_t>& vars, bool rhs);
+
+
     void print_stats(const double start_time);
 
 private:

@@ -252,14 +252,22 @@ DLL_PUBLIC void AppMC::new_var()
     data->counter.solver->new_var();
 }
 
-DLL_PUBLIC void AppMC::add_clause(const vector<CMSat::Lit>& lits)
+DLL_PUBLIC bool AppMC::add_clause(const vector<CMSat::Lit>& lits)
 {
-    data->counter.solver->add_clause(lits);
+    return data->counter.solver->add_clause(lits);
 }
 
-DLL_PUBLIC void AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
+DLL_PUBLIC bool AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
 {
-    data->counter.solver->add_xor_clause(vars, rhs);
+    return data->counter.solver->add_xor_clause(vars, rhs);
+}
+
+DLL_PUBLIC bool AppMC::add_bnn_clause(
+            const std::vector<CMSat::Lit>& lits,
+            signed cutoff,
+            unsigned out_var)
+{
+    return data->counter.solver->add_bnn_clause(lits, cutoff, out_var);
 }
 
 DLL_PUBLIC void AppMC::set_detach_warning()
