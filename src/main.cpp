@@ -460,6 +460,11 @@ void get_cnf_from_arjun()
 
     }
     arjun->end_getting_small_clauses();
+
+    for(const auto& bnn: arjun->get_bnns()) {
+        assert(bnn->out.sign() == false);
+        appmc->add_bnn_clause(bnn->in, bnn->cutoff, bnn->out.var());
+    }
 }
 
 void get_cnf_and_sampl_from_arjun_fully_simplified()
@@ -623,6 +628,7 @@ int main(int argc, char** argv)
         arjun->set_incidence_sort(arjun_incidence_sort);
         arjun->set_pred_forever_cutoff(pred_forever_cutoff);
         arjun->set_every_pred_reduce(every_pred_reduce);
+        arjun->set_simp(simplify);
 
         if (verbosity) {
             cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
