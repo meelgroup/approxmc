@@ -265,9 +265,9 @@ DLL_PUBLIC bool AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
 DLL_PUBLIC bool AppMC::add_bnn_clause(
             const std::vector<CMSat::Lit>& lits,
             signed cutoff,
-            unsigned out_var)
+            Lit out)
 {
-    return data->counter.solver->add_bnn_clause(lits, cutoff, out_var);
+    return data->counter.solver->add_bnn_clause(lits, cutoff, out);
 }
 
 DLL_PUBLIC void AppMC::set_detach_warning()

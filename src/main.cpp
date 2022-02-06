@@ -462,8 +462,9 @@ void get_cnf_from_arjun()
     arjun->end_getting_small_clauses();
 
     for(const auto& bnn: arjun->get_bnns()) {
-        assert(bnn->out.sign() == false);
-        appmc->add_bnn_clause(bnn->in, bnn->cutoff, bnn->out.var());
+        if (bnn) {
+            appmc->add_bnn_clause(bnn->in, bnn->cutoff, bnn->out);
+        }
     }
 }
 

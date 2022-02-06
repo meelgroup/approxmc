@@ -75,7 +75,7 @@ public:
     bool add_bnn_clause(
         const std::vector<CMSat::Lit>& lits,
         signed cutoff,
-        unsigned out_var);
+        CMSat::Lit out = CMSat::lit_Undef);
 
     //Main options
     void set_up_log(std::string log_file_name);
