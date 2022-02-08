@@ -461,9 +461,12 @@ void get_cnf_from_arjun()
     }
     arjun->end_getting_small_clauses();
 
+    vector<Lit> lits;
     for(const auto& bnn: arjun->get_bnns()) {
         if (bnn) {
-            appmc->add_bnn_clause(bnn->in, bnn->cutoff, bnn->out);
+            lits.clear();
+            lits.insert(lits.end(), bnn->begin(), bnn->end());
+            appmc->add_bnn_clause(lits, bnn->cutoff, bnn->out);
         }
     }
 }
