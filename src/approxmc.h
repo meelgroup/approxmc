@@ -96,7 +96,6 @@ public:
     void set_sparse(uint32_t sparse);
     void set_simplify(uint32_t simplify);
     void set_cont_recomp_indep_set(bool cont_recomp_indep_set);
-    void set_fast_confl_break(const bool fast_confl_break);
     void set_dump_intermediary_cnf(const bool dump_intermediary_cnf);
 
     //Predict options

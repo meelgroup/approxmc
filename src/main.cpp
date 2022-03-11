@@ -554,7 +554,6 @@ void set_approxmc_options()
     appmc->set_verb_cls(verb_cls);
     appmc->set_simplify(simplify);
     appmc->set_var_elim_ratio(var_elim_ratio);
-    appmc->set_fast_confl_break(fast_confl_break);
     appmc->set_dump_intermediary_cnf(dump_intermediary_cnf);
 
     //Arjun options
