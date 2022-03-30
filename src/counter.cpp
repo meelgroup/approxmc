@@ -200,8 +200,6 @@ SolNum Counter::bounded_sol_count(
         << " -- hashes active: " << hashCount << endl;
     }
 
-
-
     //Set up things for adding clauses that can later be removed
     vector<Lit> new_assumps;
     if (assumps) {
@@ -226,7 +224,6 @@ SolNum Counter::bounded_sol_count(
             cout << "c [appmc] inter-simp finished, total simp time: "
             << total_inter_simp_time << endl;
         }
-
     }
 
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hashCount);
@@ -271,9 +268,7 @@ SolNum Counter::bounded_sol_count(
         //Add solution to set
         solutions++;
         const vector<lbool> model = solver->get_model();
-        //#ifdef SLOW_DEBUG
         check_model(model, hm, hashCount);
-        //#endif
         models.push_back(model);
 
         //ban solution
@@ -907,19 +902,14 @@ void Counter::write_log(
     }
 }
 
-
 void Counter::check_model(
     const vector<lbool>& model,
     const HashesModels* const hm,
     const uint32_t hashCount
 )
 {
-    for(uint32_t var: conf.sampling_set) {
-        assert(model[var] != l_Undef);
-    }
-
-    if (!hm)
-        return;
+    for(uint32_t var: conf.sampling_set) assert(model[var] != l_Undef);
+    if (!hm) return;
 
     uint32_t checked = 0;
     bool ok = true;

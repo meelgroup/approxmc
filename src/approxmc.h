@@ -98,15 +98,6 @@ public:
     void set_cont_recomp_indep_set(bool cont_recomp_indep_set);
     void set_dump_intermediary_cnf(const bool dump_intermediary_cnf);
 
-    //Predict options
-    void set_pred_short_size(int32_t sz = -1);
-    void set_pred_long_size(int32_t sz = -1);
-    void set_pred_forever_size(int32_t sz = -1);
-    void set_pred_long_chunk(int32_t sz = -1);
-    void set_pred_forever_chunk(int32_t sz = -1);
-    void set_pred_forever_cutoff(int sz = -1);
-    void set_every_pred_reduce(int sz = -1);
-
     //Querying default values
     const std::vector<uint32_t>& get_sampling_set() const;
     double get_epsilon();

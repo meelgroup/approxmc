@@ -56,7 +56,6 @@ po::options_description main_options = po::options_description("Main options");
 po::options_description arjun_options = po::options_description("Arjun options");
 po::options_description improvement_options = po::options_description("Improvement options");
 po::options_description misc_options = po::options_description("Misc options");
-po::options_description predict_options = po::options_description("Predictive options");
 po::options_description help_options;
 po::variables_map vm;
 po::positional_options_description p;
@@ -83,16 +82,6 @@ int debug_arjun = 0;
 int arjun_incidence_sort;
 int cont_recomp_indep_set = 0;
 int with_e = 0;
-
-//predict
-int32_t pred_short_size = -1;
-int32_t pred_long_size = -1;
-int32_t pred_forever_size = -1;
-int32_t pred_long_chunk = -1;
-int32_t pred_forever_chunk = -1;
-int32_t pred_forever_cutoff = -1;
-int32_t every_pred_reduce = -1;
-int fast_confl_break = 0;
 
 void add_appmc_options()
 {
@@ -157,28 +146,6 @@ void add_appmc_options()
         , "Eliminate variables and simplify CNF as well")
     ;
 
-    predict_options.add_options()
-    //size
-    ("predshortsize", po::value(&pred_short_size)->default_value(pred_short_size)
-        , "Pred short multiplier")
-    ("predlongsize", po::value(&pred_long_size)->default_value(pred_long_size)
-        , "Pred long multiplier")
-    ("predforeversize", po::value(&pred_forever_size)->default_value(pred_forever_size)
-        , "Pred forever multiplier")
-
-    //chunk
-    ("predlongchunk", po::value(&pred_long_chunk)->default_value(pred_long_chunk)
-        , "Pred long chunk multiplier")
-    ("predforeverchunk", po::value(&pred_forever_chunk)->default_value(pred_forever_chunk)
-        , "Pred forever chunk multiplier")
-
-    //other
-    ("predforevercutoff", po::value(&pred_forever_cutoff)->default_value(pred_forever_cutoff)
-        , "If non-zero, ONLY this determines what's MOVED to or KEPT IN 'forever'.")
-    ("everypred", po::value(&every_pred_reduce)->default_value(every_pred_reduce)
-        , "Reduce final predictor (lev3) clauses every N, and produce data at every N")
-    ("fastconfl", po::value(&fast_confl_break)->default_value(fast_confl_break), "Fast breaking from conflicts")
-    ;
 
     misc_options.add_options()
     ("verbcls", po::value(&verb_cls)->default_value(verb_cls)
@@ -194,7 +161,6 @@ void add_appmc_options()
     help_options.add(main_options);
     help_options.add(improvement_options);
     help_options.add(arjun_options);
-    help_options.add(predict_options);
     help_options.add(misc_options);
 }
 
@@ -539,16 +505,6 @@ void set_approxmc_options()
     appmc->set_force_sol_extension(force_sol_extension);
     appmc->set_sparse(sparse);
 
-    //Predict options
-    appmc->set_pred_short_size(pred_short_size);
-    appmc->set_pred_long_size(pred_long_size);
-    appmc->set_pred_forever_size(pred_forever_size);
-    appmc->set_pred_long_chunk(pred_long_chunk);
-    appmc->set_pred_forever_chunk(pred_forever_chunk);
-    appmc->set_pred_forever_cutoff(pred_forever_cutoff);
-    appmc->set_every_pred_reduce(every_pred_reduce);
-
-
     //Misc options
     appmc->set_start_iter(start_iter);
     appmc->set_verb_cls(verb_cls);
@@ -629,8 +585,6 @@ int main(int argc, char** argv)
         arjun->set_seed(seed);
         arjun->set_verbosity(verbosity);
         arjun->set_incidence_sort(arjun_incidence_sort);
-        arjun->set_pred_forever_cutoff(pred_forever_cutoff);
-        arjun->set_every_pred_reduce(every_pred_reduce);
         arjun->set_simp(simplify);
 
         if (verbosity) {

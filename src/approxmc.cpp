@@ -296,41 +296,6 @@ DLL_PUBLIC void AppMC::print_stats(const double /*start_time*/)
     }
 }
 
-DLL_PUBLIC void AppMC::set_pred_short_size(int32_t sz)
-{
-    data->counter.solver->set_pred_short_size(sz);
-}
-
-DLL_PUBLIC void AppMC::set_pred_long_size(int32_t sz)
-{
-    data->counter.solver->set_pred_long_size(sz);
-}
-
-DLL_PUBLIC void AppMC::set_pred_forever_size(int32_t sz)
-{
-    data->counter.solver->set_pred_forever_size(sz);
-}
-
-DLL_PUBLIC void AppMC::set_pred_long_chunk(int32_t sz)
-{
-    data->counter.solver->set_pred_long_chunk(sz);
-}
-
-DLL_PUBLIC void AppMC::set_pred_forever_chunk(int32_t sz)
-{
-    data->counter.solver->set_pred_forever_chunk(sz);
-}
-
-DLL_PUBLIC void AppMC::set_pred_forever_cutoff(int sz)
-{
-    data->counter.solver->set_pred_forever_cutoff(sz);
-}
-
-DLL_PUBLIC void AppMC::set_every_pred_reduce(int sz)
-{
-    data->counter.solver->set_every_pred_reduce(sz);
-}
-
 DLL_PUBLIC void AppMC::set_dump_intermediary_cnf(const bool dump_intermediary_cnf)
 {
     data->conf.dump_intermediary_cnf = dump_intermediary_cnf;

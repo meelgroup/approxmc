@@ -49,8 +49,8 @@ TEST(normal_interface, example1)
     s.new_vars(2);
     s.add_clause(str_to_cl("-1, 2"));
     SolCount c = s.count();
-    EXPECT_EQ(0, c.hashCount);
-    EXPECT_EQ(3, c.cellSolCount);
+    EXPECT_EQ(0U, c.hashCount);
+    EXPECT_EQ(3U, c.cellSolCount);
 }
 
 TEST(normal_interface, example2)
