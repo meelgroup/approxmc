@@ -231,7 +231,7 @@ SolNum Counter::bounded_sol_count(
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
     while (solutions < maxSolutions) {
-        lbool ret = solver->solve(&new_assumps);
+        lbool ret = solver->solve(&new_assumps, true);
         assert(ret == l_False || ret == l_True);
         if (conf.dump_intermediary_cnf >= 2 && ret == l_True) {
             dump_cnf_from_solver(new_assumps);
@@ -242,28 +242,19 @@ SolNum Counter::bounded_sol_count(
 
         if (conf.verb >= 2) {
             cout << "c [appmc] bounded_sol_count ret: " << std::setw(7) << ret;
-            if (ret == l_True) {
-                cout << " sol no.  " << std::setw(3) << solutions;
-            } else {
-                cout << " No more. " << std::setw(3) << "";
-            }
+            if (ret == l_True) cout << " sol no.  " << std::setw(3) << solutions;
+            else cout << " No more. " << std::setw(3) << "";
             cout << " T: "
             << std::setw(7) << std::setprecision(2) << std::fixed
             << (cpuTimeTotal()-startTime)
             << " -- hashes act: " << hashCount
             << " -- T since last: "
             << std::setw(7) << std::setprecision(2) << std::fixed
-            << (cpuTimeTotal()-last_found_time)
-            << endl;
-            if (conf.verb >= 3) {
-                solver->print_stats();
-            }
+            << (cpuTimeTotal()-last_found_time) << endl;
+            if (conf.verb >= 3) solver->print_stats();
             last_found_time = cpuTimeTotal();
         }
-
-        if (ret != l_True) {
-            break;
-        }
+        if (ret != l_True) break;
 
         //Add solution to set
         solutions++;
@@ -688,24 +679,7 @@ void Counter::one_measurement_count(
                     lowerFib = hashPrev;
                 }
 
-                //Fast hit
-                if (false) {
-                    //Trying to hit the right place in case
-                    //we got some solutions here -- calculate the right place
-                    int64_t diff_delta = 0;
-                    if (num_sols > 0) {
-                        diff_delta = log2(threshold/(num_sols));
-                        if (diff_delta == 0){
-                            diff_delta = 1;
-                        }
-                        hashCount -= diff_delta;
-                    } else {
-                        hashCount = (upperFib+lowerFib)/2;
-                    }
-                } else {
-                    //Slow hit
-                    hashCount = (upperFib+lowerFib)/2;
-                }
+                hashCount = (upperFib+lowerFib)/2;
             }
         } else {
             assert(num_sols == threshold + 1);
@@ -912,35 +886,24 @@ void Counter::check_model(
     if (!hm) return;
 
     uint32_t checked = 0;
-    bool ok = true;
     for(const auto& h: hm->hashes) {
         //This hash is number: h.first
         //Only has to match hashes at & below
         //Notice that "h.first" is numbered from 0, so it's a "<" not "<="
         if (h.first < hashCount) {
-            //cout << "Checking model against hash" << h.first << endl;
+            //cout << "Checking model against hash " << h.first << endl;
             checked++;
-            ok &= check_model_against_hash(h.second, model);
-            if (!ok) break;
+            assert(check_model_against_hash(h.second, model));
         }
     }
-    assert(ok);
 }
 
 bool Counter::check_model_against_hash(const Hash& h, const vector<lbool>& model)
 {
-    bool rhs = h.rhs;
+    bool rhs = false;
     for (const uint32_t var: h.hash_vars) {
         assert(model[var] != l_Undef);
         rhs ^= model[var] == l_True;
     }
-
-    //If we started with rhs=FALSE and we XOR-ed in only FALSE
-    //rhs is FALSE but we should return TRUE
-
-    //If we started with rhs=TRUE and we XOR-ed in only one TRUE
-    //rhs is FALSE but we should return TRUE
-
-    //hence return !rhs
-    return !rhs;
+    return rhs == h.rhs;
 }

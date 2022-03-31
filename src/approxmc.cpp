@@ -59,7 +59,8 @@ DLL_PUBLIC AppMC::~AppMC()
     delete data;
 }
 
-DLL_PUBLIC void setup_sampling_vars(AppMCPrivateData* data)
+// Helper function, used only in this unit
+void setup_sampling_vars(AppMCPrivateData* data)
 {
     if (data->conf.sampling_set.empty()) {
         if (data->conf.verb) {
@@ -227,7 +228,6 @@ DLL_PUBLIC ApproxMC::SolCount AppMC::count()
     }
 
     setup_sampling_vars(data);
-
     SolCount sol_count = data->counter.solve(data->conf);
     return sol_count;
 }
