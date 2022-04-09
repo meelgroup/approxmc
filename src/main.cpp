@@ -83,6 +83,7 @@ int arjun_incidence_sort;
 int cont_recomp_indep_set = 0;
 int with_e = 0;
 int do_empty_occ = 1;
+int arjun_irreg = 1;
 
 void add_appmc_options()
 {
@@ -132,6 +133,8 @@ void add_appmc_options()
         , "Use CNF from Arjun, but use sampling set from CNF")
     ("arjuncontrecomp", po::value(&cont_recomp_indep_set)->default_value(cont_recomp_indep_set)
         , "Continiously, at every XOR addition, recompute the independent set through Arjun")
+    ("arjunirreg", po::value(&arjun_irreg)->default_value(arjun_irreg)
+        , "Arjun should use irregular gates")
     ;
 
     improvement_options.add_options()
@@ -591,6 +594,7 @@ int main(int argc, char** argv)
         arjun->set_verbosity(verbosity);
         arjun->set_incidence_sort(arjun_incidence_sort);
         arjun->set_simp(simplify);
+        arjun->set_irreg_gate_based(arjun_irreg);
 
         if (verbosity) {
             cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
