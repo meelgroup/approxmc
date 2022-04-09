@@ -82,6 +82,7 @@ int debug_arjun = 0;
 int arjun_incidence_sort;
 int cont_recomp_indep_set = 0;
 int with_e = 0;
+int do_empty_occ = 1;
 
 void add_appmc_options()
 {
@@ -144,6 +145,8 @@ void add_appmc_options()
         , "Use trick of not extending solutions in the SAT solver to full solution")
     ("withe", po::value(&with_e)->default_value(with_e)
         , "Eliminate variables and simplify CNF as well")
+    ("emptyocc", po::value(&do_empty_occ)->default_value(do_empty_occ)
+        , "Don't count over empty occ variables, instead just multiply")
     ;
 
 
@@ -323,7 +326,7 @@ inline double stats_line_percent(double num, double total)
     }
 }
 
-void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size)
+void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size, const uint32_t empty_occs)
 {
     cout << "c ind ";
     for(const uint32_t s: indep_set) {
@@ -332,7 +335,8 @@ void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_samp
     cout << "0" << endl;
 
     cout << "c [arjun] final set size: " << std::setw(8)
-    << indep_set.size()
+    << indep_set.size()+empty_occs
+    << " of which empty: " << std::setw(8) << empty_occs
     << " percent of original: "
     <<  std::setw(6) << std::setprecision(4)
     << stats_line_percent(indep_set.size(), orig_sampling_set_size)
@@ -437,9 +441,9 @@ void get_cnf_from_arjun()
     }
 }
 
-void get_cnf_and_sampl_from_arjun_fully_simplified()
+void get_cnf_and_sampl_from_arjun_fully_simplified_renumbered()
 {
-    auto cnf_sampl = arjun->get_fully_simplified_cnf(sampling_vars, arjun->get_orig_num_vars());
+    auto cnf_sampl = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, arjun->get_orig_num_vars());
 
     //Get num vars
     uint32_t max_var = 0;
@@ -579,6 +583,7 @@ int main(int argc, char** argv)
 
     set_approxmc_options();
 
+    uint32_t offset_count_by_2_pow = 0;
     if (do_arjun) {
         //Arjun-based minimization
         arjun = new ArjunNS::Arjun;
@@ -595,17 +600,29 @@ int main(int argc, char** argv)
         print_orig_sampling_vars(sampling_vars, arjun);
         auto old_sampling_vars = sampling_vars;
         uint32_t orig_sampling_set_size = set_up_sampling_set();
+        sampling_vars = arjun->get_indep_set();
+        if (do_empty_occ) {
+            auto empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
+            std::set<uint32_t> sampl_vars_set;
+            sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
+            for(auto const& v: empty_occ_sampl_vars) {
+                assert(sampl_vars_set.find(v) != sampl_vars_set.end()); // this is guaranteed by arjun
+                sampl_vars_set.erase(v);
+            }
+            offset_count_by_2_pow = empty_occ_sampl_vars.size();
+            sampling_vars.clear();
+            sampling_vars.insert(sampling_vars.end(), sampl_vars_set.begin(), sampl_vars_set.end());
+        }
         if (with_e) {
-            sampling_vars = arjun->get_indep_set();
-            get_cnf_and_sampl_from_arjun_fully_simplified();
+            get_cnf_and_sampl_from_arjun_fully_simplified_renumbered();
         } else {
             get_cnf_from_arjun();
             transfer_unit_clauses_from_arjun();
-            sampling_vars = arjun->get_indep_set();
         }
-        print_final_indep_set(sampling_vars , orig_sampling_set_size);
+        print_final_indep_set(sampling_vars , orig_sampling_set_size, offset_count_by_2_pow);
         if (debug_arjun) {
             sampling_vars = old_sampling_vars;
+            offset_count_by_2_pow = 0;
         }
         delete arjun;
     } else {
