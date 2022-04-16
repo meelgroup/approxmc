@@ -411,6 +411,12 @@ void Counter::set_up_probs_threshold_measurements(
     }
 }
 
+bool Counter::find_one_solution()
+{
+    auto ret = solver->solve();
+    return ret == l_True;
+}
+
 ApproxMC::SolCount Counter::count()
 {
     int64_t hashCount = conf.start_iter;

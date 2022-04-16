@@ -65,17 +65,25 @@ class AppMC
 public:
     AppMC();
     ~AppMC();
-    std::string get_version_info();
     void set_projection_set(const std::vector<uint32_t>& vars);
     void setup_vars();
     ApproxMC::SolCount count();
+    bool find_one_solution();
+
+    // Adding constraints
+    void new_var();
     void new_vars(uint32_t num);
+    uint32_t nVars();
     bool add_clause(const std::vector<CMSat::Lit>& lits);
     bool add_xor_clause(const std::vector<uint32_t>& vars, bool rhs);
     bool add_bnn_clause(
         const std::vector<CMSat::Lit>& lits,
         signed cutoff,
         CMSat::Lit out = CMSat::lit_Undef);
+
+    // Information about approxmc
+    std::string get_version_info();
+    void print_stats(const double start_time);
 
     //Main options
     void set_up_log(std::string log_file_name);
@@ -108,13 +116,6 @@ public:
     uint32_t get_sparse();
     bool get_reuse_models();
     bool get_cont_recomp_indep_set();
-
-    //Misc
-    uint32_t nVars();
-    void new_var();
-
-
-    void print_stats(const double start_time);
 
 private:
     ////////////////////////////

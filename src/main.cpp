@@ -385,7 +385,7 @@ void print_num_solutions(uint32_t cellSolCount, uint32_t hashCount)
 {
     cout << "c [appmc] Number of solutions is: "
     << cellSolCount << "*2**" << hashCount << endl;
-    if (cellSolCount == 0 && hashCount == 0) {
+    if (cellSolCount == 0) {
         cout << "s UNSATISFIABLE" << endl;
     } else {
         cout << "s SATISFIABLE" << endl;
@@ -639,7 +639,6 @@ int main(int argc, char** argv)
         }
         //print_orig_sampling_vars(sampling_vars, appmc);
     }
-    appmc->set_projection_set(sampling_vars);
 
     //Count with ApproxMC
     auto sol_count = appmc->count();
