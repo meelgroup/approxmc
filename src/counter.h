@@ -105,6 +105,7 @@ public:
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
     string binary(const uint32_t x, const uint32_t length);
+    bool find_one_solution();
     bool gen_rhs();
     uint32_t threshold_appmcgen;
     SATSolver* solver = NULL;

@@ -499,7 +499,7 @@ void set_approxmc_options()
 {
     //Main options
     appmc->set_verbosity(verbosity);
-    if (verbosity > 2) {
+    if (verbosity >= 2) {
         appmc->set_detach_warning();
     }
     appmc->set_seed(seed);

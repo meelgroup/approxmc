@@ -433,9 +433,7 @@ ApproxMC::SolCount Counter::count()
             cout << "c [appmc] Checking if there are at least threshold+1 solutions..." << endl;
         }
         double myTime = cpuTime();
-        if (conf.simplify >= 1) {
-            simplify();
-        }
+        if (conf.simplify >= 1) simplify();
         int64_t init_num_sols = bounded_sol_count(
             threshold+1, //max solutions
             NULL, // no assumptions
