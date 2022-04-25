@@ -251,7 +251,7 @@ SolNum Counter::bounded_sol_count(
             << " -- T since last: "
             << std::setw(7) << std::setprecision(2) << std::fixed
             << (cpuTimeTotal()-last_found_time) << endl;
-            if (conf.verb >= 3) solver->print_stats();
+            if (conf.verb >= 4) solver->print_stats();
             last_found_time = cpuTimeTotal();
         }
         if (ret != l_True) break;
@@ -353,16 +353,15 @@ void Counter::simplify()
     solver->set_full_bve_iter_ratio(conf.var_elim_ratio);
     solver->set_full_bve(1);
     solver->set_bva(1);
-    solver->set_distill(1);
     solver->set_scc(1);
 
     solver->simplify();
 
     solver->set_sls(0);
-    solver->set_intree_probe(0);
+    //solver->set_intree_probe(0);
     solver->set_full_bve(0);
     solver->set_bva(0);
-    solver->set_distill(0);
+    //solver->set_distill(0);
     //solver->set_scc(0);
 }
 
