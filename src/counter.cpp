@@ -100,42 +100,45 @@ uint64_t Counter::add_glob_banning_cls(
     , const uint32_t act_var
     , const uint32_t num_hashes)
 {
-    if (hm == NULL)
-        return 0;
-
-    assert(act_var != std::numeric_limits<uint32_t>::max());
-    assert(num_hashes != std::numeric_limits<uint32_t>::max());
-
     uint64_t repeat = 0;
-    vector<Lit> lits;
-    for (uint32_t i = 0; i < hm->glob_model.size(); i++) {
-        const SavedModel& sm = hm->glob_model[i];
-        //Model was generated with 'sm.hash_num' active
-        //We will have 'num_hashes' hashes active
+    if (hm != NULL) {
+        assert(act_var != std::numeric_limits<uint32_t>::max());
+        assert(num_hashes != std::numeric_limits<uint32_t>::max());
 
-        if (sm.hash_num >= num_hashes) {
-            ban_one(act_var, sm.model);
-            repeat++;
-        } else {
-            //Model has to fit all hashes
-            bool ok = true;
-            uint32_t checked = 0;
-            for(const auto& h: hm->hashes) {
-                //This hash is number: h.first
-                //Only has to match hashes below current need
-                //note that "h.first" is numbered from 0, so this is a "<" not "<="
-                if (h.first < num_hashes) {
-                    checked++;
-                    ok &= check_model_against_hash(h.second, sm.model);
-                    if (!ok) break;
-                }
-            }
-            if (ok) {
-                //cout << "Found repeat model, had to check " << checked << " hashes" << endl;
+        for (uint32_t i = 0; i < hm->glob_model.size(); i++) {
+            const SavedModel& sm = hm->glob_model[i];
+            //Model was generated with 'sm.hash_num' active
+            //We will have 'num_hashes' hashes active
+
+            if (sm.hash_num >= num_hashes) {
                 ban_one(act_var, sm.model);
                 repeat++;
+            } else {
+                //Model has to fit all hashes
+                bool ok = true;
+                uint32_t checked = 0;
+                for(const auto& h: hm->hashes) {
+                    //This hash is number: h.first
+                    //Only has to match hashes below current need
+                    //note that "h.first" is numbered from 0, so this is a "<" not "<="
+                    if (h.first < num_hashes) {
+                        checked++;
+                        ok &= check_model_against_hash(h.second, sm.model);
+                        if (!ok) break;
+                    }
+                }
+                if (ok) {
+                    //cout << "Found repeat model, had to check " << checked << " hashes" << endl;
+                    ban_one(act_var, sm.model);
+                    repeat++;
+                }
             }
         }
+    }
+    if (conf.verb) {
+        cout << "c [appmc] repeat solutions: " << std::setw(6) << repeat;
+        if (hm) cout << " out of: " << std::setw(6) << hm->glob_model.size();
+        cout << endl;
     }
     return repeat;
 }
@@ -274,7 +277,6 @@ SolNum Counter::bounded_sol_count(
         }
         solver->add_clause(lits);
     }
-
 
     //Save global models
     if (hm && conf.reuse_models) {
