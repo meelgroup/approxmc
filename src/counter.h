@@ -81,7 +81,11 @@ struct HashesModels {
 
     void clear() {
         hashes.clear();
-        glob_model.clear();
+        vector<SavedModel> clean_glob_model;
+        for(auto const& m: glob_model) {
+            if (m.hash_num == 0) clean_glob_model.push_back(m);
+        }
+        std::swap(glob_model, clean_glob_model);
     }
 };
 
