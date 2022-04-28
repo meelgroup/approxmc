@@ -78,6 +78,11 @@ struct Hash {
 struct HashesModels {
     map<uint64_t, Hash> hashes;
     vector<SavedModel> glob_model; //global table storing models
+
+    void clear() {
+        hashes.clear();
+        glob_model.clear();
+    }
 };
 
 struct SolNum {
@@ -142,7 +147,8 @@ private:
     void one_measurement_count(
         int64_t& mPrev,
         const int iter,
-        SparseData sparse_data
+        SparseData sparse_data,
+        HashesModels* hm
     );
     void write_log(
         bool sampling,

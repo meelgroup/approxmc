@@ -52,6 +52,9 @@
 #include "GitSHA1.h"
 #include <arjun/arjun.h>
 
+#define verb_print(a, x) \
+    do { if (conf.verb >= a) {std::cout << "c " << x << std::endl;} } while (0)
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -101,6 +104,8 @@ uint64_t Counter::add_glob_banning_cls(
     , const uint32_t num_hashes)
 {
     uint64_t repeat = 0;
+    uint64_t checked = 0;
+
     if (hm != NULL) {
         assert(act_var != std::numeric_limits<uint32_t>::max());
         assert(num_hashes != std::numeric_limits<uint32_t>::max());
@@ -115,6 +120,7 @@ uint64_t Counter::add_glob_banning_cls(
                 repeat++;
             } else {
                 //Model has to fit all hashes
+                checked++;
                 bool ok = true;
                 uint32_t checked = 0;
                 for(const auto& h: hm->hashes) {
@@ -136,7 +142,8 @@ uint64_t Counter::add_glob_banning_cls(
         }
     }
     if (conf.verb) {
-        cout << "c [appmc] repeat solutions: " << std::setw(6) << repeat;
+        cout << "c [appmc] repeat solutions: " << std::setw(6) << repeat
+        << " checked: " << std::setw(6) << checked;
         if (hm) cout << " out of: " << std::setw(6) << hm->glob_model.size();
         cout << endl;
     }
@@ -423,27 +430,22 @@ ApproxMC::SolCount Counter::count()
     int64_t hashCount = conf.start_iter;
 
     SparseData sparse_data(-1);
+    HashesModels hm;
     uint32_t measurements;
     set_up_probs_threshold_measurements(measurements, sparse_data);
     
-    if (conf.verb) {
-        cout << "c [appmc] Starting up, initial measurement" << endl;
-    }
+    verb_print(1, "[appmc] Starting up, initial measurement");
     if (hashCount == 0) {
-        if (conf.verb) {
-            cout << "c [appmc] Checking if there are at least threshold+1 solutions..." << endl;
-        }
+        verb_print(1, "c [appmc] Checking if there are at least threshold+1 solutions...");
         double myTime = cpuTime();
         if (conf.simplify >= 1) simplify();
-        int64_t init_num_sols = bounded_sol_count(
+        const int64_t init_num_sols = bounded_sol_count(
             threshold+1, //max solutions
             NULL, // no assumptions
-            hashCount
+            hashCount,
+            &hm
         ).solutions;
-
-        if (conf.verb >= 2) {
-            cout << "c [appmc] Initial number of solutions: " << init_num_sols << endl;
-        }
+        verb_print(2, "[appmc] Initial number of solutions: " << init_num_sols);
 
         write_log(false, //not sampling
                   0, 0,
@@ -466,11 +468,9 @@ ApproxMC::SolCount Counter::count()
         }
         hashCount++;
     }
-    if (conf.verb) {
-        cout << "c [appmc] Starting at hash count: " << hashCount << endl;
-    }
-    int64_t mPrev = hashCount;
+    verb_print(1, "[appmc] Starting at hash count: " << hashCount);
 
+    int64_t mPrev = hashCount;
     numHashList.clear();
     numCountList.clear();
 
@@ -478,17 +478,10 @@ ApproxMC::SolCount Counter::count()
     //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
     //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
     for (uint32_t j = 0; j < measurements; j++) {
-        one_measurement_count(
-            mPrev
-            , j
-            , sparse_data
-        );
+        one_measurement_count(mPrev, j, sparse_data, &hm);
         sparse_data.next_index = 0;
-
-        //Only simplify before next round
-        if (conf.simplify >= 1 && j+1 < measurements) {
-            simplify();
-        }
+        if (conf.simplify >= 1 && j+1 < measurements) simplify();
+        hm.clear();
     }
     assert(numHashList.size() > 0 && "UNSAT should not be possible");
 
@@ -591,8 +584,8 @@ void Counter::cont_recomp_indep_set(const vector<Lit>& assumps)
 void Counter::one_measurement_count(
     int64_t& mPrev,
     const int iter,
-    SparseData sparse_data
-)
+    SparseData sparse_data,
+    HashesModels* hm)
 {
     //Tells the number of solutions found at hash number N
     //sols_for_hash[N] tells the number of solutions found when N hashes were added
@@ -604,9 +597,6 @@ void Counter::one_measurement_count(
     //number of solutions.
     //if it's not set, we have no clue.
     map<uint64_t,bool> threshold_sols;
-
-    HashesModels hm;
-
     int64_t total_max_xors = conf.sampling_set.size();
     int64_t numExplored = 0;
     int64_t lowerFib = 0;
@@ -623,7 +613,7 @@ void Counter::one_measurement_count(
     // Once upperFib < lowerFib/2; we do a binary search. 
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
-        const vector<Lit> assumps = set_num_hashes(hashCount, hm.hashes, sparse_data);
+        const vector<Lit> assumps = set_num_hashes(hashCount, hm->hashes, sparse_data);
         if (conf.cont_recomp_indep_set) {
             cont_recomp_indep_set(assumps);
         }
@@ -641,7 +631,7 @@ void Counter::one_measurement_count(
             threshold + 1, //max no. solutions
             &assumps, //assumptions to use
             hashCount,
-            &hm
+            hm
         );
         const uint64_t num_sols = std::min<uint64_t>(sols.solutions, threshold + 1);
         assert(num_sols <= threshold + 1);
