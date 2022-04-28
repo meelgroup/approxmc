@@ -894,7 +894,7 @@ void Counter::check_model(
 bool Counter::check_model_against_hash(const Hash& h, const vector<lbool>& model)
 {
     bool rhs = false;
-    for (const uint32_t var: h.hash_vars) {
+    for (auto const& var: h.hash_vars) {
         assert(model[var] != l_Undef);
         rhs ^= model[var] == l_True;
     }
