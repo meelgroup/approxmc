@@ -122,13 +122,11 @@ uint64_t Counter::add_glob_banning_cls(
                 //Model has to fit all hashes
                 checked++;
                 bool ok = true;
-                uint32_t checked = 0;
                 for(const auto& h: hm->hashes) {
                     //This hash is number: h.first
                     //Only has to match hashes below current need
                     //note that "h.first" is numbered from 0, so this is a "<" not "<="
                     if (h.first < num_hashes) {
-                        checked++;
                         ok &= check_model_against_hash(h.second, sm.model);
                         if (!ok) break;
                     }
