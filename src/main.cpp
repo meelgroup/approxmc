@@ -84,6 +84,8 @@ int cont_recomp_indep_set = 0;
 int with_e = 0;
 int do_empty_occ = 1;
 int arjun_irreg = 1;
+int arjun_emtpy = 1;
+int arjun_mirror_emtpy = 1;
 
 void add_appmc_options()
 {
@@ -135,6 +137,10 @@ void add_appmc_options()
         , "Continiously, at every XOR addition, recompute the independent set through Arjun")
     ("arjunirreg", po::value(&arjun_irreg)->default_value(arjun_irreg)
         , "Arjun should use irregular gates")
+    ("arjunempty", po::value(&arjun_emtpy)->default_value(arjun_emtpy)
+        , "Arjun should use check for empty occurrence variables")
+    ("arjunmirror", po::value(&arjun_mirror_emtpy)->default_value(arjun_mirror_emtpy)
+        , "Arjun should use mirror variables to improve empty detection")
     ;
 
     improvement_options.add_options()
@@ -329,21 +335,24 @@ inline double stats_line_percent(double num, double total)
     }
 }
 
-void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size, const uint32_t empty_occs)
+void print_final_indep_set(
+    const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size, const vector<uint32_t>& empty_occs)
 {
     cout << "c ind ";
-    for(const uint32_t s: indep_set) {
-        cout << s+1 << " ";
-    }
+    for(const uint32_t s: indep_set) cout << s+1 << " ";
     cout << "0" << endl;
 
-    cout << "c [arjun] final set size: " << std::setw(8)
-    << indep_set.size()+empty_occs
-    << " of which empty: " << std::setw(8) << empty_occs
+    cout
+    << "c [arjun] final set size:      " << std::setw(7) << indep_set.size()
     << " percent of original: "
     <<  std::setw(6) << std::setprecision(4)
     << stats_line_percent(indep_set.size(), orig_sampling_set_size)
-    << " %" << endl << std::flush;
+    << " %" << endl
+    << "c [arjun] of which empty occs: " << std::setw(7) << empty_occs.size()
+    << " percent of original: "
+    <<  std::setw(6) << std::setprecision(4)
+    << stats_line_percent(empty_occs.size(), orig_sampling_set_size)
+    << " %" << endl;
 }
 
 template<class T>
@@ -595,6 +604,8 @@ int main(int argc, char** argv)
         arjun->set_incidence_sort(arjun_incidence_sort);
         arjun->set_simp(simplify);
         arjun->set_irreg_gate_based(arjun_irreg);
+        arjun->set_empty_occs_based(arjun_emtpy);
+        arjun->set_mirror_empty(arjun_mirror_emtpy);
 
         if (verbosity) {
             cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
@@ -605,8 +616,10 @@ int main(int argc, char** argv)
         auto old_sampling_vars = sampling_vars;
         uint32_t orig_sampling_set_size = set_up_sampling_set();
         sampling_vars = arjun->get_indep_set();
+        vector<uint32_t> empty_occ_sampl_vars;
+        if (do_empty_occ) empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
+        print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (do_empty_occ) {
-            auto empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
             std::set<uint32_t> sampl_vars_set;
             sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
             for(auto const& v: empty_occ_sampl_vars) {
@@ -623,7 +636,6 @@ int main(int argc, char** argv)
             get_cnf_from_arjun();
             transfer_unit_clauses_from_arjun();
         }
-        print_final_indep_set(sampling_vars , orig_sampling_set_size, offset_count_by_2_pow);
         if (debug_arjun) {
             sampling_vars = old_sampling_vars;
             offset_count_by_2_pow = 0;
