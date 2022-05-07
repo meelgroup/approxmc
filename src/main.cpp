@@ -541,7 +541,7 @@ template<class T>
 void print_orig_sampling_vars(const vector<uint32_t>& orig_sampling_vars, T* ptr)
 {
     if (!orig_sampling_vars.empty()) {
-        cout << "Original sampling vars: ";
+        cout << "c Original sampling vars: ";
         for(auto v: orig_sampling_vars) {
             cout << v << " ";
         }

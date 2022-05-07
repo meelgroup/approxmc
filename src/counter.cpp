@@ -434,7 +434,7 @@ ApproxMC::SolCount Counter::count()
     
     verb_print(1, "[appmc] Starting up, initial measurement");
     if (hashCount == 0) {
-        verb_print(1, "c [appmc] Checking if there are at least threshold+1 solutions...");
+        verb_print(1, "[appmc] Checking if there are at least threshold+1 solutions...");
         double myTime = cpuTime();
         if (conf.simplify >= 1) simplify();
         const int64_t init_num_sols = bounded_sol_count(
