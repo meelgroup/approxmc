@@ -76,6 +76,7 @@ int dump_intermediary_cnf = 0;
 
 //Arjun
 vector<uint32_t> sampling_vars;
+bool sampling_vars_found = false;
 int ignore_sampl_set = 0;
 int do_arjun = 1;
 int debug_arjun = 0;
@@ -318,6 +319,7 @@ void read_in_file(const string& filename, T* myreader)
     }
 
     sampling_vars = parser.sampling_vars;
+    sampling_vars_found = parser.sampling_vars_found;
 
     #ifndef USE_ZLIB
     fclose(in);
@@ -384,6 +386,7 @@ void read_stdin(T* myreader)
     }
 
     sampling_vars = parser.sampling_vars;
+    sampling_vars_found = parser.sampling_vars_found;
 
     #ifdef USE_ZLIB
     gzclose(in);
@@ -495,7 +498,7 @@ void read_input_cnf(T* reader)
 uint32_t set_up_sampling_set()
 {
     uint32_t orig_sampling_set_size;
-    if (sampling_vars.empty() || ignore_sampl_set) {
+    if (!sampling_vars_found || ignore_sampl_set) {
         orig_sampling_set_size = arjun->start_with_clean_sampling_set();
     } else {
         orig_sampling_set_size = arjun->set_starting_sampling_set(sampling_vars);
@@ -607,9 +610,7 @@ int main(int argc, char** argv)
         arjun->set_empty_occs_based(arjun_emtpy);
         arjun->set_mirror_empty(arjun_mirror_emtpy);
 
-        if (verbosity) {
-            cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
-        }
+        if (verbosity) cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
 
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars, arjun);
@@ -643,13 +644,11 @@ int main(int argc, char** argv)
         delete arjun;
     } else {
         read_input_cnf(appmc);
-        if (ignore_sampl_set) {
+        if (ignore_sampl_set || !sampling_vars_found) {
             sampling_vars.clear();
-            for(uint32_t i = 0; i < appmc->nVars(); i++) {
-                sampling_vars.push_back(i);
-            }
+            for(uint32_t i = 0; i < appmc->nVars(); i++) sampling_vars.push_back(i);
         }
-        //print_orig_sampling_vars(sampling_vars, appmc);
+        print_final_indep_set(sampling_vars , 0, vector<uint32_t>());
     }
 
     //Count with ApproxMC
