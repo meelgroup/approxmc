@@ -442,7 +442,6 @@ void get_cnf_from_arjun()
         if (ok) {
             appmc->add_clause(clause);
         }
-
     }
     arjun->end_getting_small_clauses();
 
@@ -456,27 +455,27 @@ void get_cnf_from_arjun()
     }
 }
 
-void get_cnf_and_sampl_from_arjun_fully_simplified_renumbered()
-{
-    auto cnf_sampl = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, arjun->get_orig_num_vars());
-
-    //Get num vars
-    uint32_t max_var = 0;
-    for(const auto& cl: cnf_sampl.first) {
-        for(const auto& l: cl) {
-            if (l.var()+1 > max_var) {
-                max_var = l.var()+1;
-            }
-        }
-    }
-    appmc->new_vars(max_var);
-
-    //Add clauses
-    for(const auto& cl: cnf_sampl.first) {
-        appmc->add_clause(cl);
-    }
-    sampling_vars = cnf_sampl.second;
-}
+// void get_cnf_and_sampl_from_arjun_fully_simplified_renumbered()
+// {
+//     auto cnf_sampl = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, arjun->get_orig_num_vars());
+//
+//     //Get num vars
+//     uint32_t max_var = 0;
+//     for(const auto& cl: cnf_sampl.first) {
+//         for(const auto& l: cl) {
+//             if (l.var()+1 > max_var) {
+//                 max_var = l.var()+1;
+//             }
+//         }
+//     }
+//     appmc->new_vars(max_var);
+//
+//     //Add clauses
+//     for(const auto& cl: cnf_sampl.first) {
+//         appmc->add_clause(cl);
+//     }
+//     sampling_vars = cnf_sampl.second;
+// }
 
 template<class T>
 void read_input_cnf(T* reader)
@@ -632,7 +631,8 @@ int main(int argc, char** argv)
             sampling_vars.insert(sampling_vars.end(), sampl_vars_set.begin(), sampl_vars_set.end());
         }
         if (with_e) {
-            get_cnf_and_sampl_from_arjun_fully_simplified_renumbered();
+            assert(false);
+            //get_cnf_and_sampl_from_arjun_fully_simplified_renumbered();
         } else {
             get_cnf_from_arjun();
             transfer_unit_clauses_from_arjun();
