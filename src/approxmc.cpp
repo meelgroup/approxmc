@@ -286,6 +286,16 @@ DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampling_set() const
     return data->conf.sampling_set;
 }
 
+DLL_PUBLIC void AppMC::set_cont_recomp_indep_set(bool cont_recomp_indep_set)
+{
+    data->conf.cont_recomp_indep_set = cont_recomp_indep_set;
+}
+
+DLL_PUBLIC bool AppMC::get_cont_recomp_indep_set()
+{
+    return data->conf.cont_recomp_indep_set;
+}
+
 DLL_PUBLIC void AppMC::print_stats(const double /*start_time*/)
 {
     data->counter.solver->set_verbosity(1);
