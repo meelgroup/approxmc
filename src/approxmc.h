@@ -66,7 +66,6 @@ public:
     AppMC();
     ~AppMC();
     void set_projection_set(const std::vector<uint32_t>& vars);
-    void setup_vars();
     ApproxMC::SolCount count();
     bool find_one_solution();
 

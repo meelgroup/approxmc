@@ -777,7 +777,6 @@ inline T Counter::findMedian(vector<T>& numList)
     assert(!numList.empty());
     std::sort(numList.begin(), numList.end());
     size_t medIndex = numList.size() / 2;
-    size_t at = 0;
     if (medIndex >= numList.size()) {
         return numList[numList.size() - 1];
     }
