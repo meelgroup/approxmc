@@ -206,11 +206,6 @@ DLL_PUBLIC bool AppMC::get_reuse_models()
     return data->conf.reuse_models;
 }
 
-DLL_PUBLIC void AppMC::setup_vars()
-{
-    setup_sampling_vars(data);
-}
-
 DLL_PUBLIC ApproxMC::SolCount AppMC::count()
 {
     if (data->conf.verb > 2) {
@@ -294,16 +289,6 @@ DLL_PUBLIC void AppMC::set_cont_recomp_indep_set(bool cont_recomp_indep_set)
 DLL_PUBLIC bool AppMC::get_cont_recomp_indep_set()
 {
     return data->conf.cont_recomp_indep_set;
-}
-
-DLL_PUBLIC void AppMC::print_stats(const double /*start_time*/)
-{
-    data->counter.solver->set_verbosity(1);
-    data->counter.solver->print_stats();
-    data->counter.solver->set_verbosity(0);
-    if (data->conf.verb > 2) {
-        data->counter.solver->set_verbosity(data->conf.verb);
-    }
 }
 
 DLL_PUBLIC void AppMC::set_dump_intermediary_cnf(const bool dump_intermediary_cnf)
