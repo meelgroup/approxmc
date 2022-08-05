@@ -651,12 +651,19 @@ int main(int argc, char** argv)
         print_final_indep_set(sampling_vars , 0, vector<uint32_t>());
     }
 
-    //Count with ApproxMC
-    auto sol_count = appmc->count();
-    appmc->print_stats(start_time);
-
-    appmc->print_stats(start_time);
+    ApproxMC::SolCount sol_count;
+    if (!sampling_vars.empty()) {
+        appmc->set_projection_set(sampling_vars);
+        sol_count = appmc->count();
+        appmc->print_stats(start_time);
+    } else {
+        bool ret = appmc->find_one_solution();
+        sol_count.hashCount = 0;
+        if (ret) sol_count.cellSolCount = 1;
+        else sol_count.cellSolCount = 0;
+    }
     cout << "c [appmc+arjun] Total time: " << (cpuTime() - start_time) << endl;
-    print_num_solutions(sol_count.cellSolCount, sol_count.hashCount);
+    print_num_solutions(sol_count.cellSolCount, sol_count.hashCount+offset_count_by_2_pow);
+
     delete appmc;
 }
