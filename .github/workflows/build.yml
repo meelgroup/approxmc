@@ -32,27 +32,13 @@ jobs:
     - name: Checkout CMS
       uses: actions/checkout@v2
       with:
-        repository: meelgroup/cryptominisat
-        ref: 'devel'
+        repository: msoos/cryptominisat
+        ref: 'master'
         path: cryptominisat
     
     - name: Build CMS
       run: |
        cd cryptominisat
-       mkdir build && cd build
-       cmake ..
-       make
-       cd ../..
-   
-    - name: Checkout Louvain
-      uses: actions/checkout@v2
-      with:
-        repository: meelgroup/louvain-community
-        path: louvain-community
-   
-    - name: Build Louvain Community
-      run: |
-       cd louvain-community
        mkdir build && cd build
        cmake ..
        make
