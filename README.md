@@ -16,21 +16,6 @@ ApproxMC handles CNF formulas and performs approximate counting.
 # ApproxMC5: Sparse-XOR based Approximate Model Counter
 Note: this is beta version release, not recommended for general use. We are currently working on a tight integration of sparse XORs into ApproxMC based on our [LICS-20](http://comp.nus.edu.sg/~meel/Papers/lics20-ma.pdf) paper. You can turn on the sparse XORs using the flag "sparse" but beware as reported in LICS-20 paper, this may slow down in some cases; it is likely to give a significant speedup if the number of solutions is very large. 
 
-## Docker image
-If you don't have or don't know what an independent set is, first run our MIS tool:
-```
-docker run --rm -v `pwd`/formula.cnf:/in msoos/mis --timeout 300 /in
-[...]
-** Copy-paste the following line in the top of your CNF for ApproxMC **
-c ind 3 4 7 8 10 11 14 17 18 26 30 35 36 39 42 47 60 62 67 0
-```
-Then copy-paste that line into your CNF.
-
-Then run the updated CNF through approxmc:
-```
-cat formula.cnf | docker run --rm -i -a stdin -a stdout msoos/approxmc
-```
-
 ## How to Build
 To build on Linux, you will need the following:
 ```
@@ -39,7 +24,7 @@ sudo apt-get install zlib1g-dev libboost-program-options-dev libm4ri-dev
 apt-get install libgmp3-dev
 ```
 
-Then, build CryptoMiniSat and ApproxMC:
+Then, build CryptoMiniSat, Arjun, and ApproxMC:
 ```
 git clone https://github.com/msoos/cryptominisat
 cd cryptominisat
@@ -47,8 +32,17 @@ mkdir build && cd build
 cmake ..
 make
 sudo make install
+
 cd ../..
-git clone https://github.com/meelgroup/approxmc/
+git clone https://github.com/meelgroup/arjun
+cd arjun
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+
+cd ../..
+git clone https://github.com/meelgroup/approxmc
 cd approxmc
 mkdir build && cd build
 cmake ..
