@@ -20,7 +20,7 @@ Note: this is beta version release, not recommended for general use. We are curr
 To build on Linux, you will need the following:
 ```
 sudo apt-get install build-essential cmake
-sudo apt-get install zlib1g-dev libboost-program-options-dev libm4ri-dev
+sudo apt-get install zlib1g-dev libboost-program-options-dev
 apt-get install libgmp3-dev
 ```
 
