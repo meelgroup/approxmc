@@ -619,23 +619,29 @@ int main(int argc, char** argv)
         vector<uint32_t> empty_occ_sampl_vars;
         if (do_empty_occ) empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
         print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
-        if (do_empty_occ) {
-            std::set<uint32_t> sampl_vars_set;
-            sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
-            for(auto const& v: empty_occ_sampl_vars) {
-                assert(sampl_vars_set.find(v) != sampl_vars_set.end()); // this is guaranteed by arjun
-                sampl_vars_set.erase(v);
+        if (!with_e) {
+            if (do_empty_occ) {
+                std::set<uint32_t> sampl_vars_set;
+                sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
+                for(auto const& v: empty_occ_sampl_vars) {
+                    assert(sampl_vars_set.find(v) != sampl_vars_set.end()); // this is guaranteed by arjun
+                    sampl_vars_set.erase(v);
+                }
+                offset_count_by_2_pow = empty_occ_sampl_vars.size();
+                sampling_vars.clear();
+                sampling_vars.insert(sampling_vars.end(), sampl_vars_set.begin(), sampl_vars_set.end());
             }
-            offset_count_by_2_pow = empty_occ_sampl_vars.size();
-            sampling_vars.clear();
-            sampling_vars.insert(sampling_vars.end(), sampl_vars_set.begin(), sampl_vars_set.end());
-        }
-        if (with_e) {
-            assert(false);
-            //get_cnf_and_sampl_from_arjun_fully_simplified_renumbered();
-        } else {
             get_cnf_from_arjun();
             transfer_unit_clauses_from_arjun();
+        } else {
+            auto ret = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, empty_occ_sampl_vars, arjun->nVars(), false);
+            //const std::pair<vector<vector<Lit>>, uint32_t>& cnf, const vector<uint32_t>& sampl_set, const uint32_t multiply = 0
+            const auto& cls = std::get<0>(ret).first;
+            const auto& max_var = std::get<0>(ret).second;
+            appmc->new_vars(max_var);
+            for(const auto& cl: cls) appmc->add_clause(cl);
+            sampling_vars = std::get<1>(ret);
+            offset_count_by_2_pow = std::get<2>(ret);
         }
         if (debug_arjun) {
             sampling_vars = old_sampling_vars;
