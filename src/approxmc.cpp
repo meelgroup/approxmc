@@ -82,9 +82,9 @@ void setup_sampling_vars(AppMCPrivateData* data)
         } else {
             cout << "c [appmc] Sampling set: ";
             for (auto v: data->conf.sampling_set) {
-                cout << v+1 << ", ";
+                cout << v+1 << " ";
             }
-            cout << endl;
+            cout << "0" << endl;
         }
     }
 
