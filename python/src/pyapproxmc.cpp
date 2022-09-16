@@ -69,7 +69,7 @@ static int parse_sampling_set(Counter *self, PyObject *sample_set_obj)
 
 static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
 {
-    static char* kwlist[] = {"verbosity", "seed", "epsilon", "delta", "sampling_set", NULL};
+    static char const* kwlist[] = {"verbosity", "seed", "epsilon", "delta", "sampling_set", NULL};
 
     // All parameters have the same default as the command line defaults
     // except for verbosity which is 0 by default.
@@ -80,7 +80,7 @@ static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
 
     PyObject* sample_set_obj = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iIddO", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iIddO", const_cast<char**>(kwlist),
         &self->verbosity, &self->seed, &self->epsilon, &self->delta, &sample_set_obj))
     {
         return;
@@ -196,9 +196,9 @@ Add a clause to the solver.\n\
 
 static PyObject* add_clause(Counter *self, PyObject *args, PyObject *kwds)
 {
-    static char* kwlist[] = {"clause", NULL};
+    static char const* kwlist[] = {"clause", NULL};
     PyObject *clause;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &clause)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char**>(kwlist), &clause)) {
         return NULL;
     }
 
