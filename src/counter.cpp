@@ -47,10 +47,12 @@
 
 #include "counter.h"
 #include "time_mem.h"
-#include "cryptominisat5/cryptominisat.h"
-#include "cryptominisat5/solvertypesmini.h"
 #include "GitSHA1.h"
+#ifdef CMS_LOCAL_BUILD
+#include "arjun.h"
+#else
 #include <arjun/arjun.h>
+#endif
 
 #define verb_print(a, x) \
     do { if (conf.verb >= a) {std::cout << "c " << x << std::endl;} } while (0)

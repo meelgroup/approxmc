@@ -33,9 +33,11 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#ifdef CMS_LOCAL_BUILD
+#include "cryptominisat.h"
+#else
 #include <cryptominisat5/cryptominisat.h>
-#include <cryptominisat5/solvertypesmini.h>
-
+#endif
 namespace ApproxMC {
 
 #ifdef _WIN32

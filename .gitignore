@@ -1,3 +1,5 @@
 build/
 .kdev4/
-scalmc.kdev4
+python/cryptominisat
+python/arjun
+*.kdev4

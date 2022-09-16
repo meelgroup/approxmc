@@ -1,0 +1,8 @@
+global-exclude *.json
+global-exclude *.timeout
+global-exclude *.in
+global-exclude *.txt
+graft src/
+graft python/src/
+graft python/cryptominisat/
+graft python/arjun/

@@ -36,7 +36,6 @@
 #include <map>
 #include <cstdint>
 #include <mutex>
-#include <cryptominisat5/cryptominisat.h>
 #include "approxmc.h"
 #include "constants.h"
 
