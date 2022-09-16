@@ -45,7 +45,7 @@ picosatlib = ('picosatlib', {
 modules = Extension(
     name = "pyapproxmc",
     sources = [
-               #"python/src/GitSHA1.cpp",
+               "python/src/GitSHA1.cpp",
                "python/src/pyapproxmc.cpp",
                "src/approxmc.cpp",
                "src/constants.cpp",
