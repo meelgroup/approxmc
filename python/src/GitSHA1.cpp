@@ -20,7 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ***********************************************/
 
-#include "src/GitSHA1.h"
+namespace AppMCIntNS {
+    const char* get_version_sha1();
+    const char* get_version_tag();
+    const char* get_compilation_env();
+}
 
 const char* AppMCIntNS::get_version_sha1()
 {
