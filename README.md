@@ -60,17 +60,6 @@ p cnf 500 1
 3 4 0
 ```
 Above, using the `c ind` line, we declare that only variables 1, 3, 4, 6, 7, 8 and 10 form part of the sampling set out of the CNF's 500 variables `1,2...500`. This line must end with a 0. The solution that ApproxMC will be giving is essentially answering the question: how many different combination of settings to this variables are there that satisfy this problem? Naturally, if your sampling set only contains 7 variables, then the maximum number of solutions can only be at most 2^7 = 128. This is true even if your CNF has thousands of variables.
-### Independent set
-For most applications, we are want all solutions to the problem. To do this, you need to use the [MIS](https://github.com/meelgroup/mis) tool to find a small independent set of variables to your CNF. For example, for `formula.cnf` we can do:
-
-```
-docker run --rm -v `pwd`/formula.cnf:/in msoos/mis --timeout 300 /in
-[...]
-** Copy-paste the following line in the top of your CNF for ApproxMC **
-c ind 3 4 7 8 10 11 14 17 18 26 30 35 36 39 42 47 60 62 67 0
-```
-
-You must copy the line starting with `c ind ...` to the top of your CNF before running ApproxMC.
 
 ### Running ApproxMC
 In our case, the maximum number of solutions could at most be 2^7=128, but our CNF should be restricting this. Let's see:
