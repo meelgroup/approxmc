@@ -288,7 +288,7 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
     // Get sampling vars from user
     std::vector<uint32_t> sampling_vars;
     if (py_sampling_vars == NULL) {
-        for(uint32_t i = 0; i < self->arjun->nVars();) sampling_vars.push_back(i);
+        for(uint32_t i = 0; i < self->arjun->nVars(); i++) sampling_vars.push_back(i);
     } else {
         std::vector<CMSat::Lit> sampling_lits;
         if (parse_clause(self, py_sampling_vars, sampling_lits, false) == 0 ) {
