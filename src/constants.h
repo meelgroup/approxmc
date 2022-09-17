@@ -35,12 +35,7 @@
 using std::vector;
 using std::string;
 
-#if defined _WIN32
-    #define DLL_PUBLIC __declspec(dllexport)
-#else
-    #define DLL_PUBLIC __attribute__ ((visibility ("default")))
-    #define DLL_LOCAL  __attribute__ ((visibility ("hidden")))
-#endif
+namespace AppMCInt {
 
 struct VarMap
 {
@@ -66,5 +61,7 @@ private:
     vector<string> sparseprobvalues;
     void readInSparseValues();
 };
+
+}
 
 #endif

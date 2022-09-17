@@ -62,6 +62,7 @@ using std::cerr;
 using std::endl;
 using std::list;
 using std::map;
+using namespace AppMCInt;
 
 Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
 {
@@ -433,7 +434,7 @@ ApproxMC::SolCount Counter::count()
     HashesModels hm;
     uint32_t measurements;
     set_up_probs_threshold_measurements(measurements, sparse_data);
-    
+
     verb_print(1, "[appmc] Starting up, initial measurement");
     if (hashCount == 0) {
         verb_print(1, "[appmc] Checking if there are at least threshold+1 solutions...");
@@ -604,13 +605,13 @@ void Counter::one_measurement_count(
 
     int64_t hashCount = mPrev;
     int64_t hashPrev = hashCount;
-    
-    //We are doing a galloping search here (see our IJCAI-16 paper for more details). 
+
+    //We are doing a galloping search here (see our IJCAI-16 paper for more details).
     //lowerFib is referred to as loIndex and upperFib is referred to as hiIndex
-    //The key idea is that we first do an exponential search and then do binary search 
-    //This is implemented by using two sentinels: lowerFib and upperFib. The correct answer 
+    //The key idea is that we first do an exponential search and then do binary search
+    //This is implemented by using two sentinels: lowerFib and upperFib. The correct answer
     // is always between lowFib and upperFib. We do exponential search until upperFib < lowerFib/2
-    // Once upperFib < lowerFib/2; we do a binary search. 
+    // Once upperFib < lowerFib/2; we do a binary search.
     while (numExplored < total_max_xors) {
         uint64_t cur_hash_count = hashCount;
         const vector<Lit> assumps = set_num_hashes(hashCount, hm->hashes, sparse_data);
@@ -701,12 +702,12 @@ void Counter::one_measurement_count(
                 lowerFib = hashCount;
                 hashCount++;
             } else if (lowerFib + (hashCount-lowerFib)*2 >= upperFib-1) {
-                
+
                 // Whenever the above condition is satisfied, we are in binary sesarch mode
                 lowerFib = hashCount;
                 hashCount = (lowerFib+upperFib)/2;
             } else {
-                
+
                 // We are in exponential search mode.
                 hashCount = lowerFib + (hashCount-lowerFib)*2;
             }
@@ -800,9 +801,9 @@ inline T Counter::findMin(vector<T>& numList)
 string scalmc_version_info()
 {
     std::stringstream ss;
-    ss << "c ApproxMC SHA revision " << AppMCIntNS::get_version_sha1() << endl;
-    ss << "c ApproxMC version " << AppMCIntNS::get_version_tag() << endl;
-    ss << "c ApproxMC compilation env " << AppMCIntNS::get_compilation_env() << endl;
+    ss << "c ApproxMC SHA revision " << AppMCInt::get_version_sha1() << endl;
+    ss << "c ApproxMC version " << AppMCInt::get_version_tag() << endl;
+    ss << "c ApproxMC compilation env " << AppMCInt::get_compilation_env() << endl;
     #ifdef __GNUC__
     ss << "c ApproxMC compiled with gcc version " << __VERSION__ << endl;
     #else

@@ -39,13 +39,14 @@
 #include "approxmc.h"
 #include "constants.h"
 
-
 using std::string;
 using std::vector;
 using std::map;
 using std::cout;
 using std::endl;
 using namespace CMSat;
+
+namespace AppMCInt {
 
 struct SavedModel
 {
@@ -203,7 +204,6 @@ private:
     char** argv;
 };
 
-
-
+}
 
 #endif //COUNTER_H_

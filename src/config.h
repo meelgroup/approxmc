@@ -1,6 +1,6 @@
 /*
  ApproxMC
- 
+
  Copyright (c) 2019, Mate Soos and Kuldeep S. Meel. All rights reserved
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
@@ -33,6 +33,8 @@
 #include <cstdint>
 #include <string>
 
+namespace AppMCInt {
+
 struct Config {
     uint32_t start_iter = 0;
     double epsilon = 0.80; //Tolerance.  CAV-2020 paper default
@@ -51,5 +53,7 @@ struct Config {
     int cms_detach_xor = 1;
     int dump_intermediary_cnf = 0;
 };
+
+}
 
 #endif //APPMCCONFIG

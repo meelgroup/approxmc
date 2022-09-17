@@ -106,7 +106,7 @@ void add_appmc_options()
     my_epsilon << std::setprecision(8) << epsilon;
     my_delta << std::setprecision(8) << delta;
     my_var_elim_ratio << std::setprecision(8) << var_elim_ratio;
- 
+
     main_options.add_options()
     ("help,h", "Prints help")
     ("input", po::value< vector<string> >(), "file(s) to read")
@@ -613,7 +613,7 @@ int main(int argc, char** argv)
 
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars, arjun);
-        auto old_sampling_vars = sampling_vars;
+        auto debug_sampling_vars = sampling_vars; // debug ONLY
         uint32_t orig_sampling_set_size = set_up_sampling_set();
         sampling_vars = arjun->get_indep_set();
         vector<uint32_t> empty_occ_sampl_vars;
@@ -644,7 +644,7 @@ int main(int argc, char** argv)
             offset_count_by_2_pow = std::get<2>(ret);
         }
         if (debug_arjun) {
-            sampling_vars = old_sampling_vars;
+            sampling_vars = debug_sampling_vars;
             offset_count_by_2_pow = 0;
         }
         delete arjun;

@@ -37,6 +37,7 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
+using namespace AppMCInt;
 
 Constants::Constants() {
     //So if you have 50 hashes, then between 1-6, use 0.5 prob, between 7-8 use 0.49, between 9-10 0.48

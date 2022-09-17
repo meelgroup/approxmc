@@ -1,75 +1,71 @@
-// Python bindings for ApproxMC, heavily based on the Python bindings written for CryptoMiniSat.
+/*
+ ApproxMC
+
+ Copyright (c) 2019-2020, Mate Soos and Kuldeep S. Meel. All rights reserved
+ Copyright (c) 2009-2018, Mate Soos. All rights reserved.
+ Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
+ Kuldeep S. Meel, Sanjit A. Seshia, Moshe Y. Vardi
+ Copyright (c) 2014, Supratik Chakraborty, Kuldeep S. Meel, Moshe Y. Vardi
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
 
 #include <Python.h>
 #include "../cryptominisat/src/cryptominisat.h"
 #include "../../src/approxmc.h"
+#include "../arjun/src/arjun.h"
 
 #include <limits>
+#include <vector>
+#include <set>
 
 #define MODULE_NAME "pyapproxmc"
 #define MODULE_DOC "ApproxMC approximate model counter."
 
 typedef struct {
     PyObject_HEAD
-    ApproxMC::AppMC* appmc;
+    ApproxMC::AppMC* appmc = NULL;
+    ArjunNS::Arjun* arjun = NULL;
     std::vector<CMSat::Lit> tmp_cl_lits;
 
     int verbosity;
     uint32_t seed;
     double epsilon;
     double delta;
-    std::vector<uint32_t> sampling_set;
 } Counter;
 
 static const char counter_create_docstring[] = \
-"Counter(verbosity=0, seed=1, epsilon=0.8, delta=0.2, sampling_set=None)\n\
+"Counter(verbosity=0, seed=1, epsilon=0.8, delta=0.2)\n\
 Create Counter object.\n\
 \n\
 :param verbosity: Verbosity level: 0: nothing printed; 15: very verbose.\n\
 :param seed: Random seed\n\
 :param epsilon: epsilon parameter as per PAC guarantees\n\
-:param delta: delta parameter as per PAC guarantees\n\
-:param sampling_set: (Optional) If provided, the number of solutions counted\n\
-    is over the variables in sampling_set.";
+:param delta: delta parameter as per PAC guarantees";
 
 /********** Internal Functions **********/
 
 /* Helper functions */
 
-static int parse_sampling_set(Counter *self, PyObject *sample_set_obj)
-{
-    PyObject *iterator = PyObject_GetIter(sample_set_obj);
-    if (iterator == NULL) {
-        PyErr_SetString(PyExc_TypeError, "iterable object expected");
-        return 1;
-    }
-
-    PyObject *lit;
-    while ((lit = PyIter_Next(iterator)) != NULL) {
-        long val = PyLong_AsLong(lit);
-        if (val == 0) {
-            PyErr_SetString(PyExc_ValueError, "non-zero integer expected");
-            return 1;
-        }
-        if (val > std::numeric_limits<int>::max()/2
-            || val < std::numeric_limits<int>::min()/2
-        ) {
-            PyErr_Format(PyExc_ValueError, "integer %ld is too small or too large", val);
-            return 1;
-        }
-
-        long var = val - 1;
-        self->sampling_set.push_back(var);
-        Py_DECREF(lit);
-    }
-    Py_DECREF(iterator);
-
-    return 0;
-}
-
 static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
 {
-    static char const* kwlist[] = {"verbosity", "seed", "epsilon", "delta", "sampling_set", NULL};
+    static char const* kwlist[] = {"verbosity", "seed", "epsilon", "delta", NULL};
 
     // All parameters have the same default as the command line defaults
     // except for verbosity which is 0 by default.
@@ -78,15 +74,9 @@ static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
     self->epsilon = 0.8;
     self->delta = 0.2;
 
-    PyObject* sample_set_obj = NULL;
-
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iIddO", const_cast<char**>(kwlist),
-        &self->verbosity, &self->seed, &self->epsilon, &self->delta, &sample_set_obj))
+        &self->verbosity, &self->seed, &self->epsilon, &self->delta))
     {
-        return;
-    }
-
-    if (sample_set_obj != NULL && parse_sampling_set(self, sample_set_obj)) {
         return;
     }
 
@@ -108,7 +98,10 @@ static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
     self->appmc->set_seed(self->seed);
     self->appmc->set_epsilon(self->epsilon);
     self->appmc->set_delta(self->delta);
-    self->appmc->set_projection_set(self->sampling_set);
+
+    self->arjun = new ArjunNS::Arjun;
+    self->arjun->set_seed(self->seed);
+    self->arjun->set_verbosity(self->verbosity);
 
     return;
 }
@@ -138,7 +131,7 @@ static int convert_lit_to_sign_and_var(PyObject* lit, long& var, bool& sign)
     return 1;
 }
 
-static int parse_clause(Counter *self, PyObject *clause, std::vector<CMSat::Lit>& lits)
+static int parse_clause(Counter *self, PyObject *clause, std::vector<CMSat::Lit>& lits, bool allow_more_vars = true)
 {
     PyObject *iterator = PyObject_GetIter(clause);
     if (iterator == NULL) {
@@ -162,15 +155,18 @@ static int parse_clause(Counter *self, PyObject *clause, std::vector<CMSat::Lit>
         lits.push_back(CMSat::Lit(var, sign));
     }
 
-    if (!lits.empty() && max_var >= (long int)self->appmc->nVars()) {
-        self->appmc->new_vars(max_var-(long int)self->appmc->nVars()+1);
+    if (!lits.empty() && max_var >= (long int)self->arjun->nVars()) {
+        if (allow_more_vars)
+            self->arjun->new_vars(max_var-(long int)self->arjun->nVars()+1);
+        else {
+            PyErr_SetString(PyExc_SystemError,
+                    "ERROR: Sampling vars contain variables that are not in the original clauses!");
+            return 0;
+        }
     }
 
     Py_DECREF(iterator);
-    if (PyErr_Occurred()) {
-        return 0;
-    }
-
+    if (PyErr_Occurred()) return 0;
     return 1;
 }
 
@@ -180,7 +176,7 @@ static int _add_clause(Counter *self, PyObject *clause)
     if (!parse_clause(self, clause, self->tmp_cl_lits)) {
         return 0;
     }
-    self->appmc->add_clause(self->tmp_cl_lits);
+    self->arjun->add_clause(self->tmp_cl_lits);
 
     return 1;
 }
@@ -211,12 +207,71 @@ static PyObject* add_clause(Counter *self, PyObject *args, PyObject *kwds)
 
 }
 
+static void get_cnf_from_arjun(Counter* self)
+{
+    const uint32_t orig_num_vars = self->arjun->get_orig_num_vars();
+    self->appmc->new_vars(orig_num_vars);
+    self->arjun->start_getting_small_clauses(
+        std::numeric_limits<uint32_t>::max(),
+        std::numeric_limits<uint32_t>::max(),
+        false);
+    std::vector<CMSat::Lit> clause;
+
+    bool ret = true;
+    while (ret) {
+        ret = self->arjun->get_next_small_clause(clause);
+        if (!ret) {
+            break;
+        }
+
+        bool ok = true;
+        for(auto l: clause) {
+            if (l.var() >= orig_num_vars) {
+                ok = false;
+                break;
+            }
+        }
+
+        if (ok) self->appmc->add_clause(clause);
+    }
+    self->arjun->end_getting_small_clauses();
+
+    std::vector<CMSat::Lit> lits;
+    for(const auto& bnn: self->arjun->get_bnns()) {
+        if (bnn) {
+            lits.clear();
+            lits.insert(lits.end(), bnn->begin(), bnn->end());
+            self->appmc->add_bnn_clause(lits, bnn->cutoff, bnn->out);
+        }
+    }
+}
+
+static void transfer_unit_clauses_from_arjun(Counter* self)
+{
+    std::vector<CMSat::Lit> cl(1);
+    auto units = self->arjun->get_zero_assigned_lits();
+    for(const auto& unit: units) {
+        if (unit.var() < self->appmc->nVars()) {
+            cl[0] = unit;
+            self->appmc->add_clause(cl);
+        }
+    }
+}
+
+static uint32_t set_up_sampling_set(Counter* self, const std::vector<uint32_t>& sampling_vars)
+{
+    uint32_t orig_sampling_set_size;
+    orig_sampling_set_size = self->arjun->set_starting_sampling_set(sampling_vars);
+    return orig_sampling_set_size;
+}
+
 /* count function */
 
 PyDoc_STRVAR(count_doc,
-"count()\n\
-Approximately count the number of solutions for the clauses that have been \n\
-added with add_clause().\n\
+"count(projection)\n\
+Approximately count the number of solutions to the formula\n\
+\n\
+:param projection: the projection over which to count the solutions over\n\
 \n\
 :return: A tuple. The first part of the tuple is the cell solution count and\n\
     the second part is the hash count."
@@ -224,17 +279,69 @@ added with add_clause().\n\
 
 static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
 {
+    static char const* kwlist[] = {"projection", NULL};
+    PyObject *py_sampling_vars = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", const_cast<char**>(kwlist), &py_sampling_vars)) {
+        return NULL;
+    }
+
+    // Get sampling vars from user
+    std::vector<uint32_t> sampling_vars;
+    if (py_sampling_vars == NULL) {
+        for(uint32_t i = 0; i < self->arjun->nVars();) sampling_vars.push_back(i);
+    } else {
+        std::vector<CMSat::Lit> sampling_lits;
+        if (parse_clause(self, py_sampling_vars, sampling_lits, false) == 0 ) {
+            return NULL;
+        }
+        for(const auto& l: sampling_lits) {
+            if (l.var() > self->arjun->nVars()) {
+                PyErr_SetString(PyExc_SystemError,
+                        "ERROR: Sampling vars contain variables that are not in the original clauses!");
+                return NULL;
+            }
+            sampling_vars.push_back(l.var());
+        }
+    }
+
+   //print_orig_sampling_vars(sampling_vars, self->arjun);
+   uint32_t orig_sampling_set_size = set_up_sampling_set(self, sampling_vars);
+   sampling_vars = self->arjun->get_indep_set();
+   std::vector<uint32_t> empty_occ_sampl_vars = self->arjun->get_empty_occ_sampl_vars();
+   //print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
+
+    std::set<uint32_t> sampl_vars_set;
+    sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
+    for(auto const& v: empty_occ_sampl_vars) {
+        assert(sampl_vars_set.find(v) != sampl_vars_set.end()); // this is guaranteed by arjun
+        sampl_vars_set.erase(v);
+    }
+    const size_t offset_count_by_2_pow = empty_occ_sampl_vars.size();
+    sampling_vars.clear();
+    sampling_vars.insert(sampling_vars.end(), sampl_vars_set.begin(), sampl_vars_set.end());
+
+    // Now do ApproxMC
+    get_cnf_from_arjun(self);
+    transfer_unit_clauses_from_arjun(self);
+    ApproxMC::SolCount sol_count;
+    if (!sampling_vars.empty()) {
+        self->appmc->set_projection_set(sampling_vars);
+        sol_count = self->appmc->count();
+    } else {
+        bool ret = self->appmc->find_one_solution();
+        sol_count.hashCount = 0;
+        if (ret) sol_count.cellSolCount = 1;
+        else sol_count.cellSolCount = 0;
+    }
+
+    // Fill return value
     PyObject *result = PyTuple_New((Py_ssize_t) 2);
     if (result == NULL) {
         PyErr_SetString(PyExc_SystemError, "failed to create a tuple");
         return NULL;
     }
-
-    auto res = self->appmc->count();
-
-    PyTuple_SET_ITEM(result, 0, PyLong_FromLong((long)res.cellSolCount));
-    PyTuple_SET_ITEM(result, 1, PyLong_FromLong((long)res.hashCount));
-
+    PyTuple_SET_ITEM(result, 0, PyLong_FromLong((long)sol_count.cellSolCount));
+    PyTuple_SET_ITEM(result, 1, PyLong_FromLong((long)sol_count.hashCount+offset_count_by_2_pow));
     return result;
 }
 
@@ -253,20 +360,17 @@ static void Counter_dealloc(Counter* self)
 
 static int Counter_init(Counter *self, PyObject *args, PyObject *kwds)
 {
-    if (self->appmc != NULL) {
-        delete self->appmc;
-    }
+    if (self->appmc != NULL) delete self->appmc;
+    if (self->arjun != NULL) delete self->arjun;
 
     setup_counter(self, args, kwds);
 
-    if (!self->appmc) {
-        return -1;
-    }
+    if (!self->appmc) return -1;
 
     return 0;
 }
 
-static PyTypeObject pyapproxmc_CounterType = 
+static PyTypeObject pyapproxmc_CounterType =
 {
     PyVarObject_HEAD_INIT(NULL, 0)  /*ob_size*/
     "pyapproxmc.Counter",           /*tp_name*/
@@ -306,7 +410,7 @@ static PyTypeObject pyapproxmc_CounterType =
     (initproc)Counter_init,         /* tp_init */
 };
 
-PyMODINIT_FUNC PyInit_pyapproxmc(void) 
+PyMODINIT_FUNC PyInit_pyapproxmc(void)
 {
     PyObject* m;
 

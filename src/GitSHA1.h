@@ -23,7 +23,7 @@ THE SOFTWARE.
 #ifndef GITSHA1_H
 #define GITSHA1_H
 
-namespace AppMCIntNS {
+namespace AppMCInt {
 
 const char* get_version_sha1();
 const char* get_version_tag();
