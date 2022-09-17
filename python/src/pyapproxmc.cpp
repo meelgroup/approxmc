@@ -43,6 +43,7 @@ typedef struct {
     ApproxMC::AppMC* appmc = NULL;
     ArjunNS::Arjun* arjun = NULL;
     std::vector<CMSat::Lit> tmp_cl_lits;
+    bool count_called = false;
 
     int verbosity;
     uint32_t seed;
@@ -269,7 +270,7 @@ static uint32_t set_up_sampling_set(Counter* self, const std::vector<uint32_t>& 
 
 PyDoc_STRVAR(count_doc,
 "count(projection)\n\
-Approximately count the number of solutions to the formula\n\
+Approximately count the number of solutions to the formula. It can only be called ONCE.\n\
 \n\
 :param projection: the projection over which to count the solutions over\n\
 \n\
@@ -279,6 +280,13 @@ Approximately count the number of solutions to the formula\n\
 
 static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
 {
+    if (self->count_called) {
+        PyErr_SetString(PyExc_SystemError,
+                        "ERROR: Sampling vars contain variables that are not in the original clauses!");
+        return NULL;
+    } else {
+        self->count_called = true;
+    }
     static char const* kwlist[] = {"projection", NULL};
     PyObject *py_sampling_vars = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", const_cast<char**>(kwlist), &py_sampling_vars)) {
