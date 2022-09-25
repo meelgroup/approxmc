@@ -617,8 +617,10 @@ int main(int argc, char** argv)
         uint32_t orig_sampling_set_size = set_up_sampling_set();
         sampling_vars = arjun->get_indep_set();
         vector<uint32_t> empty_occ_sampl_vars;
-        if (do_empty_occ) empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
-        print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
+        if (do_empty_occ)
+            empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
+        print_final_indep_set(
+            sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (!with_e) {
             if (do_empty_occ) {
                 std::set<uint32_t> sampl_vars_set;
