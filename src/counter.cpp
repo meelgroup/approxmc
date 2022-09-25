@@ -229,7 +229,6 @@ SolNum Counter::bounded_sol_count(
         }
         double myTime = cpuTime();
         solver->simplify(&new_assumps);
-        solver->set_verbosity(0);
         total_inter_simp_time += cpuTime() - myTime;
         if (conf.verb >= 1) {
             cout << "c [appmc] inter-simp finished, total simp time: "
