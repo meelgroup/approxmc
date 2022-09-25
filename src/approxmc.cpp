@@ -242,6 +242,13 @@ DLL_PUBLIC ApproxMC::SolCount AppMC::count()
 
 DLL_PUBLIC void AppMC::set_projection_set(const vector<uint32_t>& vars)
 {
+    for(const auto& v: vars) {
+        if (v >= data->counter.solver->nVars()) {
+            std::cout << "ERROR: function set_projection_set() called with variable that is larger than the number of variables inside the solver. Exiting." << endl;
+            assert(false);
+            exit(-1);
+        }
+    }
     data->conf.sampling_set = vars;
 }
 
