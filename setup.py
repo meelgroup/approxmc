@@ -94,8 +94,6 @@ modules = Extension(
                "python/arjun/src/arjun.cpp",
                "python/arjun/src/backward.cpp",
                "python/arjun/src/common.cpp",
-               "python/arjun/src/forward.cpp",
-               "python/arjun/src/guess.cpp",
                "python/arjun/python/src/GitSHA1.cpp",
                "python/arjun/src/simplify.cpp",
            ],
