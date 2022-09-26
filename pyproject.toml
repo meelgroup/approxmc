@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyapproxmc"
-version = "4.1.2"
+version = "4.1.3"
 description = "Bindings to ApproxMC, an approximate model counter"
 keywords = ["sat", "model-counting"]
 license = { file = "LICENSE" }
