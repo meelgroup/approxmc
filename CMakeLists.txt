@@ -457,7 +457,6 @@ else()
     message(FATAL_ERROR "Cannot find CryptoMiniSat5. Please install it! Exiting.")
 endif()
 
-
 find_package(arjun CONFIG)
 if (arjun_FOUND)
     message(STATUS "Found Arjun")
