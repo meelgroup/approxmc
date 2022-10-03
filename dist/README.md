@@ -1,0 +1,1 @@
+To generate, read `README.md` under `python/`. To upload to pypy, use `twine upload`. The binary wheel should be generated from `https://github.com/meelgroup/approxmc/actions/workflows/python-package-build.yml`
