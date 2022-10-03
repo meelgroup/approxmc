@@ -4,8 +4,7 @@ This directory provides Python bindings to CryptoMiniSat on the C++ level,
 i.e. when importing pycryptosat, the CryptoMiniSat solver becomes part of the
 Python process itself.
 
-Compiling
------
+## Compiling
 The pyapproxmc python package compiles separately from ApproxMC, the binary.
 
 In order to compile, install the python developer tools:
@@ -22,10 +21,11 @@ git clone https://github.com/msoos/cryptominisat
 git clone https://github.com/meelgroup/arjun
 cd ..
 python -m build
+
+You will then find the files under "dist/".
 ```
 
-Usage
------
+## Usage
 
 The ``pyapproxmc`` module has one object, ``Counter`` that has two functions
 ``count`` and ``add_clause``.
