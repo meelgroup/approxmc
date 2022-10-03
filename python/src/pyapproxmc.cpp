@@ -75,7 +75,7 @@ static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
     self->epsilon = 0.8;
     self->delta = 0.2;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iIddO", const_cast<char**>(kwlist),
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iIdd", const_cast<char**>(kwlist),
         &self->verbosity, &self->seed, &self->epsilon, &self->delta))
     {
         return;
