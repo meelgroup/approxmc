@@ -1,5 +1,5 @@
 #
-# CryptoMiniSat
+# ApproxMC
 #
 # Copyright (c) 2009-2017, Mate Soos. All rights reserved.
 # Copyright (c) 2017, Pierre Vignet
@@ -98,7 +98,7 @@ modules = Extension(
                "python/arjun/src/simplify.cpp",
            ],
     extra_compile_args = ['-std=c++17'],
-    define_macros = [('CMS_LOCAL_BUILD', 1)],
+    define_macros = [('CMS_LOCAL_BUILD', 1),("TRACE", "")],
     include_dirs = ["src/", "python/cryptominisat/src/", "python/arjun/src/"],
     language = "c++",
 )
