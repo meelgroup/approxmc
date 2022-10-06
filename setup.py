@@ -38,7 +38,7 @@ picosatlib = ('picosatlib', {
                "python/cryptominisat/src/picosat/picosat.c",
                "python/cryptominisat/src/picosat/version.c"],
     'language' : "c",
-    'extra_compile_args' : [],
+    'define_macros' : [("TRACE", "ON")],
     'include_dirs' : ["python/cryptominisat/src/"]
     })
 
