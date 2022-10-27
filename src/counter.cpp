@@ -434,40 +434,6 @@ ApproxMC::SolCount Counter::count()
     uint32_t measurements;
     set_up_probs_threshold_measurements(measurements, sparse_data);
 
-    verb_print(1, "[appmc] Starting up, initial measurement");
-    if (hashCount == 0) {
-        verb_print(1, "[appmc] Checking if there are at least threshold+1 solutions...");
-        double myTime = cpuTime();
-        if (conf.simplify >= 1) simplify();
-        const int64_t init_num_sols = bounded_sol_count(
-            threshold+1, //max solutions
-            NULL, // no assumptions
-            hashCount,
-            &hm
-        ).solutions;
-        verb_print(2, "[appmc] Initial number of solutions: " << init_num_sols);
-
-        write_log(false, //not sampling
-                  0, 0,
-                  init_num_sols == (threshold + 1),
-                  init_num_sols, 0, cpuTime() - myTime);
-
-        //Din't find at least threshold+1
-        if (init_num_sols <= threshold) {
-            if (conf.verb) {
-                cout << "c [appmc] Did not find at least threshold+1 ("
-                << threshold << ") we found only " << init_num_sols
-                << ", i.e. we got exact count" << endl;
-            }
-
-            ApproxMC::SolCount ret_count;
-            ret_count.valid = true;
-            ret_count.cellSolCount = init_num_sols;
-            ret_count.hashCount = 0;
-            return ret_count;
-        }
-        hashCount++;
-    }
     verb_print(1, "[appmc] Starting at hash count: " << hashCount);
 
     int64_t mPrev = hashCount;
@@ -479,6 +445,10 @@ ApproxMC::SolCount Counter::count()
     //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
     for (uint32_t j = 0; j < measurements; j++) {
         one_measurement_count(mPrev, j, sparse_data, &hm);
+        if (mPrev == 0) {
+            // Exact count, no need to measure multiple times.
+            break;
+        }
         sparse_data.next_index = 0;
         if (conf.simplify >= 1 && j+1 < measurements) simplify();
         hm.clear();
@@ -648,8 +618,9 @@ void Counter::one_measurement_count(
             //one less hash count had threshold solutions
             //this one has less than threshold
             //so this is the real deal!
-            if (threshold_sols.find(hashCount-1) != threshold_sols.end()
-                && threshold_sols[hashCount-1] == 1
+            if (hashCount == 0 ||
+                    (threshold_sols.find(hashCount-1) != threshold_sols.end()
+                    && threshold_sols[hashCount-1] == 1)
             ) {
                 numHashList.push_back(hashCount);
                 numCountList.push_back(num_sols);
@@ -708,7 +679,9 @@ void Counter::one_measurement_count(
             } else {
 
                 // We are in exponential search mode.
+                auto old_hashCount = hashCount;
                 hashCount = lowerFib + (hashCount-lowerFib)*2;
+                if (old_hashCount == hashCount) hashCount++;
             }
         }
         hashPrev = cur_hash_count;
