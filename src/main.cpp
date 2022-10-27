@@ -114,9 +114,9 @@ void add_appmc_options()
     ("seed,s", po::value(&seed)->default_value(seed), "Seed")
     ("version", "Print version info")
 
-    ("e, epsilon", po::value(&epsilon)->default_value(epsilon, my_epsilon.str())
+    ("epsilon,e", po::value(&epsilon)->default_value(epsilon, my_epsilon.str())
         , "Tolerance parameter, i.e. how close is the count from the correct count? Count ouptut is within bounds of (exact_count/(1+e)) < count < (exact_count*(1+e)). So e=0.8 means we'll ouptut at most 180%% of exact count and at least 55%% of exact count. Lower value means more precise.")
-    ("d, delta", po::value(&delta)->default_value(delta, my_delta.str())
+    ("delta,d", po::value(&delta)->default_value(delta, my_delta.str())
         , "Confidence parameter, i.e. how sure are we of the result? (1-d) = probability the count is within range as per epsilon parameter. So d=0.2 means we are 80%% sure the count is within range as specified by epsilon. The lower, the higher confidence we have in the count.")
     ("log", po::value(&logfilename),
          "Logs of ApproxMC execution")
