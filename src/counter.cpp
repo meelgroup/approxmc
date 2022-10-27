@@ -583,7 +583,7 @@ void Counter::cont_recomp_indep_set(const vector<Lit>& assumps)
 //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
 void Counter::one_measurement_count(
     int64_t& mPrev,
-    const int iter,
+    const unsigned iter,
     SparseData sparse_data,
     HashesModels* hm)
 {
