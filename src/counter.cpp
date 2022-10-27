@@ -659,7 +659,9 @@ void Counter::one_measurement_count(
 
             threshold_sols[hashCount] = 0;
             sols_for_hash[hashCount] = num_sols;
-            if (std::abs(hashCount - mPrev) <= 2) {
+            if (iter > 0 &&
+                std::abs(hashCount - mPrev) <= 2
+            ) {
                 //Doing linear, this is a re-count
                 upperFib = hashCount;
                 hashCount--;
