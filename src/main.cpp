@@ -86,7 +86,6 @@ int with_e = 0;
 int do_empty_occ = 1;
 int arjun_irreg = 1;
 int arjun_emtpy = 1;
-int arjun_mirror_emtpy = 1;
 
 void add_appmc_options()
 {
@@ -140,8 +139,6 @@ void add_appmc_options()
         , "Arjun should use irregular gates")
     ("arjunempty", po::value(&arjun_emtpy)->default_value(arjun_emtpy)
         , "Arjun should use check for empty occurrence variables")
-    ("arjunmirror", po::value(&arjun_mirror_emtpy)->default_value(arjun_mirror_emtpy)
-        , "Arjun should use mirror variables to improve empty detection")
     ;
 
     improvement_options.add_options()
@@ -607,7 +604,6 @@ int main(int argc, char** argv)
         arjun->set_simp(simplify);
         arjun->set_irreg_gate_based(arjun_irreg);
         arjun->set_empty_occs_based(arjun_emtpy);
-        arjun->set_mirror_empty(arjun_mirror_emtpy);
 
         if (verbosity) cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
 
