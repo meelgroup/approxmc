@@ -136,7 +136,7 @@ Note: this is beta version release, not recommended for general use. We are curr
 Please click on "issues" at the top and [create a new issue](https://github.com/meelgroup/mis/issues/new). All issues are responded to promptly.
 
 ## How to Cite
-If you use ApproxMC, please cite the following papers: [CAV20](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib), [AAAI19](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib) and [IJCAI16](https://www.comp.nus.edu.sg/~meel/bib/CMV16.bib).
+If you use ApproxMC, please cite the following papers: [CAV20](https://dblp.uni-trier.de/rec/conf/cav/SoosGM20.html?view=bibtex), [AAAI19](https://www.comp.nus.edu.sg/~meel/bib/SM19.bib) and [IJCAI16](https://www.comp.nus.edu.sg/~meel/bib/CMV16.bib).
 
 If you use sparse XORs, please also cite the [LICS20](https://www.comp.nus.edu.sg/~meel/bib/MA20.bib) paper. 
 
