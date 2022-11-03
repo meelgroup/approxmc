@@ -13,7 +13,7 @@ ApproxMC handles CNF formulas and performs approximate counting.
 1. If you are interested in exact model counting, visit our exact counter [Ganak](http://github.com/meelgroup/ganak)
 2. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting).
 
-## How to Use from Python
+## How to use the Python interface
 
 Install using pip:
 
@@ -34,7 +34,20 @@ print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 
 The above will print that `Approximate count is: 88*2**13`. Since the largest variable in the clauses was 20, the system contained 2**20 (i.e. 1048576) potential models. However, some of these models were prohibited by the two clauses, and so only approximately 88*2**13 (i.e. 720896) models remained.
 
-## How to Build
+If you want to count over a projection set, you need to call `count(projection_set)`, for example:
+
+```
+import pyapproxmc
+c = pyapproxmc.Counter()
+c.add_clause([1,2,3])
+c.add_clause([3,20])
+count = c.count(range(1,10))
+print("Approximate count is: %d*2**%d" % (count[0], count[1]))
+```
+
+This now prints `Approximate count is: 56*2**3`, which corresponds to the approximate count of models, projected over variables 1..10.
+
+## How to Build a Binary
 To build on Linux, you will need the following:
 ```
 sudo apt-get install build-essential cmake
@@ -68,10 +81,10 @@ make
 sudo make install
 ```
 
-## How to Use
+## How to Use the Binary
 First, you must translate your problem to CNF and just pass your file as input to ApproxMC. Voila -- and it will print the number of solutions of the given CNF formula.
 
-### Sampling Set
+### Providing a Sampling Set
 For some applications, one is not interested in solutions over all the variables and instead interested in counting the number of unique solutions to a subset of variables, called sampling set. ApproxMC allows you to specify the sampling set using the following modified version of DIMACS format:
 
 ```
