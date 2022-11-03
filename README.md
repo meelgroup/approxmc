@@ -13,6 +13,27 @@ ApproxMC handles CNF formulas and performs approximate counting.
 1. If you are interested in exact model counting, visit our exact counter [Ganak](http://github.com/meelgroup/ganak)
 2. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting).
 
+## How to Use from Python
+
+Install using pip:
+
+```
+pip install pyapproxmc
+```
+
+Then you can use it as:
+
+```
+import pyapproxmc
+c = pyapproxmc.Counter()
+c.add_clause([1,2,3])
+c.add_clause([3,20])
+count = c.count()
+print("Approximate count is: %d*2**%d" % (count[0], count[1]))
+```
+
+The above will print that `Approximate count is: 88*2**13`. Since the largest variable in the clauses was 20, the system contained 2**20 (i.e. 1048576) potential models. However, some of these models were prohibited by the two clauses, and so only approximately 88*2**13 (i.e. 720896) models remained.
+
 ## How to Build
 To build on Linux, you will need the following:
 ```
