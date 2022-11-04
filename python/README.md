@@ -34,8 +34,8 @@ The funcion ``add_clause()`` takes an iterable list of literals such as
 ``[1, 2]`` which represents the truth ``1 or 2 = True``. For example,
 ``add_clause([1])`` sets variable ``1`` to ``True``.
 
-The function ``count()`` solves the system of equations that have been added
-with ``add_clause()``:
+The function ``count()`` counts the number of solutions to the system of constraints
+that have been added with ``add_clause()``:
 
 ```
    >>> from pyapproxmc import Counter
