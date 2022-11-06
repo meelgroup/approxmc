@@ -38,12 +38,12 @@ The function ``count()`` counts the number of solutions to the system of constra
 that have been added with ``add_clause()``:
 
 ```
-   >>> from pyapproxmc import Counter
-   >>> s = Counter()
-   >>> s.add_clause([1, 2])
-   >>> cells, hashes = s.count()
-   >>> print "There are ", cells*2**hashes, " solutions, approximately"
-   There are 55 solutions, approximately
+>>> from pyapproxmc import Counter
+>>> s = Counter()
+>>> s.add_clause([1, 2])
+>>> cells, hashes = s.count()
+>>> print("There are approx ", cells*2**hashes, " solutions")
+There are 55 solutions, approximately
 ```
 
 The return value is a tuple of cells and hashes. Which gives how many solutions
