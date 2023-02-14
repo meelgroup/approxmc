@@ -299,7 +299,7 @@ vector<Xor> str_to_xors(const string& data)
                     at2++;
                 }
             }
-            assert(at < 2 && "We can ony have one '=' sign in an XOR");
+            assert(at < 2 && "We can only have one '=' sign in an XOR");
             at++;
         }
 
