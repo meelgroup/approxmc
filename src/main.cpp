@@ -114,7 +114,7 @@ void add_appmc_options()
     ("version", "Print version info")
 
     ("epsilon,e", po::value(&epsilon)->default_value(epsilon, my_epsilon.str())
-        , "Tolerance parameter, i.e. how close is the count from the correct count? Count ouptut is within bounds of (exact_count/(1+e)) < count < (exact_count*(1+e)). So e=0.8 means we'll ouptut at most 180%% of exact count and at least 55%% of exact count. Lower value means more precise.")
+        , "Tolerance parameter, i.e. how close is the count from the correct count? Count output is within bounds of (exact_count/(1+e)) < count < (exact_count*(1+e)). So e=0.8 means we'll output at most 180%% of exact count and at least 55%% of exact count. Lower value means more precise.")
     ("delta,d", po::value(&delta)->default_value(delta, my_delta.str())
         , "Confidence parameter, i.e. how sure are we of the result? (1-d) = probability the count is within range as per epsilon parameter. So d=0.2 means we are 80%% sure the count is within range as specified by epsilon. The lower, the higher confidence we have in the count.")
     ("log", po::value(&logfilename),
@@ -134,7 +134,7 @@ void add_appmc_options()
     ("arjundebug", po::value(&debug_arjun)->default_value(debug_arjun)
         , "Use CNF from Arjun, but use sampling set from CNF")
     ("arjuncontrecomp", po::value(&cont_recomp_indep_set)->default_value(cont_recomp_indep_set)
-        , "Continiously, at every XOR addition, recompute the independent set through Arjun")
+        , "Continuously, at every XOR addition, recompute the independent set through Arjun")
     ("arjunirreg", po::value(&arjun_irreg)->default_value(arjun_irreg)
         , "Arjun should use irregular gates")
     ("arjunempty", po::value(&arjun_emtpy)->default_value(arjun_emtpy)
@@ -161,7 +161,7 @@ void add_appmc_options()
     ("verbcls", po::value(&verb_cls)->default_value(verb_cls)
         ,"Print banning clause + xor clauses. Highly verbose.")
     ("simplify", po::value(&simplify)->default_value(simplify)
-        , "Simplify agressiveness")
+        , "Simplify aggressiveness")
     ("velimratio", po::value(&var_elim_ratio)->default_value(var_elim_ratio)
         , "Variable elimination ratio for each simplify run")
     ("dumpintercnf", po::value(&dump_intermediary_cnf)->default_value(dump_intermediary_cnf)
@@ -204,7 +204,7 @@ void add_supported_options(int argc, char** argv)
     ) {
         cerr
         << "ERROR: Some option you gave was wrong. Please give '--help' to get help" << endl
-        << "       Unkown option: " << c.what() << endl;
+        << "       Unknown option: " << c.what() << endl;
         std::exit(-1);
     } catch (boost::bad_any_cast &e) {
         std::cerr

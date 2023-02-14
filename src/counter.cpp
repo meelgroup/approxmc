@@ -679,7 +679,7 @@ void Counter::one_measurement_count(
                 hashCount++;
             } else if (lowerFib + (hashCount-lowerFib)*2 >= upperFib-1) {
 
-                // Whenever the above condition is satisfied, we are in binary sesarch mode
+                // Whenever the above condition is satisfied, we are in binary search mode
                 lowerFib = hashCount;
                 hashCount = (lowerFib+upperFib)/2;
             } else {

@@ -30,7 +30,7 @@ You will then find the files under "dist/".
 The ``pyapproxmc`` module has one object, ``Counter`` that has two functions
 ``count`` and ``add_clause``.
 
-The funcion ``add_clause()`` takes an iterable list of literals such as
+The function ``add_clause()`` takes an iterable list of literals such as
 ``[1, 2]`` which represents the truth ``1 or 2 = True``. For example,
 ``add_clause([1])`` sets variable ``1`` to ``True``.
 
