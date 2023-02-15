@@ -85,8 +85,8 @@ static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
         PyErr_SetString(PyExc_ValueError, "verbosity must be at least 0");
         return;
     }
-    if (self->epsilon <= 0 || self->epsilon >= 1) {
-        PyErr_SetString(PyExc_ValueError, "epsilon must be greater or equal to 0, and less than 1");
+    if (self->epsilon <= 0) {
+        PyErr_SetString(PyExc_ValueError, "epsilon must be greater than 0");
         return;
     }
     if (self->delta < 0 || self->delta >= 1) {
