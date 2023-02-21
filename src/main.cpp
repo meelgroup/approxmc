@@ -27,7 +27,6 @@
  */
 
 #include <boost/program_options.hpp>
-using boost::lexical_cast;
 namespace po = boost::program_options;
 using std::string;
 using std::vector;

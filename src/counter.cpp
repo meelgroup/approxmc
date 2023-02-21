@@ -856,14 +856,12 @@ void Counter::check_model(
     for(uint32_t var: conf.sampling_set) assert(model[var] != l_Undef);
     if (!hm) return;
 
-    uint32_t checked = 0;
     for(const auto& h: hm->hashes) {
         //This hash is number: h.first
         //Only has to match hashes at & below
         //Notice that "h.first" is numbered from 0, so it's a "<" not "<="
         if (h.first < hashCount) {
             //cout << "Checking model against hash " << h.first << endl;
-            checked++;
             assert(check_model_against_hash(h.second, model));
         }
     }
