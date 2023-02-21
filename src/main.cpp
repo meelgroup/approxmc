@@ -79,7 +79,7 @@ bool sampling_vars_found = false;
 int ignore_sampl_set = 0;
 int do_arjun = 1;
 int debug_arjun = 0;
-int with_e = 0;
+int with_e = 1;
 
 void add_appmc_options()
 {
