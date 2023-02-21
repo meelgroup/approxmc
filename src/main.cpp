@@ -80,12 +80,8 @@ bool sampling_vars_found = false;
 int ignore_sampl_set = 0;
 int do_arjun = 1;
 int debug_arjun = 0;
-int arjun_incidence_sort;
 int cont_recomp_indep_set = 0;
 int with_e = 0;
-int do_empty_occ = 1;
-int arjun_irreg = 1;
-int arjun_emtpy = 1;
 
 void add_appmc_options()
 {
@@ -124,21 +120,11 @@ void add_appmc_options()
     ;
 
     ArjunNS::Arjun tmpa;
-    arjun_incidence_sort = tmpa.get_incidence_sort();
-
     arjun_options.add_options()
     ("arjun", po::value(&do_arjun)->default_value(do_arjun)
         , "Use arjun to minimize sampling set")
-    ("arjuninc", po::value(&arjun_incidence_sort)->default_value(arjun_incidence_sort)
-        , "Select incidence sorting. Probe-based is 3. Simple incidence-based is 1. Component-to-other-component based is 5. Random is 5")
     ("arjundebug", po::value(&debug_arjun)->default_value(debug_arjun)
         , "Use CNF from Arjun, but use sampling set from CNF")
-    ("arjuncontrecomp", po::value(&cont_recomp_indep_set)->default_value(cont_recomp_indep_set)
-        , "Continuously, at every XOR addition, recompute the independent set through Arjun")
-    ("arjunirreg", po::value(&arjun_irreg)->default_value(arjun_irreg)
-        , "Arjun should use irregular gates")
-    ("arjunempty", po::value(&arjun_emtpy)->default_value(arjun_emtpy)
-        , "Arjun should use check for empty occurrence variables")
     ;
 
     improvement_options.add_options()
@@ -152,8 +138,6 @@ void add_appmc_options()
         , "Use trick of not extending solutions in the SAT solver to full solution")
     ("withe", po::value(&with_e)->default_value(with_e)
         , "Eliminate variables and simplify CNF as well")
-    ("emptyocc", po::value(&do_empty_occ)->default_value(do_empty_occ)
-        , "Don't count over empty occ variables, instead just multiply")
     ;
 
 
@@ -452,28 +436,6 @@ void get_cnf_from_arjun()
     }
 }
 
-// void get_cnf_and_sampl_from_arjun_fully_simplified_renumbered()
-// {
-//     auto cnf_sampl = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, arjun->get_orig_num_vars());
-//
-//     //Get num vars
-//     uint32_t max_var = 0;
-//     for(const auto& cl: cnf_sampl.first) {
-//         for(const auto& l: cl) {
-//             if (l.var()+1 > max_var) {
-//                 max_var = l.var()+1;
-//             }
-//         }
-//     }
-//     appmc->new_vars(max_var);
-//
-//     //Add clauses
-//     for(const auto& cl: cnf_sampl.first) {
-//         appmc->add_clause(cl);
-//     }
-//     sampling_vars = cnf_sampl.second;
-// }
-
 template<class T>
 void read_input_cnf(T* reader)
 {
@@ -600,46 +562,39 @@ int main(int argc, char** argv)
         arjun = new ArjunNS::Arjun;
         arjun->set_seed(seed);
         arjun->set_verbosity(verbosity);
-        arjun->set_incidence_sort(arjun_incidence_sort);
         arjun->set_simp(simplify);
-        arjun->set_irreg_gate_based(arjun_irreg);
-        arjun->set_empty_occs_based(arjun_emtpy);
 
         if (verbosity) cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
 
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars, arjun);
         auto debug_sampling_vars = sampling_vars; // debug ONLY
-        uint32_t orig_sampling_set_size = set_up_sampling_set();
+        const uint32_t orig_sampling_set_size = set_up_sampling_set();
         sampling_vars = arjun->get_indep_set();
         vector<uint32_t> empty_occ_sampl_vars;
-        if (do_empty_occ)
-            empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
+        empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
         print_final_indep_set(
             sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
-        if (!with_e) {
-            if (do_empty_occ) {
-                std::set<uint32_t> sampl_vars_set;
-                sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
-                for(auto const& v: empty_occ_sampl_vars) {
-                    assert(sampl_vars_set.find(v) != sampl_vars_set.end()); // this is guaranteed by arjun
-                    sampl_vars_set.erase(v);
-                }
-                offset_count_by_2_pow = empty_occ_sampl_vars.size();
-                sampling_vars.clear();
-                sampling_vars.insert(sampling_vars.end(), sampl_vars_set.begin(), sampl_vars_set.end());
-            }
-            get_cnf_from_arjun();
-            transfer_unit_clauses_from_arjun();
-        } else {
-            auto ret = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, empty_occ_sampl_vars, arjun->nVars(), false);
-            //const std::pair<vector<vector<Lit>>, uint32_t>& cnf, const vector<uint32_t>& sampl_set, const uint32_t multiply = 0
+        if (with_e) {
+            const auto ret = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, arjun->nVars(), false);
             const auto& cls = std::get<0>(ret).first;
             const auto& max_var = std::get<0>(ret).second;
             appmc->new_vars(max_var);
             for(const auto& cl: cls) appmc->add_clause(cl);
             sampling_vars = std::get<1>(ret);
-            offset_count_by_2_pow = std::get<2>(ret);
+            offset_count_by_2_pow = 0;
+        } else {
+            std::set<uint32_t> sampl_vars_set;
+            sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
+            for(auto const& v: empty_occ_sampl_vars) {
+                assert(sampl_vars_set.find(v) != sampl_vars_set.end()); // this is guaranteed by arjun
+                sampl_vars_set.erase(v);
+            }
+            offset_count_by_2_pow = empty_occ_sampl_vars.size();
+            sampling_vars.clear();
+            sampling_vars.insert(sampling_vars.end(), sampl_vars_set.begin(), sampl_vars_set.end());
+            get_cnf_from_arjun();
+            transfer_unit_clauses_from_arjun();
         }
         if (debug_arjun) {
             sampling_vars = debug_sampling_vars;

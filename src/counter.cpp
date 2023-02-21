@@ -58,9 +58,7 @@
     do { if (conf.verb >= a) {std::cout << "c " << x << std::endl;} } while (0)
 
 using std::cout;
-using std::cerr;
 using std::endl;
-using std::list;
 using std::map;
 using namespace AppMCInt;
 
