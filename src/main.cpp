@@ -570,13 +570,12 @@ int main(int argc, char** argv)
         print_final_indep_set(
             sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (with_e) {
-            const auto ret = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, arjun->nVars(), false);
-            const auto& cls = std::get<0>(ret).first;
-            const auto& max_var = std::get<0>(ret).second;
-            appmc->new_vars(max_var);
-            for(const auto& cl: cls) appmc->add_clause(cl);
-            sampling_vars = std::get<1>(ret);
-            offset_count_by_2_pow = 0;
+            const auto ret = arjun->get_fully_simplified_renumbered_cnf(
+                    sampling_vars, arjun->nVars(), false);
+            appmc->new_vars(ret.nvars);
+            for(const auto& cl: ret.cnf) appmc->add_clause(cl);
+            sampling_vars = ret.sampling_vars;
+            offset_count_by_2_pow = ret.empty_occs;
         } else {
             std::set<uint32_t> sampl_vars_set;
             sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
