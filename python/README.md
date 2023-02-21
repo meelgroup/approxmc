@@ -4,18 +4,18 @@ This directory provides Python bindings to ApproxMC on the C++ level,
 i.e. when importing pyapproxmc, the ApproxMC counter becomes part of the
 Python process itself.
 
-## Compiling
-The pyapproxmc python package compiles separately from ApproxMC, the binary.
 
-In order to compile, install the python developer tools:
+## Installing
+
+```
+pip install pyapproxmc
+```
+
+## Compiling
+If you don't want to use the pip package, you can compile it:
 
 ```
 apt-get install python-dev
-```
-
-Then:
-
-```
 cd python
 git clone https://github.com/msoos/cryptominisat
 git clone https://github.com/meelgroup/arjun
@@ -27,15 +27,15 @@ You will then find the files under "dist/".
 
 ## Usage
 
-The ``pyapproxmc`` module has one object, ``Counter`` that has two functions
-``count`` and ``add_clause``.
+The `pyapproxmc` module has one object, `Counter` that has two functions
+`count` and `add_clause`.
 
 The function ``add_clause()`` takes an iterable list of literals such as
 ``[1, 2]`` which represents the truth ``1 or 2 = True``. For example,
 ``add_clause([1])`` sets variable ``1`` to ``True``.
 
-The function ``count()`` counts the number of solutions to the system of constraints
-that have been added with ``add_clause()``:
+The function `count()` counts the number of solutions to the system of constraints
+that have been added with `add_clause()`:
 
 ```
 >>> from pyapproxmc import Counter
