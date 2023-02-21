@@ -104,7 +104,6 @@ public:
     void set_force_sol_extension(uint32_t force_sol_extension);
     void set_sparse(uint32_t sparse);
     void set_simplify(uint32_t simplify);
-    void set_cont_recomp_indep_set(bool cont_recomp_indep_set);
     void set_dump_intermediary_cnf(const bool dump_intermediary_cnf);
 
     //Querying default values
@@ -116,7 +115,6 @@ public:
     double get_var_elim_ratio();
     uint32_t get_sparse();
     bool get_reuse_models();
-    bool get_cont_recomp_indep_set();
 
 private:
     ////////////////////////////

@@ -79,7 +79,6 @@ bool sampling_vars_found = false;
 int ignore_sampl_set = 0;
 int do_arjun = 1;
 int debug_arjun = 0;
-int cont_recomp_indep_set = 0;
 int with_e = 0;
 
 void add_appmc_options()
@@ -91,7 +90,6 @@ void add_appmc_options()
     var_elim_ratio = tmp.get_var_elim_ratio();
     sparse = tmp.get_sparse();
     seed = tmp.get_seed();
-    cont_recomp_indep_set = tmp.get_cont_recomp_indep_set();
 
     std::ostringstream my_epsilon;
     std::ostringstream my_delta;
@@ -487,9 +485,6 @@ void set_approxmc_options()
     appmc->set_simplify(simplify);
     appmc->set_var_elim_ratio(var_elim_ratio);
     appmc->set_dump_intermediary_cnf(dump_intermediary_cnf);
-
-    //Arjun options
-    appmc->set_cont_recomp_indep_set(cont_recomp_indep_set);
 
     if (logfilename != "") {
         appmc->set_up_log(logfilename);

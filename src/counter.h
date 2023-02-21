@@ -42,8 +42,6 @@
 using std::string;
 using std::vector;
 using std::map;
-using std::cout;
-using std::endl;
 using namespace CMSat;
 
 namespace AppMCInt {
@@ -141,7 +139,6 @@ private:
         SparseData& sparse_data
     );
     void simplify();
-    void cont_recomp_indep_set(const vector<Lit>& assumps);
 
     ////////////////
     //Helper functions
