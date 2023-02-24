@@ -33,7 +33,11 @@ jobs:
 #        pip install flake8
 #        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 #        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Build a binary wheel and a source tarball
+    - name: Get Python3
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Build a source tarball
       run: >-
         python -m
         build
