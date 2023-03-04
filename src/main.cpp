@@ -476,7 +476,6 @@ void set_approxmc_options()
     //Improvement options
     appmc->set_detach_xors(detach_xors);
     appmc->set_reuse_models(reuse_models);
-    appmc->set_force_sol_extension(force_sol_extension);
     appmc->set_sparse(sparse);
 
     //Misc options

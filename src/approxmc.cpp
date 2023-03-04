@@ -169,11 +169,6 @@ DLL_PUBLIC void AppMC::set_reuse_models(uint32_t reuse_models)
     data->conf.reuse_models = reuse_models;
 }
 
-DLL_PUBLIC void AppMC::set_force_sol_extension(uint32_t force_sol_extension)
-{
-    data->conf.force_sol_extension = force_sol_extension;
-}
-
 DLL_PUBLIC void AppMC::set_sparse(uint32_t sparse)
 {
     data->conf.sparse = sparse;

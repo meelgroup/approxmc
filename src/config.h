@@ -46,7 +46,6 @@ struct Config {
     int simplify = 1;
     double var_elim_ratio = 1.6;
     int reuse_models = 1;
-    int force_sol_extension = 0;
     std::vector<uint32_t> sampling_set;
     std::string logfilename = "";
     int cms_detach_xor = 1;
