@@ -39,9 +39,6 @@ def _parse_toml(pyproject_path):
 
 picosatlib = ('picosatlib', {
     'sources': [
-               "python/cryptominisat/src/picosat/picogcnf.c",
-               "python/cryptominisat/src/picosat/picomcs.c",
-               "python/cryptominisat/src/picosat/picomus.c",
                "python/cryptominisat/src/picosat/picosat.c",
                "python/cryptominisat/src/picosat/version.c"],
     'language' : "c",
