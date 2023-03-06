@@ -51,7 +51,7 @@ This now prints `Approximate count is: 56*2**3`, which corresponds to the approx
 To build on Linux, you will need the following:
 ```
 sudo apt-get install build-essential cmake
-sudo apt-get install zlib1g-dev libboost-program-options-dev
+sudo apt-get install zlib1g-dev libboost-program-options-dev libboost-serialization-dev
 apt-get install libgmp3-dev
 ```
 
