@@ -72,6 +72,7 @@ uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
 uint32_t sparse = 0;
 int dump_intermediary_cnf = 0;
+uint32_t must_mult_exp2 = 0;
 
 //Arjun
 vector<uint32_t> sampling_vars;
@@ -298,6 +299,7 @@ void read_in_file(const string& filename, T* myreader)
 
     sampling_vars = parser.sampling_vars;
     sampling_vars_found = parser.sampling_vars_found;
+    must_mult_exp2 = parser.must_mult_exp2;
 
     #ifndef USE_ZLIB
     fclose(in);
@@ -613,7 +615,7 @@ int main(int argc, char** argv)
         else sol_count.cellSolCount = 0;
     }
     cout << "c [appmc+arjun] Total time: " << (cpuTime() - start_time) << endl;
-    print_num_solutions(sol_count.cellSolCount, sol_count.hashCount+offset_count_by_2_pow);
+    print_num_solutions(sol_count.cellSolCount, sol_count.hashCount+offset_count_by_2_pow+must_mult_exp2);
 
     delete appmc;
 }
