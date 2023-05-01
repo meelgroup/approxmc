@@ -67,5 +67,4 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
       run: |
         ls dist/
-        twine upload --skip-existing --disable-progress-bar dist/pyapproxmc*manylinux*.whl
         twine upload --skip-existing --disable-progress-bar dist/pyapproxmc*.tar.gz
