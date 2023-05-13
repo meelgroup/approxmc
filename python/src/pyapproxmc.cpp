@@ -363,6 +363,7 @@ static PyMethodDef Counter_methods[] = {
 static void Counter_dealloc(Counter* self)
 {
     delete self->appmc;
+    delete self->arjun;
     Py_TYPE(self)->tp_free ((PyObject*) self);
 }
 
