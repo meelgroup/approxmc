@@ -571,7 +571,8 @@ int main(int argc, char** argv)
         print_final_indep_set(
             sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (with_e) {
-            const auto ret = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, false, true);
+            const auto ret = arjun->get_fully_simplified_renumbered_cnf(
+                    sampling_vars, false, false, false, 2, 2, true, false);
             appmc->new_vars(ret.nvars);
             for(const auto& cl: ret.cnf) appmc->add_clause(cl);
             sampling_vars = ret.sampling_vars;
