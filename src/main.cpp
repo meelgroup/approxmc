@@ -499,7 +499,7 @@ void print_orig_sampling_vars(const vector<uint32_t>& orig_sampling_vars, T* ptr
     if (!orig_sampling_vars.empty()) {
         cout << "c Original sampling vars: ";
         for(auto v: orig_sampling_vars) {
-            cout << v << " ";
+            cout << v+1 << " ";
         }
         cout << endl;
         cout << "c [appmc] Orig sampling vars size: " << orig_sampling_vars.size() << endl;
