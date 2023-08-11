@@ -27,27 +27,31 @@ You will then find the files under "dist/".
 
 ## Usage
 
-The `pyapproxmc` module has one object, `Counter` that has two functions
-`count` and `add_clause`.
-
-The function ``add_clause()`` takes an iterable list of literals such as
-``[1, 2]`` which represents the truth ``1 or 2 = True``. For example,
-``add_clause([1])`` sets variable ``1`` to ``True``.
-
-The function `count()` counts the number of solutions to the system of constraints
-that have been added with `add_clause()`:
-
 ```
->>> from pyapproxmc import Counter
->>> s = Counter()
->>> s.add_clause([1, 2])
->>> cells, hashes = s.count()
->>> print("There are approx ", cells*2**hashes, " solutions")
-There are 55 solutions, approximately
+import pyapproxmc
+c = pyapproxmc.Counter()
+c.add_clause([1,2,3])
+c.add_clause([3,20])
+count = c.count()
+print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 ```
 
-The return value is a tuple of cells and hashes. Which gives how many solutions
-there are, probabilistically approximately
+The above will print that `Approximate count is: 88*2**13`. Since the largest variable in the clauses was 20, the system contained 2**20 (i.e. 1048576) potential models. However, some of these models were prohibited by the two clauses, and so only approximately 88*2**13 (i.e. 720896) models remained.
+
+If you want to count over a projection set, you need to call `count(projection_set)`, for example:
+
+```
+import pyapproxmc
+c = pyapproxmc.Counter()
+c.add_clause([1,2,3])
+c.add_clause([3,20])
+count = c.count(range(1,10))
+print("Approximate count is: %d*2**%d" % (count[0], count[1]))
+```
+
+This now prints `Approximate count is: 56*2**3`, which corresponds to the approximate count of models, projected over variables 1..10.
+
+## Counter Object
 
 You can give the following arguments to `Counter`:
 * `seed` -- sets the random seed
