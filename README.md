@@ -32,7 +32,7 @@ count = c.count()
 print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 ```
 
-The above will print that `Approximate count is: 88*2**13`. Since the largest variable in the clauses was 20, the system contained 2**20 (i.e. 1048576) potential models. However, some of these models were prohibited by the two clauses, and so only approximately 88*2**13 (i.e. 720896) models remained.
+The above will print that `Approximate count is: 11*2**16`. Since the largest variable in the clauses was 20, the system contained 2**20 (i.e. 1048576) potential models. However, some of these models were prohibited by the two clauses, and so only approximately 11*2**16 (i.e. 720896) models remained.
 
 If you want to count over a projection set, you need to call `count(projection_set)`, for example:
 
@@ -45,7 +45,7 @@ count = c.count(range(1,10))
 print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 ```
 
-This now prints `Approximate count is: 56*2**3`, which corresponds to the approximate count of models, projected over variables 1..10.
+This now prints `Approximate count is: 7*2**6`, which corresponds to the approximate count of models, projected over variables 1..10.
 
 ## How to Build a Binary
 To build on Linux, you will need the following:
