@@ -654,7 +654,7 @@ string Counter::gen_rnd_bits(
     SparseData& sparse_data)
 {
     string randomBits;
-    std::uniform_int_distribution<uint32_t> dist{0, 1000};
+    std::uniform_int_distribution<uint32_t> dist{0, 999};
     uint32_t cutoff = 500;
     if (conf.sparse && sparse_data.table_no != -1) {
         //Do we need to update the probability?
