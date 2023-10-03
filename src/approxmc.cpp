@@ -301,7 +301,7 @@ DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampling_set() const
     return data->conf.sampling_set;
 }
 
-DLL_PUBLIC void AppMC::set_dump_intermediary_cnf(const bool dump_intermediary_cnf)
+DLL_PUBLIC void AppMC::set_dump_intermediary_cnf(const int dump_intermediary_cnf)
 {
     data->conf.dump_intermediary_cnf = dump_intermediary_cnf;
 }

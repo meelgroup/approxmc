@@ -149,7 +149,7 @@ uint64_t Counter::add_glob_banning_cls(
     return repeat;
 }
 
-void Counter::dump_cnf_from_solver(const vector<Lit>& assumps)
+void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t iter, const lbool result)
 {
     vector<vector<Lit>> cnf;
     solver->start_getting_small_clauses(
@@ -178,8 +178,12 @@ void Counter::dump_cnf_from_solver(const vector<Lit>& assumps)
     solver->end_getting_small_clauses();
 
     std::stringstream ss;
-    ss << "cnf_dump-" << cnf_dump_no << ".cnf";
-    cnf_dump_no++;
+    std::string result_str;
+    if (result == l_True) result_str = "SAT";
+    else if (result == l_False) result_str = "UNSAT";
+    else assert(false && "Should not be called with unknown!");
+    ss << "cnfdump" << "-res-" << result_str << "-iter-" << iter
+        << "-active-xors-" << assumps.size() << "-out-" << cnf_dump_no++ << ".cnf";
 
     std::ofstream f;
     f.open(ss.str(), std::ios::out);
@@ -198,6 +202,7 @@ SolNum Counter::bounded_sol_count(
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
         const uint32_t hashCount,
+        const uint32_t iter,
         HashesModels* hm
 ) {
     if (conf.verb) {
@@ -234,6 +239,7 @@ SolNum Counter::bounded_sol_count(
         }
     }
 
+    cnf_dump_no = 0;
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hashCount);
     uint64_t solutions = repeat;
     double last_found_time = cpuTimeTotal();
@@ -241,11 +247,9 @@ SolNum Counter::bounded_sol_count(
     while (solutions < maxSolutions) {
         lbool ret = solver->solve(&new_assumps, true);
         assert(ret == l_False || ret == l_True);
-        if (conf.dump_intermediary_cnf >= 2 && ret == l_True) {
-            dump_cnf_from_solver(new_assumps);
-        }
-        if (conf.dump_intermediary_cnf >= 1 && ret == l_False) {
-            dump_cnf_from_solver(new_assumps);
+        if ((conf.dump_intermediary_cnf >= 2 && ret == l_True) ||
+            (conf.dump_intermediary_cnf >= 1 && ret == l_False)) {
+            dump_cnf_from_solver(new_assumps, iter, ret);
         }
 
         if (conf.verb >= 2) {
@@ -502,7 +506,7 @@ int Counter::find_best_sparse_match()
 //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
 void Counter::one_measurement_count(
     int64_t& mPrev,
-    const unsigned iter,
+    const uint32_t iter,
     SparseData sparse_data,
     HashesModels* hm)
 {
@@ -553,6 +557,7 @@ void Counter::one_measurement_count(
             threshold + 1, //max no. solutions
             &assumps, //assumptions to use
             hashCount,
+            iter,
             hm
         );
         const uint64_t num_sols = std::min<uint64_t>(sols.solutions, threshold + 1);

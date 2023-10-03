@@ -131,6 +131,7 @@ private:
         uint32_t maxSolutions,
         const vector<Lit>* assumps,
         const uint32_t hashCount,
+        const uint32_t iter,
         HashesModels* hm = NULL
     );
     vector<Lit> set_num_hashes(
@@ -143,7 +144,7 @@ private:
     ////////////////
     //Helper functions
     ////////////////
-    void dump_cnf_from_solver(const vector<Lit>& assumps);
+    void dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t iter, const lbool result);
     void print_xor(const vector<uint32_t>& vars, const uint32_t rhs);
     void one_measurement_count(
         int64_t& mPrev,
