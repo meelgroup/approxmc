@@ -175,8 +175,8 @@ void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t it
     std::ofstream f;
     f.open(ss.str(), std::ios::out);
     f << "p cnf " << solver->nVars()+1 << " " << cls_in_solver.size()+xors_in_solver.size()+assumps.size() << endl;
-    for(const auto& l: assumps) f << l << " 0" << endl;
     for(const auto& cl: cls_in_solver) f << cl << " 0" << endl;
+    f << "c XORs below" << endl;
     for(const auto& x: xors_in_solver) {
         f << "x";
         for(uint32_t i = 0; i < x.first.size(); i++) {
@@ -185,6 +185,8 @@ void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t it
         }
         f << "0" << endl;
     }
+    f << "c assumptions below" << endl;
+    for(const auto& l: assumps) f << l << " 0" << endl;
     f.close();
 }
 
