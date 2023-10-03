@@ -45,8 +45,9 @@ using namespace AppMCInt;
 
 namespace ApproxMC {
     struct AppMCPrivateData {
-        Counter counter;
+        AppMCPrivateData(): counter(conf) {}
         Config conf;
+        Counter counter;
     };
 }
 
@@ -231,7 +232,7 @@ DLL_PUBLIC ApproxMC::SolCount AppMC::count()
     }
 
     setup_sampling_vars(data);
-    SolCount sol_count = data->counter.solve(data->conf);
+    SolCount sol_count = data->counter.solve();
     return sol_count;
 }
 
@@ -269,12 +270,12 @@ DLL_PUBLIC bool AppMC::add_red_clause(const vector<CMSat::Lit>& lits)
 
 DLL_PUBLIC bool AppMC::add_clause(const vector<CMSat::Lit>& lits)
 {
-    return data->counter.solver->add_clause(lits);
+    return data->counter.solver_add_clause(lits);
 }
 
 DLL_PUBLIC bool AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
 {
-    return data->counter.solver->add_xor_clause(vars, rhs);
+    return data->counter.solver_add_xor_clause(vars, rhs);
 }
 
 DLL_PUBLIC bool AppMC::add_bnn_clause(
@@ -282,6 +283,10 @@ DLL_PUBLIC bool AppMC::add_bnn_clause(
             signed cutoff,
             Lit out)
 {
+    if (data->conf.dump_intermediary_cnf) {
+        cout << "ERROR: BNNs not supported when dumping" << endl;
+        exit(-1);
+    }
     return data->counter.solver->add_bnn_clause(lits, cutoff, out);
 }
 

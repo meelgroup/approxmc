@@ -36,6 +36,7 @@
 #include <iomanip>
 #include <map>
 #include <set>
+#include <utility>
 #include <fstream>
 #include <sys/stat.h>
 #include <string.h>
@@ -60,7 +61,19 @@
 using std::cout;
 using std::endl;
 using std::map;
+using std::make_pair;
 using namespace AppMCInt;
+
+bool Counter::solver_add_clause(const vector<Lit>& cl) {
+    if (conf.dump_intermediary_cnf) cls_in_solver.push_back(cl);
+    return solver->add_clause(cl);
+}
+
+
+bool Counter::solver_add_xor_clause(const vector<uint32_t>& vars, const bool rhs) {
+    if (conf.dump_intermediary_cnf) xors_in_solver.push_back(make_pair(vars, rhs));
+    return solver->add_xor_clause(vars, rhs);
+}
 
 Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
 {
@@ -80,7 +93,7 @@ Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
     Hash h(act_var, vars, rhs);
 
     vars.push_back(act_var);
-    solver->add_xor_clause(vars, rhs);
+    solver_add_xor_clause(vars, rhs);
     if (conf.verb_cls) {
         print_xor(vars, rhs);
     }
@@ -95,7 +108,7 @@ void Counter::ban_one(const uint32_t act_var, const vector<lbool>& model)
     for (const uint32_t var: conf.sampling_set) {
         lits.push_back(Lit(var, model[var] == l_True));
     }
-    solver->add_clause(lits);
+    solver_add_clause(lits);
 }
 
 ///adding banning clauses for repeating solutions
@@ -149,51 +162,28 @@ uint64_t Counter::add_glob_banning_cls(
     return repeat;
 }
 
-void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t iter, const lbool result)
-{
-    vector<vector<Lit>> cnf;
-    solver->start_getting_small_clauses(
-        std::numeric_limits<uint32_t>::max(),
-        std::numeric_limits<uint32_t>::max(),
-        false, true);
-
-    uint32_t maxvars = 0;
-    bool ret = true;
-    vector<Lit> cl;
-    while(ret) {
-        ret = solver->get_next_small_clause(cl);
-        if (!ret) {
-            continue;
-        }
-        cnf.push_back(cl);
-        for(const auto& l: cl) {
-            maxvars = std::max<uint32_t>(l.var(), maxvars);
-        }
-    }
-
-    for(const auto& l: assumps) {
-        maxvars = std::max<uint32_t>(l.var(), maxvars);
-    }
-
-    solver->end_getting_small_clauses();
-
-    std::stringstream ss;
+void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t iter, const lbool result) {
     std::string result_str;
     if (result == l_True) result_str = "SAT";
     else if (result == l_False) result_str = "UNSAT";
     else assert(false && "Should not be called with unknown!");
+
+    std::stringstream ss;
     ss << "cnfdump" << "-res-" << result_str << "-iter-" << iter
         << "-active-xors-" << assumps.size() << "-out-" << cnf_dump_no++ << ".cnf";
 
     std::ofstream f;
     f.open(ss.str(), std::ios::out);
-    f << "p cnf " << maxvars+1 << " " << cnf.size()+assumps.size() << "\n";
-    for(const auto& l: assumps) {
-        f << l << " 0\n";
-    }
-
-    for(const auto& c: cnf) {
-        f << c << " 0\n";
+    f << "p cnf " << solver->nVars()+1 << " " << cls_in_solver.size()+xors_in_solver.size()+assumps.size() << endl;
+    for(const auto& l: assumps) f << l << " 0" << endl;
+    for(const auto& cl: cls_in_solver) f << cl << " 0" << endl;
+    for(const auto& x: xors_in_solver) {
+        f << "x";
+        for(uint32_t i = 0; i < x.first.size(); i++) {
+            if (i == 0 && !x.second) f << "-";
+            f << (x.first[i]+1) << " ";
+        }
+        f << "0" << endl;
     }
     f.close();
 }
@@ -284,7 +274,7 @@ SolNum Counter::bounded_sol_count(
         if (conf.verb_cls) {
             cout << "c [appmc] Adding banning clause: " << lits << endl;
         }
-        solver->add_clause(lits);
+        solver_add_clause(lits);
     }
 
     //Save global models
@@ -297,7 +287,7 @@ SolNum Counter::bounded_sol_count(
     //Remove solution banning
     vector<Lit> cl_that_removes;
     cl_that_removes.push_back(Lit(sol_ban_var, false));
-    solver->add_clause(cl_that_removes);
+    solver_add_clause(cl_that_removes);
 
     return SolNum(solutions, repeat);
 }
@@ -313,9 +303,7 @@ void Counter::print_final_count_stats(ApproxMC::SolCount solCount)
     }
 }
 
-ApproxMC::SolCount Counter::solve(Config _conf)
-{
-    conf = _conf;
+ApproxMC::SolCount Counter::solve() {
     orig_num_vars = solver->nVars();
     startTime = cpuTimeTotal();
 

@@ -395,8 +395,7 @@ void print_num_solutions(uint32_t cellSolCount, uint32_t hashCount)
 
 }
 
-void get_cnf_from_arjun()
-{
+void get_cnf_from_arjun() {
     bool ret = true;
     const uint32_t orig_num_vars = arjun->get_orig_num_vars();
     appmc->new_vars(orig_num_vars);
@@ -407,21 +406,13 @@ void get_cnf_from_arjun()
     vector<Lit> clause;
     while (ret) {
         ret = arjun->get_next_small_clause(clause);
-        if (!ret) {
-            break;
-        }
+        if (!ret) break;
 
         bool ok = true;
         for(auto l: clause) {
-            if (l.var() >= orig_num_vars) {
-                ok = false;
-                break;
-            }
+            if (l.var() >= orig_num_vars) { ok = false; break; }
         }
-
-        if (ok) {
-            appmc->add_clause(clause);
-        }
+        if (ok) appmc->add_clause(clause);
     }
     arjun->end_getting_small_clauses();
 
@@ -548,7 +539,6 @@ int main(int argc, char** argv)
         cout << appmc->get_version_info();
         cout << "c executed with command line: " << command_line << endl;
     }
-
     set_approxmc_options();
 
     uint32_t offset_count_by_2_pow = 0;

@@ -34,6 +34,7 @@
 #include <fstream>
 #include <random>
 #include <map>
+#include <utility>
 #include <cstdint>
 #include <mutex>
 #include "approxmc.h"
@@ -42,6 +43,7 @@
 using std::string;
 using std::vector;
 using std::map;
+using std::pair;
 using namespace CMSat;
 
 namespace AppMCInt {
@@ -108,7 +110,8 @@ struct SparseData {
 
 class Counter {
 public:
-    ApproxMC::SolCount solve(Config _conf);
+    Counter(Config& _conf) : conf(_conf) {}
+    ApproxMC::SolCount solve();
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
     string binary(const uint32_t x, const uint32_t length);
@@ -120,9 +123,11 @@ public:
     ApproxMC::SolCount calc_est_count();
     void print_final_count_stats(ApproxMC::SolCount sol_count);
     const Constants constants;
+    bool solver_add_clause(const vector<Lit>& cl);
+    bool solver_add_xor_clause(const vector<uint32_t>& vars, const bool rhs);
 
 private:
-    Config conf;
+    Config& conf;
     ApproxMC::SolCount count();
     void add_appmc_options();
     bool ScalCounter(ApproxMC::SolCount& count);
@@ -197,6 +202,8 @@ private:
     double total_inter_simp_time = 0;
     uint32_t threshold; //precision, it's computed
     uint32_t cnf_dump_no = 0;
+    vector<vector<Lit>> cls_in_solver; // needed for accurate dumping
+    vector<pair<vector<uint32_t>, bool>> xors_in_solver; // needed for accurate dumping
 
     int argc;
     char** argv;
