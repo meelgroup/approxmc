@@ -80,6 +80,7 @@ bool sampling_vars_found = false;
 int ignore_sampl_set = 0;
 int do_arjun = 1;
 int debug_arjun = 0;
+int debug = 0;
 int with_e = 1;
 
 void add_appmc_options()
@@ -115,6 +116,7 @@ void add_appmc_options()
          "Logs of ApproxMC execution")
     ("ignore", po::value(&ignore_sampl_set)->default_value(ignore_sampl_set)
         , "Ignore given sampling set and recompute it with Arjun")
+    ("debug", po::value(&debug)->default_value(debug), "Turn on more heavy internal debugging")
     ;
 
     ArjunNS::Arjun tmpa;
@@ -477,6 +479,12 @@ void set_approxmc_options()
     appmc->set_simplify(simplify);
     appmc->set_var_elim_ratio(var_elim_ratio);
     appmc->set_dump_intermediary_cnf(dump_intermediary_cnf);
+    appmc->set_force_sol_extension(force_sol_extension);
+    if (debug) {
+        appmc->set_force_sol_extension(1);
+        appmc->set_debug(1);
+        appmc->set_dump_intermediary_cnf(std::max(dump_intermediary_cnf, 1));
+    }
 
     if (logfilename != "") {
         appmc->set_up_log(logfilename);

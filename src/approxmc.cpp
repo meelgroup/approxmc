@@ -133,6 +133,11 @@ DLL_PUBLIC void AppMC::set_delta(double delta)
     data->conf.delta = delta;
 }
 
+DLL_PUBLIC void AppMC::set_debug(int debug) { data->conf.debug = debug; }
+DLL_PUBLIC void AppMC::set_force_sol_extension(int val) {
+    data->conf.force_sol_extension = val;
+}
+
 DLL_PUBLIC void AppMC::set_start_iter(uint32_t start_iter)
 {
     data->conf.start_iter = start_iter;

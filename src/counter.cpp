@@ -237,7 +237,7 @@ SolNum Counter::bounded_sol_count(
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
     while (solutions < maxSolutions) {
-        lbool ret = solver->solve(&new_assumps, true);
+        lbool ret = solver->solve(&new_assumps, !conf.force_sol_extension);
         assert(ret == l_False || ret == l_True);
         if ((conf.dump_intermediary_cnf >= 2 && ret == l_True) ||
             (conf.dump_intermediary_cnf >= 1 && ret == l_False)) {
@@ -794,9 +794,30 @@ void Counter::check_model(
     const vector<lbool>& model,
     const HashesModels* const hm,
     const uint32_t hashCount
-)
-{
+) {
     for(uint32_t var: conf.sampling_set) assert(model[var] != l_Undef);
+    if (conf.debug) {
+        assert(conf.force_sol_extension);
+        assert(conf.dump_intermediary_cnf);
+        for(const auto& cl: cls_in_solver) {
+            bool sat = false;
+            for(const auto& l: cl) {
+                assert(model[l.var()] != l_Undef);
+                if ((model[l.var()] == l_True && !l.sign()) ||
+                    (model[l.var()] == l_False && l.sign())) {sat = true; break;}
+            }
+            assert(sat);
+        }
+        for(const auto& x: xors_in_solver) {
+            bool sat = !x.second;
+            for(const auto& v: x.first) {
+                assert(model[v] != l_Undef);
+                sat ^= (model[v] == l_True);
+            }
+            assert(sat);
+        }
+    }
+
     if (!hm) return;
 
     for(const auto& h: hm->hashes) {
