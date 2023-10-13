@@ -30,6 +30,7 @@ from setuptools import Extension, setup
 import sysconfig
 import toml
 import pathlib
+from sys import platform
 
 def _parse_toml(pyproject_path):
     pyproject_text = pyproject_path.read_text()
@@ -47,6 +48,11 @@ picosatlib = ('picosatlib', {
 
 
 def gen_modules(version):
+    if platform == "win32" or platform == "cygwin":
+        extra_compile_args_val = ['/std:c++17']
+    else:
+        extra_compile_args_val = ['-std=c++17']
+
     modules = Extension(
         name = "pyapproxmc",
         sources = [
@@ -102,7 +108,7 @@ def gen_modules(version):
                    "python/arjun/python/src/GitSHA1.cpp",
                    "python/arjun/src/simplify.cpp",
                ],
-        extra_compile_args = ['-std=c++17'],
+        extra_compile_args = extra_compile_args_val,
         define_macros = [('CMS_LOCAL_BUILD', 1),("TRACE", ""),("APPMC_FULL_VERSION", "\""+version+"\"")],
         include_dirs = ["src/", "python/cryptominisat/src/", "python/arjun/src/"],
         language = "c++",
