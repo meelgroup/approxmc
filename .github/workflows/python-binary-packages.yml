@@ -1,4 +1,4 @@
-name: better-python-build
+name: python-binary-packages
 
 on: [push, pull_request]
 
