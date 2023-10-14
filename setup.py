@@ -25,7 +25,6 @@
 
 import sys
 import os
-import platform
 from setuptools import Extension, setup
 import sysconfig
 import toml
