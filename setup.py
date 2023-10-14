@@ -48,7 +48,7 @@ picosatlib = ('picosatlib', {
 
 def gen_modules(version):
     if platform == "win32" or platform == "cygwin":
-        extra_compile_args_val = ['/std:c++17', "/DCMS_LOCAL_BUILD=1", "/DAPPMC_FULL_VERSION=\"\\\""+version+"\"\\\""]
+        extra_compile_args_val = ['/std:c++17', "/DCMS_LOCAL_BUILD=1", "/DAPPMC_FULL_VERSION=\""+version+"\""]
         define_macros_val = [("TRACE", "")]
 
     else:

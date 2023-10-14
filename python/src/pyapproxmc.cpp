@@ -450,6 +450,8 @@ PyMODINIT_FUNC PyInit_pyapproxmc(void)
 
     // Add the version string
     // they're using.
+#if defined(_MSC_VER)
+#else
     if (PyModule_AddStringConstant(m, "__version__", APPMC_FULL_VERSION) == -1) {
         Py_DECREF(m);
         return NULL;
@@ -458,6 +460,7 @@ PyMODINIT_FUNC PyInit_pyapproxmc(void)
         Py_DECREF(m);
         return NULL;
     }
+#endif
 
     // Add the Counter type
     Py_INCREF(&pyapproxmc_CounterType);
