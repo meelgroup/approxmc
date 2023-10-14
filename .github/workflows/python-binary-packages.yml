@@ -1,4 +1,4 @@
-name: python-binary-packages
+name: python binary packages
 
 on: [push, pull_request]
 
@@ -8,8 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04]
-        os: [windows-2022]
+        os: [ubuntu-20.04, windows-2022]
 
     steps:
       - uses: actions/checkout@v2
