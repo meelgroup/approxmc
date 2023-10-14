@@ -61,7 +61,7 @@ def gen_modules(version):
                    "python/src/GitSHA1.cpp",
                    "python/src/pyapproxmc.cpp",
                    "src/approxmc.cpp",
-                   "src/constants.cpp",
+                   "src/appmc_constants.cpp",
                    "src/counter.cpp",
                    "python/cryptominisat/python/src/GitSHA1.cpp",
                    "python/cryptominisat/src/bva.cpp",

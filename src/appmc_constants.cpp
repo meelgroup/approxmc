@@ -27,7 +27,7 @@
  THE SOFTWARE.
  */
 
-#include "constants.h"
+#include "appmc_constants.h"
 #include <iostream>
 #include <sstream>
 #include <cassert>

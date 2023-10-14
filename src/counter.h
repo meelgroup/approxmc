@@ -38,7 +38,7 @@
 #include <cstdint>
 #include <mutex>
 #include "approxmc.h"
-#include "constants.h"
+#include "appmc_constants.h"
 
 using std::string;
 using std::vector;

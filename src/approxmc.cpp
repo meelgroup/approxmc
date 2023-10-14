@@ -28,7 +28,7 @@
 
 #include "approxmc.h"
 #include "counter.h"
-#include "constants.h"
+#include "appmc_constants.h"
 #include "config.h"
 #include <iostream>
 
