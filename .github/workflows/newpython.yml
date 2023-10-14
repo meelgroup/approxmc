@@ -1,4 +1,4 @@
-name: python binary packages
+name: python wheel packages
 
 on: [push, pull_request]
 
