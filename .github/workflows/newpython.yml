@@ -48,4 +48,4 @@ jobs:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          twine upload --skip-existing --disable-progress-bar ./wheelhouse/pyapproxmc-.whl
+          twine upload --skip-existing --disable-progress-bar ./wheelhouse/pyapproxmc-*.whl
