@@ -49,9 +49,12 @@ picosatlib = ('picosatlib', {
 
 def gen_modules(version):
     if platform == "win32" or platform == "cygwin":
-        extra_compile_args_val = ['/std:c++17']
+        extra_compile_args_val = ['/std:c++17', "/DCMS_LOCAL_BUILD=1", "/DAPPMC_FULL_VERSION=\"\\\""+version+"\"\\\""]
+        define_macros_val = [("TRACE", "")]
+
     else:
         extra_compile_args_val = ['-std=c++17']
+        define_macros_val = [('CMS_LOCAL_BUILD', 1),("TRACE", ""),("APPMC_FULL_VERSION", "\""+version+"\"")]
 
     modules = Extension(
         name = "pyapproxmc",
@@ -109,7 +112,7 @@ def gen_modules(version):
                    "python/arjun/src/simplify.cpp",
                ],
         extra_compile_args = extra_compile_args_val,
-        define_macros = [('CMS_LOCAL_BUILD', 1),("TRACE", ""),("APPMC_FULL_VERSION", "\""+version+"\"")],
+        define_macros = define_macros_val,
         include_dirs = ["src/", "python/cryptominisat/src/", "python/arjun/src/"],
         language = "c++",
     )
