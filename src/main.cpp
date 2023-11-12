@@ -414,7 +414,7 @@ void get_cnf_from_arjun() {
         for(auto l: clause) {
             if (l.var() >= orig_num_vars) { ok = false; break; }
         }
-        if (ok) appmc->add_clause(clause);
+        if (ok) appmc->add_clause(clause, false);
     }
     arjun->end_getting_small_clauses();
 
@@ -515,7 +515,7 @@ void transfer_unit_clauses_from_arjun()
     for(const auto& unit: units) {
         if (unit.var() < appmc->nVars()) {
             cl[0] = unit;
-            appmc->add_clause(cl);
+            appmc->add_clause(cl, false);
         }
     }
 }
