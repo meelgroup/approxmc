@@ -64,7 +64,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BIN
 set(approxmc_lib_files
     approxmc.cpp
     counter.cpp
-    constants.cpp
+    appmc_constants.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
 )
 

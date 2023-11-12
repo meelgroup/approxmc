@@ -26,8 +26,7 @@
  THE SOFTWARE.
  */
 
-#ifndef CONSTANTS_H__
-#define CONSTANTS_H__
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -64,5 +63,3 @@ private:
 };
 
 }
-
-#endif

@@ -80,6 +80,7 @@ bool sampling_vars_found = false;
 int ignore_sampl_set = 0;
 int do_arjun = 1;
 int debug_arjun = 0;
+int debug = 0;
 int with_e = 1;
 
 void add_appmc_options()
@@ -115,6 +116,7 @@ void add_appmc_options()
          "Logs of ApproxMC execution")
     ("ignore", po::value(&ignore_sampl_set)->default_value(ignore_sampl_set)
         , "Ignore given sampling set and recompute it with Arjun")
+    ("debug", po::value(&debug)->default_value(debug), "Turn on more heavy internal debugging")
     ;
 
     ArjunNS::Arjun tmpa;
@@ -395,8 +397,7 @@ void print_num_solutions(uint32_t cellSolCount, uint32_t hashCount)
 
 }
 
-void get_cnf_from_arjun()
-{
+void get_cnf_from_arjun() {
     bool ret = true;
     const uint32_t orig_num_vars = arjun->get_orig_num_vars();
     appmc->new_vars(orig_num_vars);
@@ -407,21 +408,13 @@ void get_cnf_from_arjun()
     vector<Lit> clause;
     while (ret) {
         ret = arjun->get_next_small_clause(clause);
-        if (!ret) {
-            break;
-        }
+        if (!ret) break;
 
         bool ok = true;
         for(auto l: clause) {
-            if (l.var() >= orig_num_vars) {
-                ok = false;
-                break;
-            }
+            if (l.var() >= orig_num_vars) { ok = false; break; }
         }
-
-        if (ok) {
-            appmc->add_clause(clause);
-        }
+        if (ok) appmc->add_clause(clause);
     }
     arjun->end_getting_small_clauses();
 
@@ -486,6 +479,12 @@ void set_approxmc_options()
     appmc->set_simplify(simplify);
     appmc->set_var_elim_ratio(var_elim_ratio);
     appmc->set_dump_intermediary_cnf(dump_intermediary_cnf);
+    appmc->set_force_sol_extension(force_sol_extension);
+    if (debug) {
+        appmc->set_force_sol_extension(1);
+        appmc->set_debug(1);
+        appmc->set_dump_intermediary_cnf(std::max(dump_intermediary_cnf, 1));
+    }
 
     if (logfilename != "") {
         appmc->set_up_log(logfilename);
@@ -548,7 +547,6 @@ int main(int argc, char** argv)
         cout << appmc->get_version_info();
         cout << "c executed with command line: " << command_line << endl;
     }
-
     set_approxmc_options();
 
     uint32_t offset_count_by_2_pow = 0;

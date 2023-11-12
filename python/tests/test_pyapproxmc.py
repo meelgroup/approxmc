@@ -6,12 +6,12 @@ def minimal_test():
     assert counter.count() == (512, 90)
 
 def sampling_set_test():
-    counter = Counter(seed=2157, epsilon=0.8, delta=0.2, sampling_set=list(range(1,50)))
+    counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
     counter.add_clause(range(1,100))
-    assert counter.count() == (64, 43)
+    assert counter.count(list(range(1,50))) == (64, 43)
 
 def real_example_test():
-    counter = Counter(seed=120, epsilon=0.8, delta=0.2, sampling_set=list(range(1,21)))
+    counter = Counter(seed=120, epsilon=0.8, delta=0.2)
 
     with open("test_1.cnf") as test_cnf:
         # Pop sampling set and metadata lines
@@ -22,7 +22,7 @@ def real_example_test():
             literals = [int(i) for i in line.split()[:-1]]
             counter.add_clause(literals)
 
-    assert counter.count() == (64,14)
+    assert counter.count(list(range(1,21))) == (64,14)
 
 if __name__ == '__main__':
     minimal_test()
