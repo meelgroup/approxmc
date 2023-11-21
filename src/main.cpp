@@ -570,7 +570,7 @@ int main(int argc, char** argv)
             sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (with_e) {
             const auto ret = arjun->get_fully_simplified_renumbered_cnf(
-                    sampling_vars, true, true, true, 2, 2, true, false);
+                    sampling_vars, false, false, false, 2, 2, true, false);
             appmc->new_vars(ret.nvars);
             for(const auto& cl: ret.cnf) appmc->add_clause(cl);
             for(const auto& cl: ret.red_cnf) appmc->add_red_clause(cl);
