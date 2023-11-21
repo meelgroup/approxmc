@@ -414,7 +414,7 @@ void get_cnf_from_arjun() {
         for(auto l: clause) {
             if (l.var() >= orig_num_vars) { ok = false; break; }
         }
-        if (ok) appmc->add_clause(clause, false);
+        if (ok) appmc->add_clause(clause);
     }
     arjun->end_getting_small_clauses();
 
@@ -515,7 +515,7 @@ void transfer_unit_clauses_from_arjun()
     for(const auto& unit: units) {
         if (unit.var() < appmc->nVars()) {
             cl[0] = unit;
-            appmc->add_clause(cl, false);
+            appmc->add_clause(cl);
         }
     }
 }
@@ -573,6 +573,7 @@ int main(int argc, char** argv)
                     sampling_vars, false, false, false, 2, 2, true, false);
             appmc->new_vars(ret.nvars);
             for(const auto& cl: ret.cnf) appmc->add_clause(cl);
+            for(const auto& cl: ret.red_cnf) appmc->add_red_clause(cl);
             sampling_vars = ret.sampling_vars;
             offset_count_by_2_pow = ret.empty_occs;
         } else {

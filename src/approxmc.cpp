@@ -273,10 +273,9 @@ DLL_PUBLIC bool AppMC::add_red_clause(const vector<CMSat::Lit>& lits)
     return data->counter.solver->add_red_clause(lits);
 }
 
-DLL_PUBLIC bool AppMC::add_clause(const vector<CMSat::Lit>& lits, bool red)
+DLL_PUBLIC bool AppMC::add_clause(const vector<CMSat::Lit>& lits)
 {
-    if (red == false) return data->counter.solver_add_clause(lits);
-    else return data->counter.solver->okay();
+    return data->counter.solver_add_clause(lits);
 }
 
 DLL_PUBLIC bool AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
