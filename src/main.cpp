@@ -82,6 +82,10 @@ int do_arjun = 1;
 int debug_arjun = 0;
 int debug = 0;
 int with_e = 1;
+int e_iter_1 = 2;
+int e_iter_2 = 2;
+int e_vivif_sparsify = 0;
+int e_get_reds = 0;
 
 void add_appmc_options()
 {
@@ -138,8 +142,15 @@ void add_appmc_options()
         , "Use trick of not extending solutions in the SAT solver to full solution")
     ("withe", po::value(&with_e)->default_value(with_e)
         , "Eliminate variables and simplify CNF as well")
+    ("eiter1", po::value(&e_iter_1)->default_value(e_iter_1)
+        , "Num iters of E on 1st round")
+    ("eiter2", po::value(&e_iter_2)->default_value(e_iter_2)
+        , "Num iters of E on 1st round")
+    ("evivifsparsify", po::value(&e_vivif_sparsify)->default_value(e_vivif_sparsify)
+        , "E vivif+sparsify")
+    ("egetreds", po::value(&e_get_reds)->default_value(e_get_reds)
+        , "Get redundant from E")
     ;
-
 
     misc_options.add_options()
     ("verbcls", po::value(&verb_cls)->default_value(verb_cls)
@@ -570,10 +581,11 @@ int main(int argc, char** argv)
             sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (with_e) {
             const auto ret = arjun->get_fully_simplified_renumbered_cnf(
-                    sampling_vars, false, false, false, 2, 2, true, false);
+                    sampling_vars, e_vivif_sparsify, false, e_vivif_sparsify
+                    , e_iter_1, e_iter_2, true, false);
             appmc->new_vars(ret.nvars);
             for(const auto& cl: ret.cnf) appmc->add_clause(cl);
-            for(const auto& cl: ret.red_cnf) appmc->add_red_clause(cl);
+            if (e_get_reds) for(const auto& cl: ret.red_cnf) appmc->add_red_clause(cl);
             sampling_vars = ret.sampling_vars;
             offset_count_by_2_pow = ret.empty_occs;
         } else {
