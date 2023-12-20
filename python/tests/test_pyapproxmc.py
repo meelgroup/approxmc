@@ -1,16 +1,23 @@
+import sys
+
+import pytest
+
 from pyapproxmc import Counter
 
-def minimal_test():
+def test_minimal():
     counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
     counter.add_clause(list(range(1,100)))
-    assert counter.count() == (512, 90)
 
-def sampling_set_test():
+    significand, exponent = counter.count()
+    print(f'count: {significand} * 2**{exponent}')
+    assert significand * 2**exponent == 512 * 2**90
+
+def test_sampling_set():
     counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
     counter.add_clause(range(1,100))
     assert counter.count(list(range(1,50))) == (64, 43)
 
-def real_example_test():
+def test_real_example():
     counter = Counter(seed=120, epsilon=0.8, delta=0.2)
 
     with open("test_1.cnf") as test_cnf:
@@ -24,7 +31,6 @@ def real_example_test():
 
     assert counter.count(list(range(1,21))) == (64,14)
 
+
 if __name__ == '__main__':
-    minimal_test()
-    sampling_set_test()
-    real_example_test()
+    pytest.main([__file__, '-v'] + sys.argv[1:])
