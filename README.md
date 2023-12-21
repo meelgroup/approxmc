@@ -32,7 +32,7 @@ count = c.count()
 print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 ```
 
-The above will print that `Approximate count is: 11*2**16`. Since the largest variable in the clauses was 20, the system contained 2**20 (i.e. 1048576) potential models. However, some of these models were prohibited by the two clauses, and so only approximately 11*2**16 (i.e. 720896) models remained.
+The above will print that `Approximate count is: 11*2**16`. Since the largest variable in the clauses was 20, the system contained 2\*\*20 (i.e. 1048576) potential models. However, some of these models were prohibited by the two clauses, and so only approximately 11*2\*\*16 (i.e. 720896) models remained.
 
 If you want to count over a projection set, you need to call `count(projection_set)`, for example:
 
