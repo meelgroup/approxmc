@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from array import array
+from pathlib import Path
 
 import pytest
 
@@ -25,7 +26,8 @@ def test_sampling_set():
 def test_real_example():
     counter = Counter(seed=120, epsilon=0.8, delta=0.2)
 
-    with open("test_1.cnf") as test_cnf:
+    cnf_file = Path(__file__).parent / "test_1.cnf"
+    with open(cnf_file) as test_cnf:
         # Pop sampling set and metadata lines
         lines = test_cnf.readlines()[2:]
 
@@ -51,7 +53,8 @@ def test_add_clauses_real_example():
     counter = Counter(seed=120, epsilon=0.8, delta=0.2)
     clauses = []
 
-    with open("test_1.cnf") as test_cnf:
+    cnf_file = Path(__file__).parent / "test_1.cnf"
+    with open((cnf_file)) as test_cnf:
         # Pop sampling set and metadata lines
         lines = test_cnf.readlines()[2:]
 
@@ -67,4 +70,5 @@ def test_add_clauses_real_example():
 
 
 if __name__ == '__main__':
-    pytest.main([__file__, '-v'] + sys.argv[1:])
+    ret = pytest.main([__file__, '-v'] + sys.argv[1:])
+    raise SystemExit(ret)
