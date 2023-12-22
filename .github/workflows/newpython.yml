@@ -35,6 +35,8 @@ jobs:
         # to supply options, put them in 'env', like:
         env:
           CIBW_BEFORE_ALL_LINUX: yum install -y boost-devel zlib-devel
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: "pytest --color=yes -v {project}/python/tests/test_pyapproxmc.py"
           CIBW_SKIP: "*musl*"
           CIBW_ARCHS: "auto64"
 
