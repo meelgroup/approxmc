@@ -48,7 +48,6 @@ struct Config {
     int reuse_models = 1;
     std::vector<uint32_t> sampling_set;
     std::string logfilename = "";
-    int cms_detach_xor = 1;
     int dump_intermediary_cnf = 0;
     int debug = 0;
     int force_sol_extension = false;
