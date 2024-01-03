@@ -573,9 +573,13 @@ int main(int argc, char** argv)
         print_final_indep_set(
             sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (with_e) {
-            const auto ret = arjun->get_fully_simplified_renumbered_cnf(
-                    sampling_vars, e_vivif_sparsify, false, e_vivif_sparsify
-                    , e_iter_1, e_iter_2, true, false);
+            ArjunNS::SimpConf sc;
+            sc.oracle_vivify = e_vivif_sparsify;
+            sc.oracle_vivify_get_learnts = true;
+            sc.oracle_sparsify = e_vivif_sparsify;
+            sc.iter1 = e_iter_1;
+            sc.iter2 = e_iter_2;
+            const auto ret = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, sc, true, false);
             appmc->new_vars(ret.nvars);
             for(const auto& cl: ret.cnf) appmc->add_clause(cl);
             if (e_get_reds) for(const auto& cl: ret.red_cnf) appmc->add_red_clause(cl);
