@@ -160,7 +160,7 @@ static int parse_clause(Counter *self, PyObject *clause, std::vector<CMSat::Lit>
         if (allow_more_vars)
             self->arjun->new_vars(max_var-(long int)self->arjun->nVars()+1);
         else {
-            PyErr_SetString(PyExc_SystemError,
+            PyErr_SetString(PyExc_ValueError,
                     "ERROR: Sampling vars contain variables that are not in the original clauses!");
             return 0;
         }
@@ -241,10 +241,10 @@ static int _add_clauses_from_array(Counter *self, const size_t array_length, con
             lits.push_back(CMSat::Lit(var, sign));
         }
         if (!lits.empty()) {
-            if (max_var >= (long int)self->appmc->nVars()) {
-                self->appmc->new_vars(max_var-(long int)self->appmc->nVars()+1);
+            if (max_var >= (long int)self->arjun->nVars()) {
+                self->arjun->new_vars(max_var-(long int)self->arjun->nVars()+1);
             }
-            self->appmc->add_clause(lits);
+            self->arjun->add_clause(lits);
         }
     }
     return 1;
@@ -413,8 +413,7 @@ Approximately count the number of solutions to the formula. It can only be calle
 static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
 {
     if (self->count_called) {
-        PyErr_SetString(PyExc_SystemError,
-                        "ERROR: Sampling vars contain variables that are not in the original clauses!");
+        PyErr_SetString(PyExc_ValueError, "ERROR: Counter.count() may only be called once!");
         return NULL;
     } else {
         self->count_called = true;
@@ -436,7 +435,7 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
         }
         for(const auto& l: sampling_lits) {
             if (l.var() > self->arjun->nVars()) {
-                PyErr_SetString(PyExc_SystemError,
+                PyErr_SetString(PyExc_ValueError,
                         "ERROR: Sampling vars contain variables that are not in the original clauses!");
                 return NULL;
             }

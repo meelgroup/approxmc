@@ -67,7 +67,6 @@ uint32_t start_iter = 0;
 uint32_t verb_cls = 0;
 uint32_t simplify;
 double var_elim_ratio;
-uint32_t detach_xors = 1;
 uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
 uint32_t sparse = 0;
@@ -134,8 +133,6 @@ void add_appmc_options()
     improvement_options.add_options()
     ("sparse", po::value(&sparse)->default_value(sparse)
         , "0 = (default) Do not use sparse method. 1 = Generate sparse XORs when possible.")
-    ("detachxor", po::value(&detach_xors)->default_value(detach_xors)
-        , "Detach XORs in CMS")
     ("reusemodels", po::value(&reuse_models)->default_value(reuse_models)
         , "Reuse models while counting solutions")
     ("forcesolextension", po::value(&force_sol_extension)->default_value(force_sol_extension)
@@ -472,15 +469,11 @@ void set_approxmc_options()
 {
     //Main options
     appmc->set_verbosity(verbosity);
-    if (verbosity >= 2) {
-        appmc->set_detach_warning();
-    }
     appmc->set_seed(seed);
     appmc->set_epsilon(epsilon);
     appmc->set_delta(delta);
 
     //Improvement options
-    appmc->set_detach_xors(detach_xors);
     appmc->set_reuse_models(reuse_models);
     appmc->set_sparse(sparse);
 
