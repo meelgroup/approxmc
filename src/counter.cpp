@@ -353,14 +353,12 @@ void Counter::simplify()
     solver->set_intree_probe(1);
     solver->set_full_bve_iter_ratio(conf.var_elim_ratio);
     solver->set_full_bve(1);
-    solver->set_bva(1);
     solver->set_scc(1);
 
     solver->simplify();
 
     solver->set_sls(0);
     solver->set_full_bve(0);
-    solver->set_bva(0);
 }
 
 //Set up probabilities, threshold and measurements
