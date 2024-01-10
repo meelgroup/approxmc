@@ -178,7 +178,7 @@ void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t it
     for(const auto& cl: cls_in_solver) f << cl << " 0" << endl;
     f << "c XORs below" << endl;
     for(const auto& x: xors_in_solver) {
-        f << "x";
+        f << "x ";
         for(uint32_t i = 0; i < x.first.size(); i++) {
             if (i == 0 && !x.second) f << "-";
             f << (x.first[i]+1) << " ";
