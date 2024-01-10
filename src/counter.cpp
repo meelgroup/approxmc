@@ -448,9 +448,7 @@ ApproxMC::SolCount Counter::count()
 ApproxMC::SolCount Counter::calc_est_count()
 {
     ApproxMC::SolCount ret_count;
-    if (numHashList.empty() || numCountList.empty()) {
-        return ret_count;
-    }
+    if (numHashList.empty() || numCountList.empty()) return ret_count;
 
     const auto minHash = findMin(numHashList);
     auto cnt_it = numCountList.begin();
