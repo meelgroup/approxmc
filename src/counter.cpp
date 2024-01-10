@@ -456,6 +456,11 @@ ApproxMC::SolCount Counter::calc_est_count()
         ; hash_it != numHashList.end() && cnt_it != numCountList.end()
         ; hash_it++, cnt_it++
     ) {
+        if ((*hash_it) - minHash > 10) {
+            cout << "Internal ERROR: Something is VERY fishy, the difference between each count must"
+                " never be this large. Please report this bug to the maintainers" << endl;
+            exit(-1);
+        }
         *cnt_it *= pow(2, (*hash_it) - minHash);
     }
     ret_count.valid = true;
