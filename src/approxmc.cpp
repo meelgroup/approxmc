@@ -271,6 +271,11 @@ DLL_PUBLIC bool AppMC::add_clause(const vector<CMSat::Lit>& lits)
     return data->counter.solver_add_clause(lits);
 }
 
+DLL_PUBLIC bool AppMC::add_xor_clause(const vector<Lit>& lits, bool rhs)
+{
+    return data->counter.solver_add_xor_clause(lits, rhs);
+}
+
 DLL_PUBLIC bool AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
 {
     return data->counter.solver_add_xor_clause(vars, rhs);

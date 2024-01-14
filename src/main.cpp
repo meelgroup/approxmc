@@ -303,9 +303,7 @@ void read_in_file(const string& filename, T* myreader)
         std::exit(-1);
     }
 
-    if (!parser.parse_DIMACS(in, true)) {
-        exit(-1);
-    }
+    if (!parser.parse_DIMACS(in, true)) exit(-1);
 
     sampling_vars = parser.sampling_vars;
     sampling_vars_found = parser.sampling_vars_found;

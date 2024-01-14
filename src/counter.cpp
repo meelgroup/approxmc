@@ -70,8 +70,15 @@ bool Counter::solver_add_clause(const vector<Lit>& cl) {
 }
 
 
+bool Counter::solver_add_xor_clause(const vector<Lit>& lits, const bool rhs) {
+    if (conf.dump_intermediary_cnf) xors_in_solver.push_back(make_pair(lits, rhs));
+    return solver->add_xor_clause(lits, rhs);
+}
+
 bool Counter::solver_add_xor_clause(const vector<uint32_t>& vars, const bool rhs) {
-    if (conf.dump_intermediary_cnf) xors_in_solver.push_back(make_pair(vars, rhs));
+    vector<Lit> lits;
+    for(const auto& v: vars) lits.push_back(Lit(v, false));
+    if (conf.dump_intermediary_cnf) xors_in_solver.push_back(make_pair(lits, rhs));
     return solver->add_xor_clause(vars, rhs);
 }
 
@@ -178,10 +185,12 @@ void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t it
     for(const auto& cl: cls_in_solver) f << cl << " 0" << endl;
     f << "c XORs below" << endl;
     for(const auto& x: xors_in_solver) {
+        if (x.first.empty() && x.second == false) continue; // empty && false == tautology
         f << "x ";
         for(uint32_t i = 0; i < x.first.size(); i++) {
-            if (i == 0 && !x.second) f << "-";
-            f << (x.first[i]+1) << " ";
+            Lit l = x.first[i];
+            if (i == 0) l ^= !x.second;
+            f << l << " ";
         }
         f << "0" << endl;
     }
@@ -811,9 +820,9 @@ void Counter::check_model(
         }
         for(const auto& x: xors_in_solver) {
             bool sat = !x.second;
-            for(const auto& v: x.first) {
-                assert(model[v] != l_Undef);
-                sat ^= (model[v] == l_True);
+            for(const auto& l: x.first) {
+                assert(model[l.var()] != l_Undef);
+                sat ^= ((model[l.var()]^l.sign()) == l_True);
             }
             assert(sat);
         }

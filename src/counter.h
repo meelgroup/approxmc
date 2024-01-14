@@ -125,6 +125,7 @@ public:
     const Constants constants;
     bool solver_add_clause(const vector<Lit>& cl);
     bool solver_add_xor_clause(const vector<uint32_t>& vars, const bool rhs);
+    bool solver_add_xor_clause(const vector<Lit>& lits, const bool rhs);
 
 private:
     Config& conf;
@@ -203,7 +204,7 @@ private:
     uint32_t threshold; //precision, it's computed
     uint32_t cnf_dump_no = 0;
     vector<vector<Lit>> cls_in_solver; // needed for accurate dumping
-    vector<pair<vector<uint32_t>, bool>> xors_in_solver; // needed for accurate dumping
+    vector<pair<vector<Lit>, bool>> xors_in_solver; // needed for accurate dumping
 
     int argc;
     char** argv;
