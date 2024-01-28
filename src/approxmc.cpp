@@ -281,18 +281,6 @@ DLL_PUBLIC bool AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
     return data->counter.solver_add_xor_clause(vars, rhs);
 }
 
-DLL_PUBLIC bool AppMC::add_bnn_clause(
-            const std::vector<CMSat::Lit>& lits,
-            signed cutoff,
-            Lit out)
-{
-    if (data->conf.dump_intermediary_cnf) {
-        cout << "ERROR: BNNs not supported when dumping" << endl;
-        exit(-1);
-    }
-    return data->counter.solver->add_bnn_clause(lits, cutoff, out);
-}
-
 DLL_PUBLIC CMSat::SATSolver* AppMC::get_solver()
 {
     return data->counter.solver;
