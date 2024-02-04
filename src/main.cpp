@@ -414,8 +414,7 @@ int main(int argc, char** argv)
         sampling_vars = arjun->get_indep_set();
         vector<uint32_t> empty_occ_sampl_vars;
         empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
-        print_final_indep_set(
-            sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
+        print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (with_e) {
             ArjunNS::SimpConf sc;
             sc.oracle_vivify = e_vivif_sparsify;
@@ -443,6 +442,7 @@ int main(int argc, char** argv)
             transfer_unit_clauses_from_arjun();
         }
         if (debug_arjun) {
+            assert(!with_e && "Can't use debug and --withe at the same time");
             sampling_vars = debug_sampling_vars;
             offset_count_by_2_pow = 0;
         }
