@@ -26,11 +26,8 @@
  THE SOFTWARE.
  */
 
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
-using std::string;
-using std::vector;
-
+#include <string>
+#include <vector>
 #if defined(__GNUC__) && defined(__linux__)
 #include <cfenv>
 #endif
@@ -43,22 +40,19 @@ using std::vector;
 #include <cryptominisat5/dimacsparser.h>
 #include <cryptominisat5/streambuffer.h>
 #include <arjun/arjun.h>
+#include "src/argparse.hpp"
 
 using namespace CMSat;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::string;
+using std::vector;
 ApproxMC::AppMC* appmc = nullptr;
 ArjunNS::Arjun* arjun = nullptr;
+argparse::ArgumentParser program = argparse::ArgumentParser("approxmc");
 
-po::options_description main_options = po::options_description("Main options");
-po::options_description arjun_options = po::options_description("Arjun options");
-po::options_description improvement_options = po::options_description("Improvement options");
-po::options_description misc_options = po::options_description("Misc options");
-po::options_description help_options;
-po::variables_map vm;
-po::positional_options_description p;
-uint32_t verbosity = 1;
+uint32_t verb = 1;
 uint32_t seed;
 double epsilon;
 double delta;
@@ -86,6 +80,17 @@ int e_iter_2 = 2;
 int e_vivif_sparsify = 0;
 int e_get_reds = 0;
 
+#define myopt(name, var, fun, hhelp) \
+    program.add_argument(name) \
+        .action([&](const auto& a) {var = std::fun(a.c_str());}) \
+        .default_value(var) \
+        .help(hhelp)
+#define myopt2(name1, name2, var, fun, hhelp) \
+    program.add_argument(name1, name2) \
+        .action([&](const auto& a) {var = std::fun(a.c_str());}) \
+        .default_value(var) \
+        .help(hhelp)
+
 void add_appmc_options()
 {
     ApproxMC::AppMC tmp;
@@ -96,192 +101,69 @@ void add_appmc_options()
     sparse = tmp.get_sparse();
     seed = tmp.get_seed();
 
-    std::ostringstream my_epsilon;
-    std::ostringstream my_delta;
-    std::ostringstream my_var_elim_ratio;
 
-    my_epsilon << std::setprecision(8) << epsilon;
-    my_delta << std::setprecision(8) << delta;
-    my_var_elim_ratio << std::setprecision(8) << var_elim_ratio;
+    myopt2("-v", "--verb", verb, atoi, "Verbosity");
+    myopt2("-s", "--seed", seed, atoi, "Seed");
+    myopt2("-e", "--epsilon", epsilon, stod,
+            "Tolerance parameter, i.e. how close is the count from the correct count? "
+            "Count output is within bounds of (exact_count/(1+e)) < count < (exact_count*(1+e)). "
+            "So e=0.8 means we'll output at most 180%% of exact count and at least 55%% of exact count. "
+            "Lower value means more precise.");
+    myopt2("-d", "--delta", delta, stod, "Confidence parameter, i.e. how sure are we of the result? "
+            "(1-d) = probability the count is within range as per epsilon parameter. "
+            "So d=0.2 means we are 80%% sure the count is within range as specified by epsilon. "
+            "The lower, the higher confidence we have in the count.");
+    myopt("--ignore", ignore_sampl_set, atoi, "Ignore given sampling set and recompute it with Arjun");
 
-    main_options.add_options()
-    ("help,h", "Prints help")
-    ("input", po::value< vector<string> >(), "file(s) to read")
-    ("verb,v", po::value(&verbosity)->default_value(1), "verbosity")
-    ("seed,s", po::value(&seed)->default_value(seed), "Seed")
-    ("version", "Print version info")
+    /* arjun_options.add_options() */
+    myopt("--arjun", do_arjun, atoi, "Use arjun to minimize sampling set");
+    myopt("--arjundebug", debug_arjun, atoi, "Use CNF from Arjun, but use sampling set from CNF");
 
-    ("epsilon,e", po::value(&epsilon)->default_value(epsilon, my_epsilon.str())
-        , "Tolerance parameter, i.e. how close is the count from the correct count? Count output is within bounds of (exact_count/(1+e)) < count < (exact_count*(1+e)). So e=0.8 means we'll output at most 180%% of exact count and at least 55%% of exact count. Lower value means more precise.")
-    ("delta,d", po::value(&delta)->default_value(delta, my_delta.str())
-        , "Confidence parameter, i.e. how sure are we of the result? (1-d) = probability the count is within range as per epsilon parameter. So d=0.2 means we are 80%% sure the count is within range as specified by epsilon. The lower, the higher confidence we have in the count.")
-    ("log", po::value(&logfilename),
-         "Logs of ApproxMC execution")
-    ("ignore", po::value(&ignore_sampl_set)->default_value(ignore_sampl_set)
-        , "Ignore given sampling set and recompute it with Arjun")
-    ("debug", po::value(&debug)->default_value(debug), "Turn on more heavy internal debugging")
-    ;
+    /* improvement_options.add_options() */
+    myopt("--sparse", sparse, atoi,
+            "0 = (default) Do not use sparse method. 1 = Generate sparse XORs when possible.");
+    myopt("--reusemodels", reuse_models, atoi, "Reuse models while counting solutions");
+    myopt("--forcesolextension", force_sol_extension, atoi,
+            "Use trick of not extending solutions in the SAT solver to full solution");
+    myopt("--withe", with_e, atoi, "Eliminate variables and simplify CNF as well");
+    myopt("--eiter1", e_iter_1, atoi, "Num iters of E on 1st round");
+    myopt("--eiter2", e_iter_2, atoi, "Num iters of E on 1st round");
+    myopt("--evivifsparsify", e_vivif_sparsify, atoi, "E vivif+sparsify");
+    myopt("--egetreds", e_get_reds, atoi, "Get redundant from E");
 
-    ArjunNS::Arjun tmpa;
-    arjun_options.add_options()
-    ("arjun", po::value(&do_arjun)->default_value(do_arjun)
-        , "Use arjun to minimize sampling set")
-    ("arjundebug", po::value(&debug_arjun)->default_value(debug_arjun)
-        , "Use CNF from Arjun, but use sampling set from CNF")
-    ;
+    /* misc_options.add_options() */
+    myopt("--verbcls", verb_cls, atoi, "Print banning clause + xor clauses. Highly verbose.");
+    myopt("--simplify", simplify, atoi, "Simplify aggressiveness");
+    myopt("--velimratio", var_elim_ratio, stod, "Variable elimination ratio for each simplify run");
+    myopt("--dumpintercnf", dump_intermediary_cnf, atoi,
+            "Dump intermediary CNFs during solving into files cnf_dump-X.cnf. If set to 1 only UNSAT is dumped, if set to 2, all are dumped");
+    myopt("--log", logfilename, string, "Put logs of ApproxMC execution to this file");
+    myopt("--debug", debug, atoi, "Turn on more heavy internal debugging");
 
-    improvement_options.add_options()
-    ("sparse", po::value(&sparse)->default_value(sparse)
-        , "0 = (default) Do not use sparse method. 1 = Generate sparse XORs when possible.")
-    ("reusemodels", po::value(&reuse_models)->default_value(reuse_models)
-        , "Reuse models while counting solutions")
-    ("forcesolextension", po::value(&force_sol_extension)->default_value(force_sol_extension)
-        , "Use trick of not extending solutions in the SAT solver to full solution")
-    ("withe", po::value(&with_e)->default_value(with_e)
-        , "Eliminate variables and simplify CNF as well")
-    ("eiter1", po::value(&e_iter_1)->default_value(e_iter_1)
-        , "Num iters of E on 1st round")
-    ("eiter2", po::value(&e_iter_2)->default_value(e_iter_2)
-        , "Num iters of E on 1st round")
-    ("evivifsparsify", po::value(&e_vivif_sparsify)->default_value(e_vivif_sparsify)
-        , "E vivif+sparsify")
-    ("egetreds", po::value(&e_get_reds)->default_value(e_get_reds)
-        , "Get redundant from E")
-    ;
-
-    misc_options.add_options()
-    ("verbcls", po::value(&verb_cls)->default_value(verb_cls)
-        ,"Print banning clause + xor clauses. Highly verbose.")
-    ("simplify", po::value(&simplify)->default_value(simplify)
-        , "Simplify aggressiveness")
-    ("velimratio", po::value(&var_elim_ratio)->default_value(var_elim_ratio)
-        , "Variable elimination ratio for each simplify run")
-    ("dumpintercnf", po::value(&dump_intermediary_cnf)->default_value(dump_intermediary_cnf)
-        , "Dump intermediary CNFs during solving into files cnf_dump-X.cnf. If set to 1 only UNSAT is dumped, if set to 2, all are dumped");
-    ;
-
-    help_options.add(main_options);
-    help_options.add(improvement_options);
-    help_options.add(arjun_options);
-    help_options.add(misc_options);
+    program.add_argument("inputfile").remaining().help("input CNF");
 }
 
-void add_supported_options(int argc, char** argv)
-{
+void add_supported_options(int argc, char** argv) {
     add_appmc_options();
-    p.add("input", 1);
-
     try {
-        po::store(po::command_line_parser(argc, argv).options(help_options).positional(p).run(), vm);
-        if (vm.count("help"))
-        {
-            cout
-            << "Probably Approximate counter" << endl;
-
-            cout
-            << "approxmc [options] inputfile" << endl << endl;
-
-            cout << help_options << endl;
-            std::exit(0);
+        program.parse_args(argc, argv);
+        if (program.is_used("--help")) {
+            cout << "Probilistic Approcimate Counter" << endl << endl
+            << "approxmc [options] inputfile" << endl;
+            cout << program << endl;
+            exit(0);
         }
-
-        if (vm.count("version")) {
-            cout << appmc->get_version_info();
-            std::exit(0);
-        }
-
-        po::notify(vm);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::unknown_option> >& c
-    ) {
-        cerr
-        << "ERROR: Some option you gave was wrong. Please give '--help' to get help" << endl
-        << "       Unknown option: " << c.what() << endl;
-        std::exit(-1);
-    } catch (boost::bad_any_cast &e) {
-        std::cerr
-        << "ERROR! You probably gave a wrong argument type" << endl
-        << "       Bad cast: " << e.what()
-        << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::invalid_option_value> >& what
-    ) {
-        cerr
-        << "ERROR: Invalid value '" << what.what() << "'" << endl
-        << "       given to option '" << what.get_option_name() << "'"
-        << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::multiple_occurrences> >& what
-    ) {
-        cerr
-        << "ERROR: " << what.what() << " of option '"
-        << what.get_option_name() << "'"
-        << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::required_option> >& what
-    ) {
-        cerr
-        << "ERROR: You forgot to give a required option '"
-        << what.get_option_name() << "'"
-        << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::too_many_positional_options_error> >& what
-    ) {
-        cerr
-        << "ERROR: You gave too many positional arguments. Only the input CNF can be given as a positional option." << endl;
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::ambiguous_option> >& what
-    ) {
-        cerr
-        << "ERROR: The option you gave was not fully written and matches" << endl
-        << "       more than one option. Please give the full option name." << endl
-        << "       The option you gave: '" << what.get_option_name() << "'" <<endl
-        << "       The alternatives are: ";
-        for(size_t i = 0; i < what.alternatives().size(); i++) {
-            cout << what.alternatives()[i];
-            if (i+1 < what.alternatives().size()) {
-                cout << ", ";
-            }
-        }
-        cout << endl;
-
-        std::exit(-1);
-    } catch (boost::exception_detail::clone_impl<
-        boost::exception_detail::error_info_injector<po::invalid_command_line_syntax> >& what
-    ) {
-        cerr
-        << "ERROR: The option you gave is missing the argument or the" << endl
-        << "       argument is given with space between the equal sign." << endl
-        << "       detailed error message: " << what.what() << endl
-        ;
-        std::exit(-1);
+    }
+    catch (const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+        exit(-1);
     }
 
+    if (program["version"] == true) {
+        cout << appmc->get_version_info();
+        exit(0);
+    }
 }
-
-// void SIGINT_handler(int)
-// {
-//     if (!appmc) {
-//         return;
-//     }
-//     SolCount solCount = appmc->calc_est_count();
-//     if (!solCount.valid) {
-//         cout << "c did not manage to get a single measurement, we have no estimate of the count" << endl;
-//         exit(-1);
-//     }
-//     cout << "c Below count is NOT FULLY APPROXIMIATE due to early-abort!" << endl;
-//     solCount.print_num_solutions();
-//     exit(-1);
-// }
 
 template<class T>
 void read_in_file(const string& filename, T* myreader)
@@ -291,7 +173,7 @@ void read_in_file(const string& filename, T* myreader)
     DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verbosity);
     #else
     gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verbosity);
+    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verb);
     #endif
 
     if (in == nullptr) {
@@ -318,10 +200,8 @@ void read_in_file(const string& filename, T* myreader)
 
 inline double stats_line_percent(double num, double total)
 {
-    if (total == 0) {
-        return 0;
-    } else {
-        return num/total*100.0;
+    if (total == 0) { return 0;
+    } else { return num/total*100.0;
     }
 }
 
@@ -345,12 +225,8 @@ void print_final_indep_set(
     << " %" << endl;
 }
 
-template<class T>
-void read_stdin(T* myreader)
-{
-    cout
-    << "c Reading from standard input... Use '-h' or '--help' for help."
-    << endl;
+template<class T> void read_stdin(T* myreader) {
+    cout << "c Reading from standard input... Use '-h' or '--help' for help." << endl;
 
     #ifndef USE_ZLIB
     FILE * in = stdin;
@@ -366,14 +242,13 @@ void read_stdin(T* myreader)
     #ifndef USE_ZLIB
     DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verbosity);
     #else
-    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verbosity);
+    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verb);
     #endif
 
     if (!parser.parse_DIMACS(in, false)) {
         exit(-1);
     }
-
-    sampling_vars = parser.sampling_vars;
+sampling_vars = parser.sampling_vars;
     sampling_vars_found = parser.sampling_vars_found;
 
     #ifdef USE_ZLIB
@@ -414,18 +289,19 @@ void get_cnf_from_arjun() {
     arjun->end_getting_constraints();
 }
 
-template<class T>
-void read_input_cnf(T* reader)
-{
-    //Init Arjun, read in file, get minimal indep set
-    if (vm.count("input") != 0) {
-        vector<string> inp = vm["input"].as<vector<string> >();
-        if (inp.size() > 1) {
-            cout << "[appmc] ERROR: you must only give one CNF as input" << endl;
+template<class T> void read_input_cnf(T* reader) {
+    try {
+        auto files = program.get<std::vector<std::string>>("inputfile");
+        if (files.size() > 1) {
+            cout << "ERROR: you can only pass at most one positional option, an INPUT file" << endl;
             exit(-1);
         }
-        read_in_file(inp[0], reader);
-    } else read_stdin(reader);
+        assert(!files.empty());
+        const string inp = files[0];
+        read_in_file(inp, reader);
+    } catch (std::logic_error& e) {
+        read_stdin(reader);
+    }
 }
 
 uint32_t set_up_sampling_set()
@@ -443,7 +319,7 @@ uint32_t set_up_sampling_set()
 void set_approxmc_options()
 {
     //Main options
-    appmc->set_verbosity(verbosity);
+    appmc->set_verbosity(verb);
     appmc->set_seed(seed);
     appmc->set_epsilon(epsilon);
     appmc->set_delta(delta);
@@ -502,27 +378,20 @@ void transfer_unit_clauses_from_arjun()
 int main(int argc, char** argv)
 {
     #if defined(__GNUC__) && defined(__linux__)
-    feenableexcept(FE_INVALID   |
-                   FE_DIVBYZERO |
-                   FE_OVERFLOW
-                  );
+    feenableexcept(FE_INVALID   | FE_DIVBYZERO | FE_OVERFLOW);
     #endif
-//     signal(SIGALRM, SIGINT_handler);
-//     signal(SIGTERM, SIGINT_handler);
     double start_time = cpuTime();
 
     //Reconstruct the command line so we can emit it later if needed
     string command_line;
     for(int i = 0; i < argc; i++) {
         command_line += string(argv[i]);
-        if (i+1 < argc) {
-            command_line += " ";
-        }
+        if (i+1 < argc) command_line += " ";
     }
 
     appmc = new ApproxMC::AppMC;
     add_supported_options(argc, argv);
-    if (verbosity) {
+    if (verb) {
         cout << appmc->get_version_info();
         cout << "c executed with command line: " << command_line << endl;
     }
@@ -533,10 +402,10 @@ int main(int argc, char** argv)
         //Arjun-based minimization
         arjun = new ArjunNS::Arjun;
         arjun->set_seed(seed);
-        arjun->set_verbosity(verbosity);
+        arjun->set_verbosity(verb);
         arjun->set_simp(simplify);
 
-        if (verbosity) cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
+        if (verb) cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
 
         read_input_cnf(arjun);
         print_orig_sampling_vars(sampling_vars, arjun);
