@@ -95,7 +95,7 @@ Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
     solver_add_xor_clause(vars, rhs);
     if (conf.verb_cls) print_xor(vars, rhs);
 
-    return Hash {act_var, vars, rhs};
+    return Hash(act_var, vars, rhs);
 }
 
 void Counter::ban_one(const uint32_t act_var, const vector<lbool>& model)
@@ -268,7 +268,7 @@ SolNum Counter::bounded_sol_count(
     //Save global models
     if (hm && conf.reuse_models) {
         for (const auto& model: models) {
-            hm->glob_model.push_back(SavedModel {model, hash_cnt});
+            hm->glob_model.emplace_back(SavedModel(model, hash_cnt));
         }
     }
 
@@ -282,7 +282,8 @@ SolNum Counter::bounded_sol_count(
 
 void Counter::print_final_count_stats(ApproxMC::SolCount sol_count)
 {
-    if (sol_count.hashCount == 0 && sol_count.cellSolCount == 0) {
+    if (sol_count.hashCount == 0 && sol_count.cellSolCount == 0
+            && conf.verb >= 1) {
         cout << "c [appmc] Formula was UNSAT " << endl;
     }
 
@@ -329,10 +330,7 @@ vector<Lit> Counter::set_num_hashes(
 
 void Counter::simplify()
 {
-    if (conf.verb >= 1) {
-        cout << "c [appmc] simplifying" << endl;
-    }
-
+    verb_print(1, "[appmc] simplifying");
     solver->set_sls(1);
     solver->set_intree_probe(1);
     solver->set_full_bve_iter_ratio(conf.var_elim_ratio);

@@ -47,11 +47,17 @@ namespace AppMCInt {
 
 struct SavedModel
 {
-    vector<lbool> model;
+    SavedModel (const vector<lbool>& _model, uint32_t _hash_num):
+        model(_model), hash_num(_hash_num) {}
+    const vector<lbool> model;
     uint32_t hash_num;
 };
 
 struct Hash {
+    Hash () = default;
+    Hash(const uint32_t _act_var, const vector<uint32_t>& _hash_vars, const bool _rhs):
+        act_var(_act_var), hash_vars(_hash_vars), rhs(_rhs) {}
+
     uint32_t act_var;
     vector<uint32_t> hash_vars;
     bool rhs;
@@ -79,9 +85,7 @@ struct SolNum {
 };
 
 struct SparseData {
-    explicit SparseData(int _table_no) :
-        table_no(_table_no)
-    {}
+    explicit SparseData(int _table_no) : table_no(_table_no) {}
 
     uint32_t next_index = 0;
     double sparseprob = 0.5;
