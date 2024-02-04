@@ -32,9 +32,9 @@ using std::string;
 using std::vector;
 
 #if defined(__GNUC__) && defined(__linux__)
-#include <fenv.h>
+#include <cfenv>
 #endif
-#include <signal.h>
+#include <csignal>
 #include <gmp.h>
 
 #include "time_mem.h"
@@ -48,8 +48,8 @@ using namespace CMSat;
 using std::cout;
 using std::cerr;
 using std::endl;
-ApproxMC::AppMC* appmc = NULL;
-ArjunNS::Arjun* arjun = NULL;
+ApproxMC::AppMC* appmc = nullptr;
+ArjunNS::Arjun* arjun = nullptr;
 
 po::options_description main_options = po::options_description("Main options");
 po::options_description arjun_options = po::options_description("Arjun options");
@@ -288,13 +288,13 @@ void read_in_file(const string& filename, T* myreader)
 {
     #ifndef USE_ZLIB
     FILE * in = fopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, NULL, verbosity);
+    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verbosity);
     #else
     gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, NULL, verbosity);
+    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verbosity);
     #endif
 
-    if (in == NULL) {
+    if (in == nullptr) {
         std::cerr
         << "ERROR! Could not open file '"
         << filename
@@ -358,15 +358,15 @@ void read_stdin(T* myreader)
     gzFile in = gzdopen(0, "rb"); //opens stdin, which is 0
     #endif
 
-    if (in == NULL) {
+    if (in == nullptr) {
         std::cerr << "ERROR! Could not open standard input for reading" << endl;
         std::exit(1);
     }
 
     #ifndef USE_ZLIB
-    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, NULL, verbosity);
+    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verbosity);
     #else
-    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, NULL, verbosity);
+    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verbosity);
     #endif
 
     if (!parser.parse_DIMACS(in, false)) {
@@ -381,48 +381,37 @@ void read_stdin(T* myreader)
     #endif
 }
 
-void print_num_solutions(uint32_t cellSolCount, uint32_t hashCount)
+void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count)
 {
     cout << "c [appmc] Number of solutions is: "
-    << cellSolCount << "*2**" << hashCount << endl;
-    if (cellSolCount == 0) {
-        cout << "s UNSATISFIABLE" << endl;
-    } else {
-        cout << "s SATISFIABLE" << endl;
-    }
+    << cell_sol_cnt << "*2**" << hash_count << endl;
+    if (cell_sol_cnt == 0) cout << "s UNSATISFIABLE" << endl;
+    else cout << "s SATISFIABLE" << endl;
 
     mpz_t num_sols;
     mpz_init (num_sols);
-    mpz_ui_pow_ui(num_sols, 2, hashCount);
-    mpz_mul_ui(num_sols, num_sols, cellSolCount);
+    mpz_ui_pow_ui(num_sols, 2, hash_count);
+    mpz_mul_ui(num_sols, num_sols, cell_sol_cnt);
 
     cout << "s mc " << std::flush;
-    mpz_out_str(0, 10, num_sols);
+    mpz_out_str(nullptr, 10, num_sols);
     cout << endl;
     mpz_clear(num_sols);
-
 }
 
 void get_cnf_from_arjun() {
-    bool ret = true;
     const uint32_t orig_num_vars = arjun->get_orig_num_vars();
     appmc->new_vars(orig_num_vars);
-    arjun->start_getting_small_clauses(
-        std::numeric_limits<uint32_t>::max(),
-        std::numeric_limits<uint32_t>::max(),
-        false);
+    arjun->start_getting_constraints();
     vector<Lit> clause;
-    while (ret) {
-        ret = arjun->get_next_small_clause(clause);
-        if (!ret) break;
-
+    bool is_xor, rhs;
+    while (arjun->get_next_constraint(clause, is_xor, rhs)) {
+        assert(!is_xor); assert(rhs);
         bool ok = true;
-        for(auto l: clause) {
-            if (l.var() >= orig_num_vars) { ok = false; break; }
-        }
+        for(auto l: clause) if (l.var() >= orig_num_vars) { ok = false; break; }
         if (ok) appmc->add_clause(clause);
     }
-    arjun->end_getting_small_clauses();
+    arjun->end_getting_constraints();
 }
 
 template<class T>
@@ -435,11 +424,8 @@ void read_input_cnf(T* reader)
             cout << "[appmc] ERROR: you must only give one CNF as input" << endl;
             exit(-1);
         }
-
-        read_in_file(inp[0].c_str(), reader);
-    } else {
-        read_stdin(reader);
-    }
+        read_in_file(inp[0], reader);
+    } else read_stdin(reader);
 }
 
 uint32_t set_up_sampling_set()
@@ -479,7 +465,7 @@ void set_approxmc_options()
         appmc->set_dump_intermediary_cnf(std::max(dump_intermediary_cnf, 1));
     }
 
-    if (logfilename != "") {
+    if (!logfilename.empty()) {
         appmc->set_up_log(logfilename);
         cout << "c [appmc] Logfile set " << logfilename << endl;
     }
