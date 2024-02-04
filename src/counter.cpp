@@ -91,11 +91,13 @@ Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
     solver->new_var();
     const uint32_t act_var = solver->nVars()-1;
     const bool rhs = gen_rhs();
+    auto h = Hash(act_var, vars, rhs);
+
     vars.push_back(act_var);
     solver_add_xor_clause(vars, rhs);
     if (conf.verb_cls) print_xor(vars, rhs);
 
-    return Hash(act_var, vars, rhs);
+    return h;
 }
 
 void Counter::ban_one(const uint32_t act_var, const vector<lbool>& model)
@@ -280,16 +282,6 @@ SolNum Counter::bounded_sol_count(
     return SolNum(solutions, repeat);
 }
 
-void Counter::print_final_count_stats(ApproxMC::SolCount sol_count)
-{
-    if (sol_count.hashCount == 0 && sol_count.cellSolCount == 0
-            && conf.verb >= 1) {
-        cout << "c [appmc] Formula was UNSAT " << endl;
-    }
-
-    if (conf.verb > 2) solver->print_stats();
-}
-
 ApproxMC::SolCount Counter::solve() {
     orig_num_vars = solver->nVars();
     start_time = cpuTimeTotal();
@@ -298,13 +290,11 @@ ApproxMC::SolCount Counter::solve() {
     rnd_engine.seed(conf.seed);
 
     ApproxMC::SolCount sol_count = count();
-    print_final_count_stats(sol_count);
+    if (sol_count.hashCount == 0 && sol_count.cellSolCount == 0)
+        verb_print(1, "[appmc] Formula was UNSAT");
+    if (conf.verb >= 2) solver->print_stats();
 
-    if (conf.verb) {
-        cout << "c [appmc] ApproxMC T: "
-        << (cpuTimeTotal() - start_time) << " s"
-        << endl;
-    }
+    verb_print(1, "[appmc] ApproxMC T: " << (cpuTimeTotal() - start_time) << " s");
     return sol_count;
 }
 
@@ -318,7 +308,7 @@ vector<Lit> Counter::set_num_hashes(
         if (hashes.find(i) != hashes.end()) {
             assumps.push_back(Lit(hashes[i].act_var, true));
         } else {
-            Hash h = add_hash(i, sparse_data);
+            auto h = add_hash(i, sparse_data);
             assumps.push_back(Lit(h.act_var, true));
             hashes[i] = h;
         }

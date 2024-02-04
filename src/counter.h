@@ -105,7 +105,6 @@ public:
     SATSolver* solver = nullptr;
     string get_version_info() const;
     ApproxMC::SolCount calc_est_count();
-    void print_final_count_stats(ApproxMC::SolCount sol_count);
     const Constants constants;
     bool solver_add_clause(const vector<Lit>& cl);
     bool solver_add_xor_clause(const vector<uint32_t>& vars, const bool rhs);
