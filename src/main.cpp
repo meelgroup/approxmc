@@ -77,7 +77,8 @@ int debug = 0;
 int with_e = 1;
 int e_iter_1 = 2;
 int e_iter_2 = 2;
-int e_vivif_sparsify = 0;
+int e_vivif = 1;
+int e_sparsify = 0;
 int e_get_reds = 0;
 
 #define myopt(name, var, fun, hhelp) \
@@ -128,7 +129,8 @@ void add_appmc_options()
     myopt("--withe", with_e, atoi, "Eliminate variables and simplify CNF as well");
     myopt("--eiter1", e_iter_1, atoi, "Num iters of E on 1st round");
     myopt("--eiter2", e_iter_2, atoi, "Num iters of E on 1st round");
-    myopt("--evivifsparsify", e_vivif_sparsify, atoi, "E vivif+sparsify");
+    myopt("--evivif", e_vivif, atoi, "E vivif");
+    myopt("--esparsif", e_sparsify, atoi, "E sparsify");
     myopt("--egetreds", e_get_reds, atoi, "Get redundant from E");
 
     /* misc_options.add_options() */
@@ -417,9 +419,9 @@ int main(int argc, char** argv)
         print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (with_e) {
             ArjunNS::SimpConf sc;
-            sc.oracle_vivify = e_vivif_sparsify;
+            sc.oracle_vivify = e_vivif;
             sc.oracle_vivify_get_learnts = true;
-            sc.oracle_sparsify = e_vivif_sparsify;
+            sc.oracle_sparsify = e_sparsify;
             sc.iter1 = e_iter_1;
             sc.iter2 = e_iter_2;
             const auto ret = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, sc, true, false);
