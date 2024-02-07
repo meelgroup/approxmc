@@ -419,6 +419,7 @@ int main(int argc, char** argv)
         print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
         if (with_e) {
             ArjunNS::SimpConf sc;
+            sc.appmc = true;
             sc.oracle_vivify = e_vivif;
             sc.oracle_vivify_get_learnts = true;
             sc.oracle_sparsify = e_sparsify;
