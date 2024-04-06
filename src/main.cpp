@@ -31,7 +31,8 @@
 #if defined(__GNUC__) && defined(__linux__)
 #include <cfenv>
 #endif
-#include <csignal>
+#include <cstdint>
+#include <set>
 #include <gmp.h>
 
 #include "time_mem.h"
@@ -46,6 +47,7 @@ using namespace CMSat;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::set;
 using std::string;
 using std::vector;
 ApproxMC::AppMC* appmc = nullptr;
@@ -65,11 +67,8 @@ uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
 uint32_t sparse = 0;
 int dump_intermediary_cnf = 0;
-uint32_t must_mult_exp2 = 0;
 
 //Arjun
-vector<uint32_t> sampling_vars;
-bool sampling_vars_found = false;
 int ignore_sampl_set = 0;
 int do_arjun = 1;
 int debug_arjun = 0;
@@ -167,8 +166,7 @@ void add_supported_options(int argc, char** argv) {
     }
 }
 
-template<class T>
-void read_in_file(const string& filename, T* myreader)
+template<class T> void read_in_file(const string& filename, T* myreader)
 {
     #ifndef USE_ZLIB
     FILE * in = fopen(filename.c_str(), "rb");
@@ -188,10 +186,6 @@ void read_in_file(const string& filename, T* myreader)
     }
 
     if (!parser.parse_DIMACS(in, true)) exit(-1);
-
-    sampling_vars = parser.sampling_vars;
-    sampling_vars_found = parser.sampling_vars_found;
-    must_mult_exp2 = parser.must_mult_exp2;
 
     #ifndef USE_ZLIB
     fclose(in);
@@ -247,33 +241,26 @@ template<class T> void read_stdin(T* myreader) {
     DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verb);
     #endif
 
-    if (!parser.parse_DIMACS(in, false)) {
-        exit(-1);
-    }
-sampling_vars = parser.sampling_vars;
-    sampling_vars_found = parser.sampling_vars_found;
+    if (!parser.parse_DIMACS(in, false)) exit(-1);
 
     #ifdef USE_ZLIB
     gzclose(in);
     #endif
 }
 
-void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count)
+void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const mpz_class& mult)
 {
     cout << "c [appmc] Number of solutions is: "
-    << cell_sol_cnt << "*2**" << hash_count << endl;
+    << cell_sol_cnt << "*2**" << hash_count << "*" << mult << endl;
     if (cell_sol_cnt == 0) cout << "s UNSATISFIABLE" << endl;
     else cout << "s SATISFIABLE" << endl;
 
-    mpz_t num_sols;
-    mpz_init (num_sols);
-    mpz_ui_pow_ui(num_sols, 2, hash_count);
-    mpz_mul_ui(num_sols, num_sols, cell_sol_cnt);
+    mpz_class num_sols(2);
+    mpz_pow_ui(num_sols.get_mpz_t(), num_sols.get_mpz_t(), hash_count);
+    num_sols *= cell_sol_cnt;
+    num_sols *= mult;
 
-    cout << "s mc " << std::flush;
-    mpz_out_str(nullptr, 10, num_sols);
-    cout << endl;
-    mpz_clear(num_sols);
+    cout << "s mc " << num_sols << endl;
 }
 
 void get_cnf_from_arjun() {
@@ -304,18 +291,11 @@ template<class T> void read_input_cnf(T* reader) {
     } catch (std::logic_error& e) {
         read_stdin(reader);
     }
-}
-
-uint32_t set_up_sampling_set()
-{
-    uint32_t orig_sampling_set_size;
-    if (!sampling_vars_found || ignore_sampl_set) {
-        orig_sampling_set_size = arjun->start_with_clean_sampling_set();
-    } else {
-        orig_sampling_set_size = arjun->set_starting_sampling_set(sampling_vars);
+    if (!reader->get_sampl_vars_set()  || ignore_sampl_set) {
+        vector<uint32_t> all_vars;
+        for(uint32_t i = 0; i < reader->nVars(); i++) all_vars.push_back(i);
+        reader->set_sampl_vars(all_vars);
     }
-
-    return orig_sampling_set_size;
 }
 
 void set_approxmc_options()
@@ -399,24 +379,20 @@ int main(int argc, char** argv)
     }
     set_approxmc_options();
 
-    uint32_t offset_count_by_2_pow = 0;
     if (do_arjun) {
         //Arjun-based minimization
         arjun = new ArjunNS::Arjun;
         arjun->set_seed(seed);
         arjun->set_verbosity(verb);
         arjun->set_simp(simplify);
-
         if (verb) cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
 
         read_input_cnf(arjun);
-        print_orig_sampling_vars(sampling_vars, arjun);
-        auto debug_sampling_vars = sampling_vars; // debug ONLY
-        const uint32_t orig_sampling_set_size = set_up_sampling_set();
-        sampling_vars = arjun->get_indep_set();
-        vector<uint32_t> empty_occ_sampl_vars;
-        empty_occ_sampl_vars = arjun->get_empty_occ_sampl_vars();
-        print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
+        print_orig_sampling_vars(arjun->get_orig_sampl_vars(), arjun);
+        auto debug_sampling_vars = arjun->get_orig_sampl_vars();
+        auto sampl_vars = arjun->run_backwards();
+        print_final_indep_set(sampl_vars, arjun->get_orig_sampl_vars().size(),
+                arjun->get_empty_sampl_vars());
         if (with_e) {
             ArjunNS::SimpConf sc;
             sc.appmc = true;
@@ -425,53 +401,36 @@ int main(int argc, char** argv)
             sc.oracle_sparsify = e_sparsify;
             sc.iter1 = e_iter_1;
             sc.iter2 = e_iter_2;
-            const auto ret = arjun->get_fully_simplified_renumbered_cnf(sampling_vars, sc, true, false);
+            const auto ret = arjun->get_fully_simplified_renumbered_cnf(sc);
             appmc->new_vars(ret.nvars);
             for(const auto& cl: ret.cnf) appmc->add_clause(cl);
             if (e_get_reds) for(const auto& cl: ret.red_cnf) appmc->add_red_clause(cl);
-            sampling_vars = ret.sampling_vars;
-            offset_count_by_2_pow = ret.empty_occs;
+            sampl_vars = ret.sampl_vars;
+            appmc->set_multiplier_weight(ret.multiplier_weight);
         } else {
-            std::set<uint32_t> sampl_vars_set;
-            sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
-            for(auto const& v: empty_occ_sampl_vars) {
-                assert(sampl_vars_set.find(v) != sampl_vars_set.end()); // this is guaranteed by arjun
-                sampl_vars_set.erase(v);
-            }
-            offset_count_by_2_pow = empty_occ_sampl_vars.size();
-            sampling_vars.clear();
-            sampling_vars.insert(sampling_vars.end(), sampl_vars_set.begin(), sampl_vars_set.end());
             get_cnf_from_arjun();
             transfer_unit_clauses_from_arjun();
+            mpz_class dummy(2);
+            mpz_pow_ui(dummy.get_mpz_t(), dummy.get_mpz_t(), arjun->get_empty_sampl_vars().size());
+            appmc->set_multiplier_weight(arjun->get_multiplier_weight()*dummy);
         }
         if (debug_arjun) {
             assert(!with_e && "Can't use debug and --withe at the same time");
-            sampling_vars = debug_sampling_vars;
-            offset_count_by_2_pow = 0;
+            sampl_vars = debug_sampling_vars;
+            appmc->set_multiplier_weight(1);
         }
+        appmc->set_sampl_vars(sampl_vars);
         delete arjun;
     } else {
         read_input_cnf(appmc);
-        if (ignore_sampl_set || !sampling_vars_found) {
-            sampling_vars.clear();
-            for(uint32_t i = 0; i < appmc->nVars(); i++) sampling_vars.push_back(i);
-        }
-        print_final_indep_set(sampling_vars , 0, vector<uint32_t>());
+        print_final_indep_set(appmc->get_sampl_vars() , 0, vector<uint32_t>());
     }
 
     ApproxMC::SolCount sol_count;
-    if (!sampling_vars.empty()) {
-        appmc->set_projection_set(sampling_vars);
-        sol_count = appmc->count();
-        appmc->print_stats(start_time);
-    } else {
-        bool ret = appmc->find_one_solution();
-        sol_count.hashCount = 0;
-        if (ret) sol_count.cellSolCount = 1;
-        else sol_count.cellSolCount = 0;
-    }
+    sol_count = appmc->count();
+    appmc->print_stats(start_time);
     cout << "c [appmc+arjun] Total time: " << (cpuTime() - start_time) << endl;
-    print_num_solutions(sol_count.cellSolCount, sol_count.hashCount+offset_count_by_2_pow+must_mult_exp2);
+    print_num_solutions(sol_count.cellSolCount, sol_count.hashCount, appmc->get_multiplier_weight());
 
     delete appmc;
 }

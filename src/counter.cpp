@@ -81,11 +81,11 @@ bool Counter::solver_add_xor_clause(const vector<uint32_t>& vars, const bool rhs
 
 Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
 {
-    const string random_bits = gen_rnd_bits(conf.sampling_set.size(), hash_index, sparse_data);
+    const string random_bits = gen_rnd_bits(conf.sampl_vars.size(), hash_index, sparse_data);
 
     vector<uint32_t> vars;
-    for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
-        if (random_bits[j] == '1') vars.push_back(conf.sampling_set[j]);
+    for (uint32_t j = 0; j < conf.sampl_vars.size(); j++) {
+        if (random_bits[j] == '1') vars.push_back(conf.sampl_vars[j]);
     }
 
     solver->new_var();
@@ -104,7 +104,7 @@ void Counter::ban_one(const uint32_t act_var, const vector<lbool>& model)
 {
     vector<Lit> lits;
     lits.push_back(Lit(act_var, false));
-    for (const uint32_t var: conf.sampling_set) lits.push_back(Lit(var, model[var] == l_True));
+    for (const uint32_t var: conf.sampl_vars) lits.push_back(Lit(var, model[var] == l_True));
     solver_add_clause(lits);
 }
 
@@ -257,7 +257,7 @@ SolNum Counter::bounded_sol_count(
         //ban solution
         vector<Lit> lits;
         lits.push_back(Lit(sol_ban_var, false));
-        for (const uint32_t var: conf.sampling_set) {
+        for (const uint32_t var: conf.sampl_vars) {
             assert(solver->get_model()[var] != l_Undef);
             lits.push_back(Lit(var, solver->get_model()[var] == l_True));
         }
@@ -400,6 +400,7 @@ ApproxMC::SolCount Counter::count()
         one_measurement_count(prev_measure, j, sparse_data, &hm);
         if (prev_measure == 0) {
             // Exact count, no need to measure multiple times.
+            verb_print(1, "[appmc] Counted without XORs, i.e. we got exact count");
             break;
         }
         sparse_data.next_index = 0;
@@ -439,14 +440,14 @@ ApproxMC::SolCount Counter::calc_est_count()
 int Counter::find_best_sparse_match()
 {
     for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
-        if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampling_set.size()) {
+        if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampl_vars.size()) {
             if (conf.verb) {
                 cout << "c [sparse] Using match: " << i
-                << " sampling set size: " << conf.sampling_set.size()
+                << " sampling set size: " << conf.sampl_vars.size()
                 << " prev end inclusive is: " << (i == 0 ? -1 : (int)constants.index_var_maps[i-1].vars_to_inclusive)
                 << " this end inclusive is: " << constants.index_var_maps[i].vars_to_inclusive
                 << " next end inclusive is: " << ((i+1 < (int)constants.index_var_maps.size()) ? ((int)constants.index_var_maps[i+1].vars_to_inclusive) : -1)
-                << " sampl size: " << conf.sampling_set.size()
+                << " sampl size: " << conf.sampl_vars.size()
                 << endl;
             }
 
@@ -467,7 +468,7 @@ void Counter::one_measurement_count(
     SparseData sparse_data,
     HashesModels* hm)
 {
-    if (conf.sampling_set.empty()) {
+    if (conf.sampl_vars.empty()) {
         num_hash_list.push_back(0);
         num_count_list.push_back(1);
         return;
@@ -483,7 +484,7 @@ void Counter::one_measurement_count(
     //number of solutions.
     //if it's not set, we have no clue.
     map<uint64_t,bool> threshold_sols;
-    int64_t total_max_xors = conf.sampling_set.size();
+    int64_t total_max_xors = conf.sampl_vars.size();
     int64_t num_explored = 0;
     int64_t lower_fib = 0;
     int64_t upper_fib = total_max_xors;
@@ -740,7 +741,7 @@ void Counter::check_model(
     const HashesModels* const hm,
     const uint32_t hash_cnt
 ) {
-    for(uint32_t var: conf.sampling_set) assert(model[var] != l_Undef);
+    for(uint32_t var: conf.sampl_vars) assert(model[var] != l_Undef);
     if (conf.debug) {
         assert(conf.force_sol_extension);
         assert(conf.dump_intermediary_cnf);
