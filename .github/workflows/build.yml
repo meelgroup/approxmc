@@ -72,7 +72,13 @@ jobs:
        cmake ..
        make
        cd ../..
-
+   
+    - name: Checkout Arjun
+      uses: actions/checkout@v2
+      with:
+        repository: meelgroup/arjun
+        path: arjun
+        
     - name: Build Arjun
       run: |
        cd arjun
@@ -80,12 +86,6 @@ jobs:
        cmake ..
        make
        cd ../..
-   
-    - name: Checkout Arjun
-      uses: actions/checkout@v2
-      with:
-        repository: meelgroup/arjun
-        path: arjun
      
     - name: Build Arjun
       run: |
