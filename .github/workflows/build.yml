@@ -28,21 +28,7 @@ jobs:
     
     - name: Get Dependencies
       run: sudo apt-get update && sudo apt-get install -yq libboost-dev libboost-serialization-dev libboost-program-options-dev help2man
-    
-    - name: Checkout CMS
-      uses: actions/checkout@v2
-      with:
-        repository: msoos/cryptominisat
-        ref: 'master'
-        path: cryptominisat
-    
-    - name: Build CMS
-      run: |
-       cd cryptominisat
-       mkdir build && cd build
-       cmake ..
-       make
-       cd ../..
+
        
     - name: Checkout Cadical
       uses: actions/checkout@v2
@@ -71,6 +57,21 @@ jobs:
        ./configure
        make -j8
        cd ..
+    
+    - name: Checkout CMS
+      uses: actions/checkout@v2
+      with:
+        repository: msoos/cryptominisat
+        ref: 'master'
+        path: cryptominisat
+    
+    - name: Build CMS
+      run: |
+       cd cryptominisat
+       mkdir build && cd build
+       cmake ..
+       make
+       cd ../..
 
     - name: Build Arjun
       run: |
