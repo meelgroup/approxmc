@@ -17,13 +17,13 @@ ApproxMC handles CNF formulas and performs approximate counting.
 
 Install using pip:
 
-```
+```bash
 pip install pyapproxmc
 ```
 
 Then you can use it as:
 
-```
+```python
 import pyapproxmc
 c = pyapproxmc.Counter()
 c.add_clause([1,2,3])
@@ -36,7 +36,7 @@ The above will print that `Approximate count is: 11*2**16`. Since the largest va
 
 If you want to count over a projection set, you need to call `count(projection_set)`, for example:
 
-```
+```python
 import pyapproxmc
 c = pyapproxmc.Counter()
 c.add_clause([1,2,3])
@@ -49,14 +49,13 @@ This now prints `Approximate count is: 7*2**6`, which corresponds to the approxi
 
 ## How to Build a Binary
 To build on Linux, you will need the following:
-```
+```bash
 sudo apt-get install build-essential cmake
-sudo apt-get install zlib1g-dev libboost-program-options-dev libboost-serialization-dev
 apt-get install libgmp3-dev
 ```
 
 Then, build CryptoMiniSat, Arjun, and ApproxMC:
-```
+```bash
 git clone https://github.com/msoos/cryptominisat
 cd cryptominisat
 mkdir build && cd build
@@ -90,7 +89,7 @@ First, you must translate your problem to CNF and just pass your file as input t
 ### Providing a Sampling Set
 For some applications, one is not interested in solutions over all the variables and instead interested in counting the number of unique solutions to a subset of variables, called sampling set. ApproxMC allows you to specify the sampling set using the following modified version of DIMACS format:
 
-```
+```shell
 $ cat myfile.cnf
 c ind 1 3 4 6 7 8 10 0
 p cnf 500 1
@@ -101,7 +100,7 @@ Above, using the `c ind` line, we declare that only variables 1, 3, 4, 6, 7, 8 a
 ### Running ApproxMC
 In our case, the maximum number of solutions could at most be 2^7=128, but our CNF should be restricting this. Let's see:
 
-```
+```shell
 $ approxmc --seed 5 myfile.cnf
 c ApproxMC version 3.0
 [...]
@@ -129,7 +128,7 @@ ApproxMC provides so-called "PAC", or Probably Approximately Correct, guarantees
 
 The system can be used as a library:
 
-```
+```c++
 #include <approxmc/approxmc.h>
 #include <vector>
 #include <complex>

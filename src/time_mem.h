@@ -21,16 +21,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ***********************************************************/
 
-#ifndef TIME_MEM_H
-#define TIME_MEM_H
+#pragma once
+
 #include <cassert>
-#include <time.h>
+#include <ctime>
+#include <cstdint>
 
 #include <ios>
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <signal.h>
+#include <csignal>
 
 // note: MinGW64 defines both __MINGW32__ and __MINGW64__
 #if defined (_MSC_VER) || defined (__MINGW32__) || defined(_WIN32)
@@ -139,5 +140,3 @@ static inline size_t memUsedTotal(double& vm_usage)
     return 0;
 }
 #endif
-
-#endif //TIME_MEM_H

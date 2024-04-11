@@ -18,9 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 enable_language( CXX )
 
@@ -157,7 +157,6 @@ option(BUILD_SHARED_LIBS "Build the shared library" ON)
 option(STATICCOMPILE "Compile to static executable" OFF)
 if (STATICCOMPILE)
     set(BUILD_SHARED_LIBS OFF)
-    set(Boost_USE_STATIC_LIBS ON)
 endif()
 
 
@@ -321,7 +320,6 @@ if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Dar
             set(${VAR_TO_MODIFY} "${replacement}" CACHE STRING "Default flags for ${build_config} configuration" FORCE)
         endforeach()
     else()
-        add_definitions(-DBOOST_TEST_DYN_LINK)
         MESSAGE(STATUS "Compiling for dynamic library use")
     endif()
 endif()
@@ -422,10 +420,6 @@ endmacro()
 # -----------------------------------------------------------------------------
 # Dependencies
 # -----------------------------------------------------------------------------
-set (boost_components "")
-set(boost_components ${boost_components} program_options serialization)
-find_package( Boost 1.46 COMPONENTS ${boost_components})
-
 option(NOZLIB "Don't use zlib" OFF)
 if (NOT NOZLIB AND NOT (STATICCOMPILE AND WIN32))
     find_package(ZLIB)
@@ -447,34 +441,23 @@ else()
     message(FATAL_ERROR  "Cannot find GMP. Please install it! Exiting.")
 endif()
 
-find_package(cryptominisat5 CONFIG)
-if (cryptominisat5_FOUND)
-    message(STATUS "Found CryptoMiniSat 5.x")
-    message(STATUS "CryptoMiniSat5 dynamic lib: ${CRYPTOMINISAT5_LIBRARIES}")
-    message(STATUS "CryptoMiniSat5 static lib:  ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
-    message(STATUS "CryptoMiniSat5 static lib deps: ${CRYPTOMINISAT5_STATIC_LIBRARIES_DEPS}")
-    message(STATUS "CryptoMiniSat5 include dirs: ${CRYPTOMINISAT5_INCLUDE_DIRS}")
-else()
-    message(FATAL_ERROR "Cannot find CryptoMiniSat5. Please install it! Exiting.")
-endif()
+find_package(cryptominisat5 CONFIG REQUIRED)
+message(STATUS "Found CryptoMiniSat 5.x")
+message(STATUS "CryptoMiniSat5 dynamic lib: ${CRYPTOMINISAT5_LIBRARIES}")
+message(STATUS "CryptoMiniSat5 static lib:  ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
+message(STATUS "CryptoMiniSat5 static lib deps: ${CRYPTOMINISAT5_STATIC_LIBRARIES_DEPS}")
+message(STATUS "CryptoMiniSat5 include dirs: ${CRYPTOMINISAT5_INCLUDE_DIRS}")
 
-find_package(arjun CONFIG)
-if (arjun_FOUND)
-    message(STATUS "Found Arjun")
-    message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
-    message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
-else()
-    message(FATAL_ERROR "Cannot find Arjun. Please install it! Exiting.")
-endif()
+find_package(arjun CONFIG REQUIRED)
+message(STATUS "Found Arjun")
+message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
+message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
+find_package(sbva CONFIG REQUIRED)
 
-find_package(louvain_communities CONFIG)
-if (louvain_communities_FOUND)
-    message(STATUS "Found Louvain Communities library")
-    message(STATUS "Louvain Communities dynamic lib: ${LOUVAIN_COMMUNITIES_LIBRARIES}")
-    message(STATUS "Louvain Communities include dirs: ${LOUVAIN_COMMUNITIES_INCLUDE_DIRS}")
-else()
-    message(WARNING "Cannot find Louvain Communities libraries.")
-endif()
+find_package(louvain_communities CONFIG REQUIRED)
+message(STATUS "Found Louvain Communities library")
+message(STATUS "Louvain Communities dynamic lib: ${LOUVAIN_COMMUNITIES_LIBRARIES}")
+message(STATUS "Louvain Communities include dirs: ${LOUVAIN_COMMUNITIES_INCLUDE_DIRS}")
 
 # -----------------------------------------------------------------------------
 # Provide an export name to be used by targets that wish to export themselves.

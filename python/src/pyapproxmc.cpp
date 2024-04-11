@@ -368,15 +368,6 @@ static void get_cnf_from_arjun(Counter* self)
         if (ok) self->appmc->add_clause(clause);
     }
     self->arjun->end_getting_small_clauses();
-
-    std::vector<CMSat::Lit> lits;
-    for(const auto& bnn: self->arjun->get_bnns()) {
-        if (bnn) {
-            lits.clear();
-            lits.insert(lits.end(), bnn->begin(), bnn->end());
-            self->appmc->add_bnn_clause(lits, bnn->cutoff, bnn->out);
-        }
-    }
 }
 
 static void transfer_unit_clauses_from_arjun(Counter* self)

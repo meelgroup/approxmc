@@ -27,10 +27,8 @@
  */
 
 #include <ctime>
-#include <cstring>
-#include <errno.h>
+#include <cerrno>
 #include <algorithm>
-#include <string.h>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -39,12 +37,11 @@
 #include <utility>
 #include <fstream>
 #include <sys/stat.h>
-#include <string.h>
+#include <cstring>
 #include <list>
 #include <array>
 #include <cmath>
 #include <complex>
-//#include <coz.h>
 
 #include "counter.h"
 #include "time_mem.h"
@@ -70,33 +67,35 @@ bool Counter::solver_add_clause(const vector<Lit>& cl) {
 }
 
 
+bool Counter::solver_add_xor_clause(const vector<Lit>& lits, const bool rhs) {
+    if (conf.dump_intermediary_cnf) xors_in_solver.push_back(make_pair(lits, rhs));
+    return solver->add_xor_clause(lits, rhs);
+}
+
 bool Counter::solver_add_xor_clause(const vector<uint32_t>& vars, const bool rhs) {
-    if (conf.dump_intermediary_cnf) xors_in_solver.push_back(make_pair(vars, rhs));
+    vector<Lit> lits(vars.size());
+    for(size_t i = 0; i < vars.size(); i++) lits[i] = Lit(vars[i], false);
+    if (conf.dump_intermediary_cnf) xors_in_solver.push_back(make_pair(lits, rhs));
     return solver->add_xor_clause(vars, rhs);
 }
 
 Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
 {
-    const string randomBits =
-        gen_rnd_bits(conf.sampling_set.size(), hash_index, sparse_data);
+    const string random_bits = gen_rnd_bits(conf.sampl_vars.size(), hash_index, sparse_data);
 
     vector<uint32_t> vars;
-    for (uint32_t j = 0; j < conf.sampling_set.size(); j++) {
-        if (randomBits[j] == '1') {
-            vars.push_back(conf.sampling_set[j]);
-        }
+    for (uint32_t j = 0; j < conf.sampl_vars.size(); j++) {
+        if (random_bits[j] == '1') vars.push_back(conf.sampl_vars[j]);
     }
 
     solver->new_var();
     const uint32_t act_var = solver->nVars()-1;
     const bool rhs = gen_rhs();
-    Hash h(act_var, vars, rhs);
+    auto h = Hash(act_var, vars, rhs);
 
     vars.push_back(act_var);
     solver_add_xor_clause(vars, rhs);
-    if (conf.verb_cls) {
-        print_xor(vars, rhs);
-    }
+    if (conf.verb_cls) print_xor(vars, rhs);
 
     return h;
 }
@@ -105,9 +104,7 @@ void Counter::ban_one(const uint32_t act_var, const vector<lbool>& model)
 {
     vector<Lit> lits;
     lits.push_back(Lit(act_var, false));
-    for (const uint32_t var: conf.sampling_set) {
-        lits.push_back(Lit(var, model[var] == l_True));
-    }
+    for (const uint32_t var: conf.sampl_vars) lits.push_back(Lit(var, model[var] == l_True));
     solver_add_clause(lits);
 }
 
@@ -120,7 +117,7 @@ uint64_t Counter::add_glob_banning_cls(
     uint64_t repeat = 0;
     uint64_t checked = 0;
 
-    if (hm != NULL) {
+    if (hm != nullptr) {
         assert(act_var != std::numeric_limits<uint32_t>::max());
         assert(num_hashes != std::numeric_limits<uint32_t>::max());
 
@@ -178,10 +175,12 @@ void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t it
     for(const auto& cl: cls_in_solver) f << cl << " 0" << endl;
     f << "c XORs below" << endl;
     for(const auto& x: xors_in_solver) {
-        f << "x";
+        if (x.first.empty() && x.second == false) continue; // empty && false == tautology
+        f << "x ";
         for(uint32_t i = 0; i < x.first.size(); i++) {
-            if (i == 0 && !x.second) f << "-";
-            f << (x.first[i]+1) << " ";
+            Lit l = x.first[i];
+            if (i == 0) l ^= !x.second;
+            f << l << " ";
         }
         f << "0" << endl;
     }
@@ -191,52 +190,41 @@ void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t it
 }
 
 SolNum Counter::bounded_sol_count(
-        uint32_t maxSolutions,
+        uint32_t max_solutions,
         const vector<Lit>* assumps,
-        const uint32_t hashCount,
+        const uint32_t hash_cnt,
         const uint32_t iter,
         HashesModels* hm
 ) {
-    if (conf.verb) {
-        cout << "c [appmc] "
-        "[ " << std::setw(7) << std::setprecision(2) << std::fixed
-        << (cpuTimeTotal()-startTime)
-        << " ]"
-        << " bounded_sol_count looking for " << std::setw(4) << maxSolutions << " solutions"
-        << " -- hashes active: " << hashCount << endl;
-    }
+    verb_print(1, "[appmc] "
+        "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-start_time) << " ]"
+        << " bounded_sol_count looking for " << std::setw(4) << max_solutions << " solutions"
+        << " -- hashes active: " << hash_cnt);
 
     //Set up things for adding clauses that can later be removed
     vector<Lit> new_assumps;
     if (assumps) {
-        assert(assumps->size() == hashCount);
+        assert(assumps->size() == hash_cnt);
         new_assumps = *assumps;
-    } else {
-        assert(hashCount == 0);
-    }
+    } else assert(hash_cnt == 0);
     solver->new_var();
     const uint32_t sol_ban_var = solver->nVars()-1;
     new_assumps.push_back(Lit(sol_ban_var, true));
 
     if (conf.simplify >= 2) {
-        if (conf.verb >= 2) {
-            cout << "c [appmc] inter-simplifying" << endl;
-        }
-        double myTime = cpuTime();
+        verb_print(2, "[appmc] inter-simplifying");
+        double my_time = cpuTime();
         solver->simplify(&new_assumps);
-        total_inter_simp_time += cpuTime() - myTime;
-        if (conf.verb >= 1) {
-            cout << "c [appmc] inter-simp finished, total simp time: "
-            << total_inter_simp_time << endl;
-        }
+        total_inter_simp_time += cpuTime() - my_time;
+        verb_print(1, "[appmc] inter-simp finished, total simp time: " << total_inter_simp_time);
     }
 
     cnf_dump_no = 0;
-    const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hashCount);
+    const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hash_cnt);
     uint64_t solutions = repeat;
     double last_found_time = cpuTimeTotal();
     vector<vector<lbool>> models;
-    while (solutions < maxSolutions) {
+    while (solutions < max_solutions) {
         lbool ret = solver->solve(&new_assumps, !conf.force_sol_extension);
         assert(ret == l_False || ret == l_True);
         if ((conf.dump_intermediary_cnf >= 2 && ret == l_True) ||
@@ -250,8 +238,8 @@ SolNum Counter::bounded_sol_count(
             else cout << " No more. " << std::setw(3) << "";
             cout << " T: "
             << std::setw(7) << std::setprecision(2) << std::fixed
-            << (cpuTimeTotal()-startTime)
-            << " -- hashes act: " << hashCount
+            << (cpuTimeTotal()-start_time)
+            << " -- hashes act: " << hash_cnt
             << " -- T since last: "
             << std::setw(7) << std::setprecision(2) << std::fixed
             << (cpuTimeTotal()-last_found_time) << endl;
@@ -263,13 +251,13 @@ SolNum Counter::bounded_sol_count(
         //Add solution to set
         solutions++;
         const vector<lbool> model = solver->get_model();
-        check_model(model, hm, hashCount);
+        check_model(model, hm, hash_cnt);
         models.push_back(model);
 
         //ban solution
         vector<Lit> lits;
         lits.push_back(Lit(sol_ban_var, false));
-        for (const uint32_t var: conf.sampling_set) {
+        for (const uint32_t var: conf.sampl_vars) {
             assert(solver->get_model()[var] != l_Undef);
             lits.push_back(Lit(var, solver->get_model()[var] == l_True));
         }
@@ -282,7 +270,7 @@ SolNum Counter::bounded_sol_count(
     //Save global models
     if (hm && conf.reuse_models) {
         for (const auto& model: models) {
-            hm->glob_model.push_back(SavedModel(hashCount, model));
+            hm->glob_model.emplace_back(SavedModel(model, hash_cnt));
         }
     }
 
@@ -294,33 +282,20 @@ SolNum Counter::bounded_sol_count(
     return SolNum(solutions, repeat);
 }
 
-void Counter::print_final_count_stats(ApproxMC::SolCount solCount)
-{
-    if (solCount.hashCount == 0 && solCount.cellSolCount == 0) {
-        cout << "c [appmc] Formula was UNSAT " << endl;
-    }
-
-    if (conf.verb > 2) {
-        solver->print_stats();
-    }
-}
-
 ApproxMC::SolCount Counter::solve() {
     orig_num_vars = solver->nVars();
-    startTime = cpuTimeTotal();
+    start_time = cpuTimeTotal();
 
-    openLogFile();
-    randomEngine.seed(conf.seed);
+    open_logfile();
+    rnd_engine.seed(conf.seed);
 
-    ApproxMC::SolCount solCount = count();
-    print_final_count_stats(solCount);
+    ApproxMC::SolCount sol_count = count();
+    if (sol_count.hashCount == 0 && sol_count.cellSolCount == 0)
+        verb_print(1, "[appmc] Formula was UNSAT");
+    if (conf.verb >= 2) solver->print_stats();
 
-    if (conf.verb) {
-        cout << "c [appmc] ApproxMC T: "
-        << (cpuTimeTotal() - startTime) << " s"
-        << endl;
-    }
-    return solCount;
+    verb_print(1, "[appmc] ApproxMC T: " << (cpuTimeTotal() - start_time) << " s");
+    return sol_count;
 }
 
 vector<Lit> Counter::set_num_hashes(
@@ -333,7 +308,7 @@ vector<Lit> Counter::set_num_hashes(
         if (hashes.find(i) != hashes.end()) {
             assumps.push_back(Lit(hashes[i].act_var, true));
         } else {
-            Hash h = add_hash(i, sparse_data);
+            auto h = add_hash(i, sparse_data);
             assumps.push_back(Lit(h.act_var, true));
             hashes[i] = h;
         }
@@ -345,22 +320,17 @@ vector<Lit> Counter::set_num_hashes(
 
 void Counter::simplify()
 {
-    if (conf.verb >= 1) {
-        cout << "c [appmc] simplifying" << endl;
-    }
-
+    verb_print(1, "[appmc] simplifying");
     solver->set_sls(1);
     solver->set_intree_probe(1);
     solver->set_full_bve_iter_ratio(conf.var_elim_ratio);
     solver->set_full_bve(1);
-    solver->set_bva(1);
     solver->set_scc(1);
 
     solver->simplify();
 
     solver->set_sls(0);
     solver->set_full_bve(0);
-    solver->set_bva(0);
 }
 
 //Set up probabilities, threshold and measurements
@@ -392,13 +362,7 @@ void Counter::set_up_probs_threshold_measurements(
         (1.0+(conf.epsilon/(1.0+conf.epsilon)))
     );
 
-    if (conf.verb) {
-        cout
-        << "c [appmc] threshold set to " << threshold
-        << " sparse: " << (int)using_sparse
-        << endl;
-    }
-
+    verb_print(1, "[appmc] threshold set to " << threshold << " sparse: " << (int)using_sparse);
     measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
     for (int count = 0; count < 256; count++) {
         if (constants.iterationConfidences[count] >= 1 - conf.delta) {
@@ -416,33 +380,34 @@ bool Counter::find_one_solution()
 
 ApproxMC::SolCount Counter::count()
 {
-    int64_t hashCount = conf.start_iter;
+    const int64_t hash_cnt = conf.start_iter;
 
     SparseData sparse_data(-1);
     HashesModels hm;
     uint32_t measurements;
     set_up_probs_threshold_measurements(measurements, sparse_data);
 
-    verb_print(1, "[appmc] Starting at hash count: " << hashCount);
+    verb_print(1, "[appmc] Starting at hash count: " << hash_cnt);
 
-    int64_t mPrev = hashCount;
-    numHashList.clear();
-    numCountList.clear();
+    int64_t prev_measure = hash_cnt;
+    num_hash_list.clear();
+    num_count_list.clear();
 
     //See Algorithm 1 in paper "Algorithmic Improvements in Approximate Counting
     //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
     //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
     for (uint32_t j = 0; j < measurements; j++) {
-        one_measurement_count(mPrev, j, sparse_data, &hm);
-        if (mPrev == 0) {
+        one_measurement_count(prev_measure, j, sparse_data, &hm);
+        if (prev_measure == 0) {
             // Exact count, no need to measure multiple times.
+            verb_print(1, "[appmc] Counted without XORs, i.e. we got exact count");
             break;
         }
         sparse_data.next_index = 0;
         if (conf.simplify >= 1 && j+1 < measurements) simplify();
         hm.clear();
     }
-    assert(numHashList.size() > 0 && "UNSAT should not be possible");
+    assert(!num_hash_list.empty() && "UNSAT should not be possible");
 
     return calc_est_count();
 }
@@ -450,21 +415,24 @@ ApproxMC::SolCount Counter::count()
 ApproxMC::SolCount Counter::calc_est_count()
 {
     ApproxMC::SolCount ret_count;
-    if (numHashList.empty() || numCountList.empty()) {
-        return ret_count;
-    }
+    if (num_hash_list.empty() || num_count_list.empty()) return ret_count;
 
-    const auto minHash = findMin(numHashList);
-    auto cnt_it = numCountList.begin();
-    for (auto hash_it = numHashList.begin()
-        ; hash_it != numHashList.end() && cnt_it != numCountList.end()
+    const auto min_hash = find_min(num_hash_list);
+    auto cnt_it = num_count_list.begin();
+    for (auto hash_it = num_hash_list.begin()
+        ; hash_it != num_hash_list.end() && cnt_it != num_count_list.end()
         ; hash_it++, cnt_it++
     ) {
-        *cnt_it *= pow(2, (*hash_it) - minHash);
+        if ((*hash_it) - min_hash > 10) {
+            cout << "Internal ERROR: Something is VERY fishy, the difference between each count must"
+                " never be this large. Please report this bug to the maintainers" << endl;
+            exit(-1);
+        }
+        *cnt_it *= pow(2, (*hash_it) - min_hash);
     }
     ret_count.valid = true;
-    ret_count.cellSolCount = findMedian(numCountList);
-    ret_count.hashCount = minHash;
+    ret_count.cellSolCount = find_median(num_count_list);
+    ret_count.hashCount = min_hash;
 
     return ret_count;
 }
@@ -472,14 +440,14 @@ ApproxMC::SolCount Counter::calc_est_count()
 int Counter::find_best_sparse_match()
 {
     for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
-        if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampling_set.size()) {
+        if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampl_vars.size()) {
             if (conf.verb) {
                 cout << "c [sparse] Using match: " << i
-                << " sampling set size: " << conf.sampling_set.size()
+                << " sampling set size: " << conf.sampl_vars.size()
                 << " prev end inclusive is: " << (i == 0 ? -1 : (int)constants.index_var_maps[i-1].vars_to_inclusive)
                 << " this end inclusive is: " << constants.index_var_maps[i].vars_to_inclusive
                 << " next end inclusive is: " << ((i+1 < (int)constants.index_var_maps.size()) ? ((int)constants.index_var_maps[i+1].vars_to_inclusive) : -1)
-                << " sampl size: " << conf.sampling_set.size()
+                << " sampl size: " << conf.sampl_vars.size()
                 << endl;
             }
 
@@ -495,14 +463,14 @@ int Counter::find_best_sparse_match()
 //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
 //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
 void Counter::one_measurement_count(
-    int64_t& mPrev,
+    int64_t& prev_measure,
     const uint32_t iter,
     SparseData sparse_data,
     HashesModels* hm)
 {
-    if (conf.sampling_set.empty()) {
-        numHashList.push_back(0);
-        numCountList.push_back(1);
+    if (conf.sampl_vars.empty()) {
+        num_hash_list.push_back(0);
+        num_count_list.push_back(1);
         return;
     }
 
@@ -516,13 +484,12 @@ void Counter::one_measurement_count(
     //number of solutions.
     //if it's not set, we have no clue.
     map<uint64_t,bool> threshold_sols;
-    int64_t total_max_xors = conf.sampling_set.size();
-    int64_t numExplored = 0;
-    int64_t lowerFib = 0;
-    int64_t upperFib = total_max_xors;
-
-    int64_t hashCount = mPrev;
-    int64_t hashPrev = hashCount;
+    int64_t total_max_xors = conf.sampl_vars.size();
+    int64_t num_explored = 0;
+    int64_t lower_fib = 0;
+    int64_t upper_fib = total_max_xors;
+    int64_t hash_cnt = prev_measure;
+    int64_t hash_prev = hash_cnt;
 
     //We are doing a galloping search here (see our IJCAI-16 paper for more details).
     //lowerFib is referred to as loIndex and upperFib is referred to as hiIndex
@@ -530,23 +497,19 @@ void Counter::one_measurement_count(
     //This is implemented by using two sentinels: lowerFib and upperFib. The correct answer
     // is always between lowFib and upperFib. We do exponential search until upperFib < lowerFib/2
     // Once upperFib < lowerFib/2; we do a binary search.
-    while (numExplored < total_max_xors) {
-        uint64_t cur_hash_count = hashCount;
-        const vector<Lit> assumps = set_num_hashes(hashCount, hm->hashes, sparse_data);
+    while (num_explored < total_max_xors) {
+        uint64_t cur_hash_cnt = hash_cnt;
+        const vector<Lit> assumps = set_num_hashes(hash_cnt, hm->hashes, sparse_data);
 
-        if (conf.verb) {
-            cout << "c [appmc] "
-            "[ " << std::setw(7) << std::setprecision(2) << std::fixed
-            << (cpuTimeTotal()-startTime)
-            << " ]"
+        verb_print(1, "[appmc] "
+            "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-start_time) << " ]"
             << " round: " << std::setw(2) << iter
-            << " hashes: " << std::setw(6) << hashCount << endl;
-        }
-        double myTime = cpuTime();
+            << " hashes: " << std::setw(6) << hash_cnt);
+        double my_time = cpuTime();
         SolNum sols = bounded_sol_count(
             threshold + 1, //max no. solutions
             &assumps, //assumptions to use
-            hashCount,
+            hash_cnt,
             iter,
             hm
         );
@@ -555,90 +518,83 @@ void Counter::one_measurement_count(
         bool found_full = (num_sols == threshold + 1);
         write_log(
             false, //not sampling
-            iter, hashCount, found_full, num_sols, sols.repeated,
-            cpuTime() - myTime
+            iter, hash_cnt, found_full, num_sols, sols.repeated,
+            cpuTime() - my_time
         );
 
         if (num_sols < threshold + 1) {
-            numExplored = lowerFib + total_max_xors - hashCount;
+            num_explored = lower_fib + total_max_xors - hash_cnt;
 
             //one less hash count had threshold solutions
             //this one has less than threshold
             //so this is the real deal!
-            if (hashCount == 0 ||
-                    (threshold_sols.find(hashCount-1) != threshold_sols.end()
-                    && threshold_sols[hashCount-1] == 1)
+            if (hash_cnt == 0 ||
+                    (threshold_sols.find(hash_cnt-1) != threshold_sols.end()
+                    && threshold_sols[hash_cnt-1] == 1)
             ) {
-                numHashList.push_back(hashCount);
-                numCountList.push_back(num_sols);
-                mPrev = hashCount;
+                num_hash_list.push_back(hash_cnt);
+                num_count_list.push_back(num_sols);
+                prev_measure = hash_cnt;
                 return;
             }
 
-            threshold_sols[hashCount] = 0;
-            sols_for_hash[hashCount] = num_sols;
+            threshold_sols[hash_cnt] = 0;
+            sols_for_hash[hash_cnt] = num_sols;
             if (iter > 0 &&
-                std::abs(hashCount - mPrev) <= 2
+                std::abs(hash_cnt - prev_measure) <= 2
             ) {
                 //Doing linear, this is a re-count
-                upperFib = hashCount;
-                hashCount--;
+                upper_fib = hash_cnt;
+                hash_cnt--;
             } else {
-                if (hashPrev > hashCount) {
-                    hashPrev = 0;
-                }
-                upperFib = hashCount;
-                if (hashPrev > lowerFib) {
-                    lowerFib = hashPrev;
-                }
-
-                hashCount = (upperFib+lowerFib)/2;
+                if (hash_prev > hash_cnt) hash_prev = 0;
+                upper_fib = hash_cnt;
+                if (hash_prev > lower_fib) lower_fib = hash_prev;
+                hash_cnt = (upper_fib+lower_fib)/2;
             }
         } else {
             assert(num_sols == threshold + 1);
-            numExplored = hashCount + total_max_xors - upperFib;
+            num_explored = hash_cnt + total_max_xors - upper_fib;
 
             //success record for +1 hashcount exists and is 0
             //so one-above hashcount was below threshold, this is above
             //we have a winner -- the one above!
-            if (threshold_sols.find(hashCount+1) != threshold_sols.end()
-                && threshold_sols[hashCount+1] == 0
+            if (threshold_sols.find(hash_cnt+1) != threshold_sols.end()
+                && threshold_sols[hash_cnt+1] == 0
             ) {
-                numHashList.push_back(hashCount+1);
-                numCountList.push_back(sols_for_hash[hashCount+1]);
-                mPrev = hashCount+1;
+                num_hash_list.push_back(hash_cnt+1);
+                num_count_list.push_back(sols_for_hash[hash_cnt+1]);
+                prev_measure = hash_cnt+1;
                 return;
             }
 
-            threshold_sols[hashCount] = 1;
-            sols_for_hash[hashCount] = threshold+1;
+            threshold_sols[hash_cnt] = 1;
+            sols_for_hash[hash_cnt] = threshold+1;
             if (iter > 0
-                && std::abs(hashCount - mPrev) < 2
+                && std::abs(hash_cnt - prev_measure) < 2
             ) {
                 //Doing linear, this is a re-count
-                lowerFib = hashCount;
-                hashCount++;
-            } else if (lowerFib + (hashCount-lowerFib)*2 >= upperFib-1) {
+                lower_fib = hash_cnt;
+                hash_cnt++;
+            } else if (lower_fib + (hash_cnt-lower_fib)*2 >= upper_fib-1) {
 
                 // Whenever the above condition is satisfied, we are in binary search mode
-                lowerFib = hashCount;
-                hashCount = (lowerFib+upperFib)/2;
+                lower_fib = hash_cnt;
+                hash_cnt = (lower_fib+upper_fib)/2;
             } else {
-
                 // We are in exponential search mode.
-                auto old_hashCount = hashCount;
-                hashCount = lowerFib + (hashCount-lowerFib)*2;
-                if (old_hashCount == hashCount) hashCount++;
+                const auto old_hash_cnt = hash_cnt;
+                hash_cnt = lower_fib + (hash_cnt-lower_fib)*2;
+                if (old_hash_cnt == hash_cnt) hash_cnt++;
             }
         }
-        hashPrev = cur_hash_count;
+        hash_prev = cur_hash_cnt;
     }
 }
 bool Counter::gen_rhs()
 {
     std::uniform_int_distribution<uint32_t> dist{0, 1};
-    bool rhs = dist(randomEngine);
-    //cout << "rnd rhs:" << (int)rhs << endl;
+    bool rhs = dist(rnd_engine);
     return rhs;
 }
 
@@ -648,7 +604,7 @@ string Counter::gen_rnd_bits(
     const uint32_t hash_index,
     SparseData& sparse_data)
 {
-    string randomBits;
+    string random_bits;
     std::uniform_int_distribution<uint32_t> dist{0, 999};
     uint32_t cutoff = 500;
     if (conf.sparse && sparse_data.table_no != -1) {
@@ -671,14 +627,12 @@ string Counter::gen_rnd_bits(
         }
     }
 
-    while (randomBits.size() < size) {
-        bool val = dist(randomEngine) < cutoff;
-        randomBits += '0' + val;
+    while (random_bits.size() < size) {
+        bool val = dist(rnd_engine) < cutoff;
+        random_bits += '0' + val;
     }
-    assert(randomBits.size() >= size);
-
-    //cout << "rnd bits: " << randomBits << endl;
-    return randomBits;
+    assert(random_bits.size() >= size);
+    return random_bits;
 }
 
 void Counter::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
@@ -693,26 +647,20 @@ void Counter::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
     cout << " = " << (rhs ? "True" : "False") << endl;
 }
 
-template<class T>
-inline T Counter::findMedian(vector<T>& numList)
-{
-    assert(!numList.empty());
-    std::sort(numList.begin(), numList.end());
-    size_t medIndex = numList.size() / 2;
-    if (medIndex >= numList.size()) {
-        return numList[numList.size() - 1];
-    }
-    return numList[medIndex];
+template<class T> inline T Counter::find_median(const vector<T>& nums) {
+    assert(!nums.empty());
+    auto tmp = nums;
+
+    std::sort(tmp.begin(), tmp.end());
+    size_t med_index = tmp.size() / 2;
+    if (med_index >= tmp.size()) return tmp[tmp.size() - 1];
+    return tmp[med_index];
 }
 
-template<class T>
-inline T Counter::findMin(vector<T>& numList)
-{
+template<class T> inline T Counter::find_min(const vector<T>& nums) {
     T min = std::numeric_limits<T>::max();
-    for (const auto a: numList) {
-        if (a < min) {
-            min = a;
-        }
+    for (const auto a: nums) {
+        if (a < min) min = a;
     }
     return min;
 }
@@ -740,8 +688,7 @@ string Counter::get_version_info() const
     return ret;
 }
 
-
-void Counter::openLogFile()
+void Counter::open_logfile()
 {
     if (!conf.logfilename.empty()) {
         logfile.open(conf.logfilename.c_str());
@@ -768,24 +715,23 @@ void Counter::openLogFile()
 void Counter::write_log(
     bool sampling,
     int iter,
-    uint32_t hashCount,
+    uint32_t hash_cnt,
     int found_full,
     uint32_t num_sols,
     uint32_t repeat_sols,
     double used_time
-)
-{
+) {
     if (!conf.logfilename.empty()) {
         logfile
         << std::left
         << std::setw(5) << (int)sampling
         << " " << std::setw(4) << iter
-        << " " << std::setw(4) << hashCount
+        << " " << std::setw(4) << hash_cnt
         << " " << std::setw(4) << found_full
         << " " << std::setw(4) << num_sols
         << " " << std::setw(4) << repeat_sols
         << " " << std::setw(7) << std::fixed << std::setprecision(2) << used_time
-        << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpuTimeTotal() - startTime)
+        << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpuTimeTotal() - start_time)
         << endl;
     }
 }
@@ -793,9 +739,9 @@ void Counter::write_log(
 void Counter::check_model(
     const vector<lbool>& model,
     const HashesModels* const hm,
-    const uint32_t hashCount
+    const uint32_t hash_cnt
 ) {
-    for(uint32_t var: conf.sampling_set) assert(model[var] != l_Undef);
+    for(uint32_t var: conf.sampl_vars) assert(model[var] != l_Undef);
     if (conf.debug) {
         assert(conf.force_sol_extension);
         assert(conf.dump_intermediary_cnf);
@@ -810,9 +756,9 @@ void Counter::check_model(
         }
         for(const auto& x: xors_in_solver) {
             bool sat = !x.second;
-            for(const auto& v: x.first) {
-                assert(model[v] != l_Undef);
-                sat ^= (model[v] == l_True);
+            for(const auto& l: x.first) {
+                assert(model[l.var()] != l_Undef);
+                sat ^= ((model[l.var()]^l.sign()) == l_True);
             }
             assert(sat);
         }
@@ -824,15 +770,14 @@ void Counter::check_model(
         //This hash is number: h.first
         //Only has to match hashes at & below
         //Notice that "h.first" is numbered from 0, so it's a "<" not "<="
-        if (h.first < hashCount) {
+        if (h.first < hash_cnt) {
             //cout << "Checking model against hash " << h.first << endl;
             assert(check_model_against_hash(h.second, model));
         }
     }
 }
 
-bool Counter::check_model_against_hash(const Hash& h, const vector<lbool>& model)
-{
+bool Counter::check_model_against_hash(const Hash& h, const vector<lbool>& model) {
     bool rhs = false;
     for (auto const& var: h.hash_vars) {
         assert(model[var] != l_Undef);

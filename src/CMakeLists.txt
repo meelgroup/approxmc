@@ -18,9 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-include_directories(
-    ${PROJECT_SOURCE_DIR}
-)
 
 if (NOT WIN32)
     add_cxx_flag_if_supported("-Wno-bitfield-constant-conversion")
@@ -52,13 +49,12 @@ macro(approxmc_add_public_header LIBTARGET HEADER)
      )
 endmacro()
 
+include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
 include_directories(${ARJUN_INCLUDE_DIRS})
 include_directories(${GMP_INCLUDE_DIRS})
-
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" @ONLY)
 
 set(approxmc_lib_files
@@ -67,19 +63,13 @@ set(approxmc_lib_files
     appmc_constants.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp
 )
-
-
-add_library(approxmc
-    ${approxmc_lib_files}
-)
-
+add_library(approxmc ${approxmc_lib_files})
 
 # Make sure the exported target has the include directory set
 target_include_directories(approxmc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
-
 
 set_target_properties(approxmc PROPERTIES
     PUBLIC_HEADER "${approxmc_public_headers}"
@@ -88,7 +78,6 @@ set_target_properties(approxmc PROPERTIES
 )
 
 approxmc_add_public_header(approxmc "${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h" )
-
 
 # -----------------------------------------------------------------------------
 # Copy public headers into build directory include directory.
@@ -119,26 +108,14 @@ install(TARGETS approxmc
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
     PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/approxmc"
 )
-
-add_executable(approxmc-bin
-    main.cpp
-    ${approxmc_lib_files}
-)
-
-set(approxmc_exec_link_libs
-    ${Boost_LIBRARIES}
-    ${GMP_LIBRARY}
-)
+add_executable(approxmc-bin main.cpp ${approxmc_lib_files})
+set(approxmc_exec_link_libs ${GMP_LIBRARY})
 
 IF (ZLIB_FOUND)
     SET(approxmc_exec_link_libs ${approxmc_exec_link_libs} ${ZLIB_LIBRARY})
 ENDIF()
 
-target_link_libraries(approxmc-bin
-    ${approxmc_exec_link_libs}
-    approxmc
-)
-
+target_link_libraries(approxmc-bin ${approxmc_exec_link_libs} approxmc)
 set_target_properties(approxmc-bin PROPERTIES
         OUTPUT_NAME approxmc
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
@@ -151,5 +128,4 @@ install(TARGETS approxmc-bin
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/approxmc"
-
 )
