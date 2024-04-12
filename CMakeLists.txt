@@ -454,11 +454,6 @@ message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
 message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
 find_package(sbva CONFIG REQUIRED)
 
-find_package(louvain_communities CONFIG REQUIRED)
-message(STATUS "Found Louvain Communities library")
-message(STATUS "Louvain Communities dynamic lib: ${LOUVAIN_COMMUNITIES_LIBRARIES}")
-message(STATUS "Louvain Communities include dirs: ${LOUVAIN_COMMUNITIES_INCLUDE_DIRS}")
-
 # -----------------------------------------------------------------------------
 # Provide an export name to be used by targets that wish to export themselves.
 # -----------------------------------------------------------------------------
