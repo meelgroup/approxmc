@@ -94,7 +94,7 @@ jobs:
       run: |
        cd cryptominisat
        mkdir build && cd build
-       cmake -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+       cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
        make
        cd ../..
        
@@ -109,7 +109,7 @@ jobs:
       run: |
        cd sbva
        mkdir build && cd build
-       cmake ..
+       cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
        make -j8
        cd ../..
    
@@ -123,7 +123,7 @@ jobs:
       run: |
        cd arjun
        mkdir build && cd build
-       cmake  -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+       cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
        make
        cd ../..
 
@@ -135,7 +135,7 @@ jobs:
       # Note the current convention is to use the -S and -B options here to specify source 
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} $GITHUB_WORKSPACE
+      run: cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} $GITHUB_WORKSPACE
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
