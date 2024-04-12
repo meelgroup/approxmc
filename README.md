@@ -56,6 +56,23 @@ apt-get install libgmp3-dev
 
 Then, build CryptoMiniSat, Arjun, and ApproxMC:
 ```bash
+# not required but very useful
+sudo apt-get install zlib1g-dev
+
+git clone https://github.com/meelgroup/cadical
+cd cadical
+git checkout mate-only-libraries-1.8.0
+./configure
+make
+cd ..
+
+git clone https://github.com/meelgroup/cadiback
+cd cadiback
+git checkout mate
+./configure
+make
+cd ..
+
 git clone https://github.com/msoos/cryptominisat
 cd cryptominisat
 mkdir build && cd build
