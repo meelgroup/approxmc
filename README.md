@@ -11,7 +11,7 @@ This work is by Mate Soos, Stephan Gocht, and Kuldeep S. Meel, as [published in 
 ApproxMC handles CNF formulas and performs approximate counting. 
 
 1. If you are interested in exact model counting, visit our exact counter [Ganak](http://github.com/meelgroup/ganak)
-2. If you are instead interested in DNF formulas, visit our DNF counter [DNFApproxMC](https://gitlab.com/Shrotri/DNF_Counting).
+2. If you are instead interested in DNF formulas, visit our approximate DNF counter [Pepin](https://github.com/meelgroup/pepin).
 
 ## How to use the Python interface
 
