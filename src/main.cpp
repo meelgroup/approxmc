@@ -170,7 +170,7 @@ template<class T> void read_in_file(const string& filename, T* myreader)
 {
     #ifndef USE_ZLIB
     FILE * in = fopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verbosity);
+    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verb);
     #else
     gzFile in = gzopen(filename.c_str(), "rb");
     DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verb);
@@ -236,7 +236,7 @@ template<class T> void read_stdin(T* myreader) {
     }
 
     #ifndef USE_ZLIB
-    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verbosity);
+    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verb);
     #else
     DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verb);
     #endif
