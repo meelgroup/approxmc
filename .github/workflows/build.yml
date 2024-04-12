@@ -43,7 +43,17 @@ jobs:
         make -j8
         sudo make install
         cd ..
-
+      
+    - name: Install mpfr for Mac
+      if: matrix.os == 'macos-13'
+      run: | 
+        wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz 
+        tar xf mpfr-4.2.1.tar.xz 
+        cd mpfr-4.2.1
+        ./configure --enable-static -enable-cxx --enable-shared
+        make -j8
+        sudo make install
+        cd ..
        
     - name: Checkout Cadical
       uses: actions/checkout@v2
