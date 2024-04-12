@@ -87,6 +87,21 @@ jobs:
        cmake -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
        make
        cd ../..
+       
+    - name: Checkout SBVA
+      uses: actions/checkout@v4
+      with:
+        repository: meelgroup/sbva
+        ref: master
+        path: sbva    
+        
+    - name: Build SBVA
+      run: |
+       cd sbva
+       mkdir build && cd build
+       cmake ..
+       make -j8
+       cd ../..
    
     - name: Checkout Arjun
       uses: actions/checkout@v2
