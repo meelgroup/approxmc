@@ -87,7 +87,6 @@ cmake ..
 make
 cd ..
 
-cd ../..
 git clone https://github.com/meelgroup/arjun
 cd arjun
 mkdir build && cd build
