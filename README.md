@@ -186,7 +186,7 @@ int main() {
 ```
 
 ### ApproxMC5: Sparse-XOR based Approximate Model Counter
-Note: this is beta version release, not recommended for general use. We are currently working on a tight integration of sparse XORs into ApproxMC based on our [LICS-20](http://cs.toronto.edu/~meel/Papers/lics20-ma.pdf) paper. You can turn on the sparse XORs using the flag "sparse" but beware as reported in LICS-20 paper, this may slow down in some cases; it is likely to give a significant speedup if the number of solutions is very large. 
+Note: this is beta version release, not recommended for general use. We are currently working on a tight integration of sparse XORs into ApproxMC based on our [LICS-20](http://www.cs.toronto.edu/~meel/Papers/lics20-ma.pdf) paper. You can turn on the sparse XORs using the flag "sparse" but beware as reported in LICS-20 paper, this may slow down in some cases; it is likely to give a significant speedup if the number of solutions is very large. 
 
 
 ### Issues, questions, bugs, etc.
@@ -195,7 +195,7 @@ Please click on "issues" at the top and [create a new issue](https://github.com/
 ## How to Cite
 If you use ApproxMC, please cite the following papers: [CAV20](https://dblp.uni-trier.de/rec/conf/cav/SoosGM20.html?view=bibtex), [AAAI19](https://www.cs.toronto.edu/~meel/bib/SM19.bib) and [IJCAI16](https://www.cs.toronto.edu/~meel/bib/CMV16.bib).
 
-If you use sparse XORs, please also cite the [LICS20](https://www.cs.toronto.edu/~meel/bib/MA20.bib) paper. 
+If you use sparse XORs, please also cite the [LICS20](https://www.cs.toronto.edu/~meel/publications/AM20.bib) paper. 
 
 ApproxMC builds on a series of papers on hashing-based approach: [Related Publications](https://www.cs.toronto.edu/~meel/publications.html)
 
