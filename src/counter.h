@@ -168,10 +168,11 @@ private:
     void read_stdin(SATSolver* solver2);
     int find_best_sparse_match();
     void set_up_probs_threshold_measurements(uint32_t& measurements, SparseData& sparse_data);
+    double calc_error_bound(uint32_t t, double p);
 
     //Data so we can output temporary count when catching the signal
     vector<uint64_t> num_hash_list;
-    vector<int64_t> num_count_list;
+    vector<double> num_count_list;
     template<class T> T find_median(const vector<T>& nums);
     template<class T> T find_min(const vector<T>& nums);
 
