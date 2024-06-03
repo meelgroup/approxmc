@@ -74,6 +74,7 @@ ArjunNS::SimpConf simp_conf;
 int with_e = 0;
 bool all_indep = false;
 bool do_arjun = true;
+bool do_backbone = false;
 
 #define myopt(name, var, fun, hhelp) \
     program.add_argument(name) \
@@ -86,6 +87,15 @@ bool do_arjun = true;
         .default_value(var) \
         .help(hhelp)
 
+
+void print_version() {
+    std::stringstream ss;
+    cout << "c CMS revision: " << CMSat::SATSolver::get_version_sha1() << endl;
+    cout << "c Arjun SHA revision: " << ArjunNS::Arjun ::get_version_info() << endl;
+    cout << "c Arjun SBVA SHA revision: " << ArjunNS::Arjun::get_sbva_version_info() << endl;
+    cout << appmc->get_version_info();
+}
+
 void add_appmc_options()
 {
     ApproxMC::AppMC tmp;
@@ -95,7 +105,6 @@ void add_appmc_options()
     var_elim_ratio = tmp.get_var_elim_ratio();
     sparse = tmp.get_sparse();
     seed = tmp.get_seed();
-
 
     myopt2("-v", "--verb", verb, atoi, "Verbosity");
     myopt2("-s", "--seed", seed, atoi, "Seed");
@@ -108,6 +117,10 @@ void add_appmc_options()
             "(1-d) = probability the count is within range as per epsilon parameter. "
             "So d=0.2 means we are 80%% sure the count is within range as specified by epsilon. "
             "The lower, the higher confidence we have in the count.");
+    program.add_argument("-v", "--version") \
+        .action([&](const auto&) {print_version(); exit(0);}) \
+        .flag()
+        .help("Print version and exit");
 
     /* arjun_options.add_options() */
     myopt("--arjun", do_arjun, atoi, "Use arjun to minimize sampling set");
@@ -133,9 +146,11 @@ void add_appmc_options()
             "Dump intermediary CNFs during solving into files cnf_dump-X.cnf. If set to 1 only UNSAT is dumped, if set to 2, all are dumped");
     myopt("--log", logfilename, string, "Put logs of ApproxMC execution to this file");
     myopt("--debug", debug, atoi, "Turn on more heavy internal debugging");
+    myopt("--backbone", do_backbone, atoi, "Run backbone analysis");
 
     program.add_argument("inputfile").remaining().help("input CNF");
 }
+
 
 void add_supported_options(int argc, char** argv) {
     add_appmc_options();
@@ -151,11 +166,6 @@ void add_supported_options(int argc, char** argv) {
     catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
         exit(-1);
-    }
-
-    if (program["version"] == true) {
-        cout << appmc->get_version_info();
-        exit(0);
     }
 }
 
@@ -341,8 +351,8 @@ int main(int argc, char** argv)
     appmc = new ApproxMC::AppMC;
     add_supported_options(argc, argv);
     if (verb) {
-        cout << appmc->get_version_info();
-        cout << "c executed with command line: " << command_line << endl;
+        print_version();
+        cout << "c o executed with command line: " << command_line << endl;
     }
     set_approxmc_options();
 
@@ -359,7 +369,8 @@ int main(int argc, char** argv)
         arjun.set_xor_gates_based(arjun_gates);
         arjun.set_ite_gate_based(arjun_gates);
         arjun.set_irreg_gate_based(arjun_gates);
-        arjun.only_backbone(cnf);
+        if (do_backbone)
+            arjun.only_backbone(cnf);
         arjun.only_run_minimize_indep(cnf);
         bool do_extend_indep = false;
         bool do_unate = false;

@@ -724,25 +724,25 @@ template<class T> inline T Counter::find_min(const vector<T>& nums) {
     return min;
 }
 
-string scalmc_version_info()
+string scalmc_version_info(const char* prefix)
 {
     std::stringstream ss;
-    ss << "c ApproxMC SHA revision " << AppMCInt::get_version_sha1() << endl;
-    ss << "c ApproxMC version " << AppMCInt::get_version_tag() << endl;
-    ss << "c ApproxMC compilation env " << AppMCInt::get_compilation_env() << endl;
+    ss << prefix << "ApproxMC SHA revision " << AppMCInt::get_version_sha1() << endl;
+    ss << prefix << "ApproxMC version " << AppMCInt::get_version_tag() << endl;
+    ss << prefix << "ApproxMC compilation env " << AppMCInt::get_compilation_env() << endl;
     #ifdef __GNUC__
-    ss << "c ApproxMC compiled with gcc version " << __VERSION__ << endl;
+    ss << prefix << "ApproxMC compiled with gcc version " << __VERSION__ << endl;
     #else
-    ss << "c ApproxMC compiled with non-gcc compiler" << endl;
+    ss << prefix << "ApproxMC compiled with non-gcc compiler" << endl;
     #endif
 
     return ss.str();
 }
 
-string Counter::get_version_info() const
+string Counter::get_version_info(const char* prefix) const
 {
-    string ret = ::scalmc_version_info();
-    ret += solver->get_text_version_info();
+    string ret = ::scalmc_version_info(prefix);
+    ret += solver->get_text_version_info(prefix);
 
     return ret;
 }
