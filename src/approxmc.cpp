@@ -48,6 +48,7 @@ namespace ApproxMC {
         AppMCPrivateData(): counter(conf) {}
         Config conf;
         Counter counter;
+        bool sampl_vars_declared = false;
     };
 }
 
@@ -70,17 +71,6 @@ DLL_PUBLIC AppMC::~AppMC()
 // Helper function, used only in this unit
 void setup_sampling_vars(AppMCPrivateData* data)
 {
-    if (data->conf.sampl_vars.empty()) {
-        if (data->conf.verb) {
-            cout
-            << "c [appmc] WARNING! Sampling set was not declared! We will be **VERY** slow"
-            << endl;
-        }
-        for (size_t i = 0; i < data->counter.solver->nVars(); i++) {
-            data->conf.sampl_vars.push_back(i);
-        }
-    }
-
     if (data->conf.verb) {
         cout << "c [appmc] Sampling set size: " << data->conf.sampl_vars.size() << endl;
         if (data->conf.sampl_vars.size() > 100) {
@@ -215,6 +205,10 @@ DLL_PUBLIC bool AppMC::find_one_solution()
 
 DLL_PUBLIC ApproxMC::SolCount AppMC::count()
 {
+    if (!data->sampl_vars_declared) {
+        cout << "ERROR: Sampling set was not declared!" << endl;
+        exit(-1);
+    }
     if (data->conf.verb > 2) {
         cout << "c [appmc] using seed: " << data->conf.seed << endl;
     }
@@ -236,6 +230,7 @@ DLL_PUBLIC ApproxMC::SolCount AppMC::count()
 
 DLL_PUBLIC void AppMC::set_sampl_vars(const vector<uint32_t>& vars)
 {
+    data->sampl_vars_declared = true;
     data->conf.sampl_vars_set = true;
     for(const auto& v: vars) {
         if (v >= data->counter.solver->nVars()) {
