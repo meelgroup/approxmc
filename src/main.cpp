@@ -169,34 +169,6 @@ void add_supported_options(int argc, char** argv) {
     }
 }
 
-template<class T> void read_in_file(const string& filename, T* myreader)
-{
-    #ifndef USE_ZLIB
-    FILE * in = fopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verb);
-    #else
-    gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verb);
-    #endif
-
-    if (in == nullptr) {
-        std::cerr
-        << "ERROR! Could not open file '"
-        << filename
-        << "' for reading: " << strerror(errno) << endl;
-
-        std::exit(-1);
-    }
-
-    if (!parser.parse_DIMACS(in, true)) exit(-1);
-
-    #ifndef USE_ZLIB
-    fclose(in);
-    #else
-    gzclose(in);
-    #endif
-}
-
 inline double stats_line_percent(double num, double total)
 {
     if (total == 0) { return 0;
@@ -374,7 +346,6 @@ int main(int argc, char** argv)
         arjun.only_run_minimize_indep(cnf);
         bool do_extend_indep = false;
         bool do_unate = false;
-        all_indep = false;
         bool do_bce = false;
         int sbva_steps = 1000;
         int sbva_cls_cutoff = 4;
