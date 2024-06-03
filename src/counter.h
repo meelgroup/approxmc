@@ -27,46 +27,36 @@
  */
 
 
-#ifndef COUNTER_H_
-#define COUNTER_H_
-
 #include "config.h"
 #include <fstream>
 #include <random>
 #include <map>
+#include <utility>
 #include <cstdint>
 #include <mutex>
 #include "approxmc.h"
-#include "constants.h"
+#include "appmc_constants.h"
 
 using std::string;
 using std::vector;
 using std::map;
+using std::pair;
 using namespace CMSat;
 
 namespace AppMCInt {
 
 struct SavedModel
 {
-    SavedModel(uint32_t _hash_num, const vector<lbool>& _model) :
-        model(_model),
-        hash_num(_hash_num)
-    {
-    }
-
-    vector<lbool> model;
+    SavedModel (const vector<lbool>& _model, uint32_t _hash_num):
+        model(_model), hash_num(_hash_num) {}
+    const vector<lbool> model;
     uint32_t hash_num;
 };
 
 struct Hash {
-    Hash(uint32_t _act_var, vector<uint32_t>& _hash_vars, bool _rhs) :
-        act_var(_act_var),
-        hash_vars(_hash_vars),
-        rhs(_rhs)
-    {}
-
-    Hash()
-    {}
+    Hash () = default;
+    Hash(const uint32_t _act_var, const vector<uint32_t>& _hash_vars, const bool _rhs):
+        act_var(_act_var), hash_vars(_hash_vars), rhs(_rhs) {}
 
     uint32_t act_var;
     vector<uint32_t> hash_vars;
@@ -88,18 +78,14 @@ struct HashesModels {
 };
 
 struct SolNum {
-    SolNum(uint64_t _solutions, uint64_t _repeated) :
-        solutions(_solutions),
-        repeated(_repeated)
-    {}
+    SolNum (uint64_t _solutions, uint64_t _repeated):
+        solutions(_solutions), repeated(_repeated) {}
     uint64_t solutions = 0;
     uint64_t repeated = 0;
 };
 
 struct SparseData {
-    explicit SparseData(int _table_no) :
-        table_no(_table_no)
-    {}
+    explicit SparseData(int _table_no) : table_no(_table_no) {}
 
     uint32_t next_index = 0;
     double sparseprob = 0.5;
@@ -108,30 +94,33 @@ struct SparseData {
 
 class Counter {
 public:
-    ApproxMC::SolCount solve(Config _conf);
+    Counter(Config& _conf) : conf(_conf) {}
+    ApproxMC::SolCount solve();
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
     string binary(const uint32_t x, const uint32_t length);
     bool find_one_solution();
     bool gen_rhs();
     uint32_t threshold_appmcgen;
-    SATSolver* solver = NULL;
+    SATSolver* solver = nullptr;
     string get_version_info() const;
     ApproxMC::SolCount calc_est_count();
-    void print_final_count_stats(ApproxMC::SolCount sol_count);
     const Constants constants;
+    bool solver_add_clause(const vector<Lit>& cl);
+    bool solver_add_xor_clause(const vector<uint32_t>& vars, const bool rhs);
+    bool solver_add_xor_clause(const vector<Lit>& lits, const bool rhs);
 
 private:
-    Config conf;
+    Config& conf;
     ApproxMC::SolCount count();
     void add_appmc_options();
-    bool ScalCounter(ApproxMC::SolCount& count);
     Hash add_hash(uint32_t total_num_hashes, SparseData& sparse_data);
     SolNum bounded_sol_count(
-        uint32_t maxSolutions,
+        uint32_t max_sols,
         const vector<Lit>* assumps,
-        const uint32_t hashCount,
-        HashesModels* hm = NULL
+        const uint32_t hash_cnt,
+        const uint32_t iter,
+        HashesModels* hm = nullptr
     );
     vector<Lit> set_num_hashes(
         uint32_t num_wanted,
@@ -143,10 +132,10 @@ private:
     ////////////////
     //Helper functions
     ////////////////
-    void dump_cnf_from_solver(const vector<Lit>& assumps);
+    void dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t iter, const lbool result);
     void print_xor(const vector<uint32_t>& vars, const uint32_t rhs);
     void one_measurement_count(
-        int64_t& mPrev,
+        int64_t& prev_measure,
         const unsigned iter,
         SparseData sparse_data,
         HashesModels* hm
@@ -154,53 +143,53 @@ private:
     void write_log(
         bool sampling,
         int iter,
-        uint32_t hashCount,
+        uint32_t hash_count,
         int found_full,
         uint32_t num_sols,
         uint32_t repeat_sols,
         double used_time
     );
-    void openLogFile();
+    void open_logfile();
     void call_after_parse();
     void ban_one(const uint32_t act_var, const vector<lbool>& model);
     void check_model(
         const vector<lbool>& model,
         const HashesModels* const hm,
-        const uint32_t hashCount
+        const uint32_t hash_count
     );
     bool check_model_against_hash(const Hash& h, const vector<lbool>& model);
     uint64_t add_glob_banning_cls(
-        const HashesModels* glob_model = NULL
+        const HashesModels* glob_model = nullptr
         , const uint32_t act_var = std::numeric_limits<uint32_t>::max()
         , const uint32_t num_hashes = std::numeric_limits<uint32_t>::max()
     );
 
-    void readInAFile(SATSolver* solver2, const string& filename);
-    void readInStandardInput(SATSolver* solver2);
+    void read_in_a_file(SATSolver* solver2, const string& filename);
+    void read_stdin(SATSolver* solver2);
     int find_best_sparse_match();
     void set_up_probs_threshold_measurements(uint32_t& measurements, SparseData& sparse_data);
 
     //Data so we can output temporary count when catching the signal
-    vector<uint64_t> numHashList;
-    vector<int64_t> numCountList;
-    template<class T> T findMedian(vector<T>& numList);
-    template<class T> T findMin(vector<T>& numList);
+    vector<uint64_t> num_hash_list;
+    vector<int64_t> num_count_list;
+    template<class T> T find_median(const vector<T>& nums);
+    template<class T> T find_min(const vector<T>& nums);
 
     ////////////////
     // internal data
     ////////////////
-    double startTime;
+    double start_time;
     std::ofstream logfile;
-    std::mt19937 randomEngine;
+    std::mt19937 rnd_engine;
     uint32_t orig_num_vars;
     double total_inter_simp_time = 0;
     uint32_t threshold; //precision, it's computed
     uint32_t cnf_dump_no = 0;
+    vector<vector<Lit>> cls_in_solver; // needed for accurate dumping
+    vector<pair<vector<Lit>, bool>> xors_in_solver; // needed for accurate dumping
 
     int argc;
     char** argv;
 };
 
 }
-
-#endif //COUNTER_H_

@@ -67,9 +67,18 @@ class AppMC
 public:
     AppMC();
     ~AppMC();
-    void set_projection_set(const std::vector<uint32_t>& vars);
     ApproxMC::SolCount count();
     bool find_one_solution();
+
+    // Sampling set
+    void set_sampl_vars(const std::vector<uint32_t>& vars);
+    void set_opt_sampl_vars(const std::vector<uint32_t>& vars);
+    bool get_sampl_vars_set() const;
+    const std::vector<uint32_t>& get_sampl_vars() const;
+    void set_multiplier_weight(const mpz_class& weight);
+    const mpz_class& get_multiplier_weight() const;
+    void set_weighted(const bool weighted);
+    void set_lit_weight(const CMSat::Lit& lit, const double weight);
 
     // Adding constraints
     void new_var();
@@ -77,11 +86,8 @@ public:
     uint32_t nVars();
     bool add_clause(const std::vector<CMSat::Lit>& lits);
     bool add_red_clause(const std::vector<CMSat::Lit>& lits);
+    bool add_xor_clause(const std::vector<CMSat::Lit>& lits, bool rhs);
     bool add_xor_clause(const std::vector<uint32_t>& vars, bool rhs);
-    bool add_bnn_clause(
-        const std::vector<CMSat::Lit>& lits,
-        signed cutoff,
-        CMSat::Lit out = CMSat::lit_Undef);
 
     // Information about approxmc
     std::string get_version_info();
@@ -90,7 +96,6 @@ public:
     //Main options
     void set_up_log(std::string log_file_name);
     void set_verbosity(uint32_t verb);
-    void set_detach_warning();
     void set_seed(uint32_t seed);
     void set_epsilon(double epsilon);
     void set_delta(double delta);
@@ -104,7 +109,9 @@ public:
     void set_reuse_models(uint32_t reuse_models);
     void set_sparse(uint32_t sparse);
     void set_simplify(uint32_t simplify);
-    void set_dump_intermediary_cnf(const bool dump_intermediary_cnf);
+    void set_dump_intermediary_cnf(const int dump_intermediary_cnf);
+    void set_debug(int debug);
+    void set_force_sol_extension(int val);
 
     //Querying default values
     const std::vector<uint32_t>& get_sampling_set() const;

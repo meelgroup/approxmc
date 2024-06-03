@@ -25,11 +25,11 @@
 
 import sys
 import os
-import platform
 from setuptools import Extension, setup
 import sysconfig
 import toml
 import pathlib
+from sys import platform
 
 def _parse_toml(pyproject_path):
     pyproject_text = pyproject_path.read_text()
@@ -47,13 +47,21 @@ picosatlib = ('picosatlib', {
 
 
 def gen_modules(version):
+    if platform == "win32" or platform == "cygwin":
+        extra_compile_args_val = ['/std:c++17', "/DCMS_LOCAL_BUILD=1", "/DAPPMC_FULL_VERSION=\""+version+"\""]
+        define_macros_val = [("TRACE", "")]
+
+    else:
+        extra_compile_args_val = ['-std=c++17']
+        define_macros_val = [('CMS_LOCAL_BUILD', 1),("TRACE", ""),("APPMC_FULL_VERSION", "\""+version+"\"")]
+
     modules = Extension(
         name = "pyapproxmc",
         sources = [
                    "python/src/GitSHA1.cpp",
                    "python/src/pyapproxmc.cpp",
                    "src/approxmc.cpp",
-                   "src/constants.cpp",
+                   "src/appmc_constants.cpp",
                    "src/counter.cpp",
                    "python/cryptominisat/python/src/GitSHA1.cpp",
                    "python/cryptominisat/src/bva.cpp",
@@ -102,8 +110,8 @@ def gen_modules(version):
                    "python/arjun/python/src/GitSHA1.cpp",
                    "python/arjun/src/simplify.cpp",
                ],
-        extra_compile_args = ['-std=c++17'],
-        define_macros = [('CMS_LOCAL_BUILD', 1),("TRACE", ""),("APPMC_FULL_VERSION", "\""+version+"\"")],
+        extra_compile_args = extra_compile_args_val,
+        define_macros = define_macros_val,
         include_dirs = ["src/", "python/cryptominisat/src/", "python/arjun/src/"],
         language = "c++",
     )

@@ -41,13 +41,11 @@ const char* AppMCInt::get_compilation_env()
     "CMAKE_CXX_FLAGS = @CMAKE_CXX_FLAGS@ | "
     "COMPILE_DEFINES = @COMPILE_DEFINES@ | "
     "STATICCOMPILE = @STATICCOMPILE@ | "
-    "Boost_FOUND = @Boost_FOUND@ | "
     "ZLIB_FOUND = @ZLIB_FOUND@ | "
     "VALGRIND_FOUND = @VALGRIND_FOUND@ | "
     "GMP_FOUND = @GMP_FOUND@ | "
     "ENABLE_ASSERTIONS = @ENABLE_ASSERTIONS@ | "
     "MY_TARGETS = @MY_TARGETS@ | "
-    "compilation date time = " __DATE__ " " __TIME__
     ""
     ;
     return compilation_env;

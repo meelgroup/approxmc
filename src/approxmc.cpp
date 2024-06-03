@@ -28,7 +28,7 @@
 
 #include "approxmc.h"
 #include "counter.h"
-#include "constants.h"
+#include "appmc_constants.h"
 #include "config.h"
 #include <iostream>
 
@@ -45,8 +45,9 @@ using namespace AppMCInt;
 
 namespace ApproxMC {
     struct AppMCPrivateData {
-        Counter counter;
+        AppMCPrivateData(): counter(conf) {}
         Config conf;
+        Counter counter;
     };
 }
 
@@ -58,7 +59,6 @@ DLL_PUBLIC AppMC::AppMC()
     data->counter.solver = new SATSolver();
     data->counter.solver->set_up_for_scalmc();
     data->counter.solver->set_allow_otf_gauss();
-    data->counter.solver->set_xor_detach(data->conf.cms_detach_xor);
 }
 
 DLL_PUBLIC AppMC::~AppMC()
@@ -70,33 +70,33 @@ DLL_PUBLIC AppMC::~AppMC()
 // Helper function, used only in this unit
 void setup_sampling_vars(AppMCPrivateData* data)
 {
-    if (data->conf.sampling_set.empty()) {
+    if (data->conf.sampl_vars.empty()) {
         if (data->conf.verb) {
             cout
             << "c [appmc] WARNING! Sampling set was not declared! We will be **VERY** slow"
             << endl;
         }
         for (size_t i = 0; i < data->counter.solver->nVars(); i++) {
-            data->conf.sampling_set.push_back(i);
+            data->conf.sampl_vars.push_back(i);
         }
     }
 
     if (data->conf.verb) {
-        cout << "c [appmc] Sampling set size: " << data->conf.sampling_set.size() << endl;
-        if (data->conf.sampling_set.size() > 100) {
+        cout << "c [appmc] Sampling set size: " << data->conf.sampl_vars.size() << endl;
+        if (data->conf.sampl_vars.size() > 100) {
             cout
             << "c [appmc] Sampling var set contains over 100 variables, not displaying"
             << endl;
         } else {
             cout << "c [appmc] Sampling set: ";
-            for (auto v: data->conf.sampling_set) {
+            for (auto v: data->conf.sampl_vars) {
                 cout << v+1 << " ";
             }
             cout << "0" << endl;
         }
     }
 
-    data->counter.solver->set_sampling_vars(&(data->conf.sampling_set));
+    data->counter.solver->set_sampl_vars(data->conf.sampl_vars);
 }
 
 DLL_PUBLIC string AppMC::get_version_info()
@@ -132,6 +132,11 @@ DLL_PUBLIC void AppMC::set_delta(double delta)
     data->conf.delta = delta;
 }
 
+DLL_PUBLIC void AppMC::set_debug(int debug) { data->conf.debug = debug; }
+DLL_PUBLIC void AppMC::set_force_sol_extension(int val) {
+    data->conf.force_sol_extension = val;
+}
+
 DLL_PUBLIC void AppMC::set_start_iter(uint32_t start_iter)
 {
     data->conf.start_iter = start_iter;
@@ -156,12 +161,6 @@ DLL_PUBLIC void AppMC::set_simplify(uint32_t simplify)
 DLL_PUBLIC void AppMC::set_var_elim_ratio(double var_elim_ratio)
 {
     data->conf.var_elim_ratio = var_elim_ratio;
-}
-
-DLL_PUBLIC void AppMC::set_detach_xors(uint32_t detach_xors)
-{
-    data->conf.cms_detach_xor = detach_xors;
-    data->counter.solver->set_xor_detach(data->conf.cms_detach_xor);
 }
 
 DLL_PUBLIC void AppMC::set_reuse_models(uint32_t reuse_models)
@@ -231,12 +230,13 @@ DLL_PUBLIC ApproxMC::SolCount AppMC::count()
     }
 
     setup_sampling_vars(data);
-    SolCount sol_count = data->counter.solve(data->conf);
+    SolCount sol_count = data->counter.solve();
     return sol_count;
 }
 
-DLL_PUBLIC void AppMC::set_projection_set(const vector<uint32_t>& vars)
+DLL_PUBLIC void AppMC::set_sampl_vars(const vector<uint32_t>& vars)
 {
+    data->conf.sampl_vars_set = true;
     for(const auto& v: vars) {
         if (v >= data->counter.solver->nVars()) {
             std::cout << "ERROR: function set_projection_set() called with variable that is larger than the number of variables inside the solver. Exiting." << endl;
@@ -244,7 +244,11 @@ DLL_PUBLIC void AppMC::set_projection_set(const vector<uint32_t>& vars)
             exit(-1);
         }
     }
-    data->conf.sampling_set = vars;
+    data->conf.sampl_vars = vars;
+}
+
+DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampl_vars() const  {
+    return data->conf.sampl_vars;
 }
 
 
@@ -269,25 +273,17 @@ DLL_PUBLIC bool AppMC::add_red_clause(const vector<CMSat::Lit>& lits)
 
 DLL_PUBLIC bool AppMC::add_clause(const vector<CMSat::Lit>& lits)
 {
-    return data->counter.solver->add_clause(lits);
+    return data->counter.solver_add_clause(lits);
+}
+
+DLL_PUBLIC bool AppMC::add_xor_clause(const vector<Lit>& lits, bool rhs)
+{
+    return data->counter.solver_add_xor_clause(lits, rhs);
 }
 
 DLL_PUBLIC bool AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
 {
-    return data->counter.solver->add_xor_clause(vars, rhs);
-}
-
-DLL_PUBLIC bool AppMC::add_bnn_clause(
-            const std::vector<CMSat::Lit>& lits,
-            signed cutoff,
-            Lit out)
-{
-    return data->counter.solver->add_bnn_clause(lits, cutoff, out);
-}
-
-DLL_PUBLIC void AppMC::set_detach_warning()
-{
-    data->counter.solver->set_verbosity_detach_warning(true);
+    return data->counter.solver_add_xor_clause(vars, rhs);
 }
 
 DLL_PUBLIC CMSat::SATSolver* AppMC::get_solver()
@@ -295,13 +291,12 @@ DLL_PUBLIC CMSat::SATSolver* AppMC::get_solver()
     return data->counter.solver;
 }
 
-
 DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampling_set() const
 {
-    return data->conf.sampling_set;
+    return data->conf.sampl_vars;
 }
 
-DLL_PUBLIC void AppMC::set_dump_intermediary_cnf(const bool dump_intermediary_cnf)
+DLL_PUBLIC void AppMC::set_dump_intermediary_cnf(const int dump_intermediary_cnf)
 {
     data->conf.dump_intermediary_cnf = dump_intermediary_cnf;
 }
@@ -315,3 +310,31 @@ DLL_PUBLIC void AppMC::print_stats(const double start_time)
         data->counter.solver->set_verbosity(data->conf.verb);
     }
 }
+
+DLL_PUBLIC bool AppMC::get_sampl_vars_set() const {
+    return data->conf.sampl_vars_set;
+}
+
+ DLL_PUBLIC void AppMC::set_multiplier_weight(const mpz_class& weight) {
+     data->conf.multiplier_weight = weight;
+ }
+
+ DLL_PUBLIC const mpz_class& AppMC::get_multiplier_weight() const {
+     return data->conf.multiplier_weight;
+ }
+
+DLL_PUBLIC void AppMC::set_weighted(const bool weighted) {
+    if (weighted) {
+        cout << "ERROR: Weighted ApproxMC not supported" << endl;
+        exit(-1);
+    }
+}
+
+DLL_PUBLIC void AppMC::set_lit_weight(const Lit&, const double) {
+    cout << "ERROR: Weighted ApproxMC is not supported" << endl;
+    exit(-1);
+}
+
+ DLL_PUBLIC void AppMC::set_opt_sampl_vars(const std::vector<uint32_t>&) {
+     // Not interesting for AppMC
+ }

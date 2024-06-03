@@ -1,4 +1,4 @@
-name: Python package build
+name: Python tarball build
 
 on: [push, pull_request]
 #  release:
