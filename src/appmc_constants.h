@@ -55,7 +55,6 @@ public:
     Constants();
     vector<double> probval;
     vector<VarMap> index_var_maps;
-    vector<double> iterationConfidences;
 
 private:
     vector<string> sparseprobvalues;

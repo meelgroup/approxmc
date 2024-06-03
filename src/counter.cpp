@@ -333,6 +333,19 @@ void Counter::simplify()
     solver->set_full_bve(0);
 }
 
+// compute the error bound
+double Counter::calc_error_bound(uint32_t t, double p)
+{
+    double curr = pow(p, t);
+    double sum = curr;
+    for (auto k=t-1; k>=std::ceil(double(t)/2); k--) {
+       curr *= double((k+1))/(t-k) * (1-p)/p;
+       sum += curr;
+    }
+
+    return sum;
+}
+
 //Set up probabilities, threshold and measurements
 void Counter::set_up_probs_threshold_measurements(
     uint32_t& measurements, SparseData& sparse_data)
@@ -363,12 +376,31 @@ void Counter::set_up_probs_threshold_measurements(
     );
 
     verb_print(1, "[appmc] threshold set to " << threshold << " sparse: " << (int)using_sparse);
-    measurements = (int)std::ceil(std::log2(3.0/conf.delta)*17);
-    for (int count = 0; count < 256; count++) {
-        if (constants.iterationConfidences[count] >= 1 - conf.delta) {
-            measurements = count*2+1;
-            break;
-        }
+
+    double p_L = 0;
+    if (conf.epsilon < sqrt(2)-1) {
+        p_L = 0.262;
+    } else if (conf.epsilon < 1) {
+        p_L = 0.157;
+    } else if (conf.epsilon < 3) {
+        p_L = 0.085;
+    } else if (conf.epsilon < 4*sqrt(2)-1) {
+        p_L = 0.055;
+    } else {
+        p_L = 0.023;
+    }
+
+    double p_U = 0;
+    if (conf.epsilon < 3) {
+        p_U = 0.169;
+    } else {
+        p_U = 0.044;
+    }
+
+    for (measurements = 1; ; measurements+=2) {
+       if (calc_error_bound(measurements, p_L) + calc_error_bound(measurements, p_U) <= conf.delta) {
+           break;
+       }
     }
 }
 
@@ -417,6 +449,30 @@ ApproxMC::SolCount Counter::calc_est_count()
     ApproxMC::SolCount ret_count;
     if (num_hash_list.empty() || num_count_list.empty()) return ret_count;
 
+    // round model counts
+    if (num_hash_list[0] > 0) {
+        double pivot = 9.84*(1.0+(1.0/conf.epsilon))*(1.0+(1.0/conf.epsilon));
+	    for (auto cnt_it = num_count_list.begin(); cnt_it != num_count_list.end(); cnt_it++) {
+            if (conf.epsilon < sqrt(2)-1) {
+	            if (*cnt_it < sqrt(1+2*conf.epsilon)/2 * pivot) {
+	    	        *cnt_it = sqrt(1+2*conf.epsilon)/2 * pivot;
+	            }
+            } else if (conf.epsilon < 1) {
+	            if (*cnt_it < pivot / sqrt(2)) {
+	    	        *cnt_it = pivot / sqrt(2);
+	            }
+            } else if (conf.epsilon < 3) {
+	            if (*cnt_it < pivot) {
+	    	        *cnt_it = pivot;
+	            }
+            } else if (conf.epsilon < 4*sqrt(2)-1) {
+                *cnt_it = pivot;
+            } else {
+                *cnt_it = sqrt(2)*pivot;
+            }
+	    }
+    }
+
     const auto min_hash = find_min(num_hash_list);
     auto cnt_it = num_count_list.begin();
     for (auto hash_it = num_hash_list.begin()
@@ -431,7 +487,7 @@ ApproxMC::SolCount Counter::calc_est_count()
         *cnt_it *= pow(2, (*hash_it) - min_hash);
     }
     ret_count.valid = true;
-    ret_count.cellSolCount = find_median(num_count_list);
+    ret_count.cellSolCount = std::round(find_median(num_count_list));
     ret_count.hashCount = min_hash;
 
     return ret_count;
