@@ -53,7 +53,7 @@ struct Config {
 
     std::vector<uint32_t> sampl_vars;
     bool sampl_vars_set = false;
-    mpz_class multiplier_weight = 1;
+    mpq_class multiplier_weight = 1;
 };
 
 }

@@ -315,11 +315,11 @@ DLL_PUBLIC bool AppMC::get_sampl_vars_set() const {
     return data->conf.sampl_vars_set;
 }
 
- DLL_PUBLIC void AppMC::set_multiplier_weight(const mpz_class& weight) {
+ DLL_PUBLIC void AppMC::set_multiplier_weight(const mpq_class& weight) {
      data->conf.multiplier_weight = weight;
  }
 
- DLL_PUBLIC const mpz_class& AppMC::get_multiplier_weight() const {
+ DLL_PUBLIC const mpq_class& AppMC::get_multiplier_weight() const {
      return data->conf.multiplier_weight;
  }
 
@@ -330,7 +330,7 @@ DLL_PUBLIC void AppMC::set_weighted(const bool weighted) {
     }
 }
 
-DLL_PUBLIC void AppMC::set_lit_weight(const Lit&, const double) {
+DLL_PUBLIC void AppMC::set_lit_weight(const Lit&, const mpq_class&) {
     cout << "ERROR: Weighted ApproxMC is not supported" << endl;
     exit(-1);
 }
