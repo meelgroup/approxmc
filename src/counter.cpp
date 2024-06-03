@@ -439,7 +439,6 @@ ApproxMC::SolCount Counter::count()
         if (conf.simplify >= 1 && j+1 < measurements) simplify();
         hm.clear();
     }
-    assert(!num_hash_list.empty() && "UNSAT should not be possible");
 
     return calc_est_count();
 }
@@ -524,12 +523,6 @@ void Counter::one_measurement_count(
     SparseData sparse_data,
     HashesModels* hm)
 {
-    if (conf.sampl_vars.empty()) {
-        num_hash_list.push_back(0);
-        num_count_list.push_back(1);
-        return;
-    }
-
     //Tells the number of solutions found at hash number N
     //sols_for_hash[N] tells the number of solutions found when N hashes were added
     map<uint64_t,int64_t> sols_for_hash;
