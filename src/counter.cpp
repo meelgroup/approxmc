@@ -523,6 +523,14 @@ void Counter::one_measurement_count(
     SparseData sparse_data,
     HashesModels* hm)
 {
+    if (conf.sampl_vars.empty()) {
+        auto ret = solver->solve();
+        assert(ret != l_Undef);
+        num_hash_list.push_back(0);
+        num_count_list.push_back(ret == l_True ? 1 : 0);
+        return;
+    }
+
     //Tells the number of solutions found at hash number N
     //sols_for_hash[N] tells the number of solutions found when N hashes were added
     map<uint64_t,int64_t> sols_for_hash;
