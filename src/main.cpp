@@ -229,7 +229,7 @@ void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const mpq_c
     num_sols *= cell_sol_cnt;
     mpq_class final = mult * num_sols;
 
-    cout << "s mc " << num_sols << endl;
+    cout << "s mc " << final << endl;
 }
 
 void set_approxmc_options()
