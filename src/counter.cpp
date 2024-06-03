@@ -544,6 +544,9 @@ void Counter::one_measurement_count(
     int64_t num_explored = 0;
     int64_t lower_fib = 0;
     int64_t upper_fib = total_max_xors;
+    threshold_sols[total_max_xors] = 0;
+    sols_for_hash[total_max_xors] = 1;
+
     int64_t hash_cnt = prev_measure;
     int64_t hash_prev = hash_cnt;
 
