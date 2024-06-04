@@ -90,9 +90,9 @@ bool do_backbone = false;
 
 void print_version() {
     std::stringstream ss;
-    cout << "c CMS revision: " << CMSat::SATSolver::get_version_sha1() << endl;
-    cout << "c Arjun SHA revision: " << ArjunNS::Arjun ::get_version_info() << endl;
-    cout << "c Arjun SBVA SHA revision: " << ArjunNS::Arjun::get_sbva_version_info() << endl;
+    cout << "c o CMS revision: " << CMSat::SATSolver::get_version_sha1() << endl;
+    cout << "c o Arjun SHA revision: " << ArjunNS::Arjun ::get_version_info() << endl;
+    cout << "c o Arjun SBVA SHA revision: " << ArjunNS::Arjun::get_sbva_version_info() << endl;
     cout << appmc->get_version_info();
 }
 
@@ -259,7 +259,7 @@ void set_approxmc_options()
 
     if (!logfilename.empty()) {
         appmc->set_up_log(logfilename);
-        cout << "c [appmc] Logfile set " << logfilename << endl;
+        cout << "c o [appmc] Logfile set " << logfilename << endl;
     }
 }
 
@@ -360,7 +360,7 @@ int main(int argc, char** argv)
         for(const auto& c: cnf.red_clauses) appmc->add_red_clause(c);
         appmc->set_multiplier_weight(cnf.multiplier_weight);
         print_final_indep_set(cnf.sampl_vars, orig_sampl_vars.size());
-        cout << "c [arjun] Arjun finished. T: " << (cpuTime() - my_time) << endl;
+        cout << "c o [arjun] Arjun finished. T: " << (cpuTime() - my_time) << endl;
     } else {
         parse_file(fname, appmc);
         print_final_indep_set(appmc->get_sampl_vars(), appmc->get_sampl_vars().size());
@@ -369,7 +369,7 @@ int main(int argc, char** argv)
     ApproxMC::SolCount sol_count;
     sol_count = appmc->count();
     appmc->print_stats(start_time);
-    cout << "c [appmc+arjun] Total time: " << (cpuTime() - start_time) << endl;
+    cout << "c o [appmc+arjun] Total time: " << (cpuTime() - start_time) << endl;
     print_num_solutions(sol_count.cellSolCount, sol_count.hashCount, appmc->get_multiplier_weight());
 
     delete appmc;

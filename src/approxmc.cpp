@@ -72,13 +72,13 @@ DLL_PUBLIC AppMC::~AppMC()
 void setup_sampling_vars(AppMCPrivateData* data)
 {
     if (data->conf.verb) {
-        cout << "c [appmc] Sampling set size: " << data->conf.sampl_vars.size() << endl;
+        cout << "c o [appmc] Sampling set size: " << data->conf.sampl_vars.size() << endl;
         if (data->conf.sampl_vars.size() > 100) {
             cout
-            << "c [appmc] Sampling var set contains over 100 variables, not displaying"
+            << "c o [appmc] Sampling var set contains over 100 variables, not displaying"
             << endl;
         } else {
-            cout << "c [appmc] Sampling set: ";
+            cout << "c o [appmc] Sampling set: ";
             for (auto v: data->conf.sampl_vars) {
                 cout << v+1 << " ";
             }
@@ -102,9 +102,7 @@ DLL_PUBLIC void AppMC::set_up_log(string log_file_name)
 DLL_PUBLIC void AppMC::set_verbosity(uint32_t verb)
 {
     data->conf.verb = verb;
-    if (verb > 2) {
-        data->counter.solver->set_verbosity(data->conf.verb-2);
-    }
+    data->counter.solver->set_verbosity(std::max<int>(0, (int)data->conf.verb-2));
 }
 
 DLL_PUBLIC void AppMC::set_seed(uint32_t seed)
@@ -210,16 +208,16 @@ DLL_PUBLIC ApproxMC::SolCount AppMC::count()
         exit(-1);
     }
     if (data->conf.verb > 2) {
-        cout << "c [appmc] using seed: " << data->conf.seed << endl;
+        cout << "c o [appmc] using seed: " << data->conf.seed << endl;
     }
 
     if (data->conf.epsilon < 0.0) {
-        cout << "[appmc] ERROR: invalid epsilon" << endl;
+        cout << "ERROR: invalid epsilon" << endl;
         exit(-1);
     }
 
     if (data->conf.delta <= 0.0 || data->conf.delta > 1.0) {
-        cout << "[appmc] ERROR: invalid delta" << endl;
+        cout << "ERROR: invalid delta" << endl;
         exit(-1);
     }
 

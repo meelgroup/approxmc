@@ -44,6 +44,7 @@
 #include <complex>
 
 #include "counter.h"
+#include "appmc_constants.h"
 #include "time_mem.h"
 #include "GitSHA1.h"
 #ifdef CMS_LOCAL_BUILD
@@ -51,9 +52,6 @@
 #else
 #include <arjun/arjun.h>
 #endif
-
-#define verb_print(a, x) \
-    do { if (conf.verb >= a) {std::cout << "c " << x << std::endl;} } while (0)
 
 using std::cout;
 using std::endl;
@@ -151,7 +149,7 @@ uint64_t Counter::add_glob_banning_cls(
         }
     }
     if (conf.verb) {
-        cout << "c [appmc] repeat solutions: " << std::setw(6) << repeat
+        cout << "c o [appmc] repeat solutions: " << std::setw(6) << repeat
         << " checked: " << std::setw(6) << checked;
         if (hm) cout << " out of: " << std::setw(6) << hm->glob_model.size();
         cout << endl;
@@ -233,7 +231,7 @@ SolNum Counter::bounded_sol_count(
         }
 
         if (conf.verb >= 2) {
-            cout << "c [appmc] bounded_sol_count ret: " << std::setw(7) << ret;
+            cout << "c o [appmc] bounded_sol_count ret: " << std::setw(7) << ret;
             if (ret == l_True) cout << " sol no.  " << std::setw(3) << solutions;
             else cout << " No more. " << std::setw(3) << "";
             cout << " T: "
@@ -262,7 +260,7 @@ SolNum Counter::bounded_sol_count(
             lits.push_back(Lit(var, solver->get_model()[var] == l_True));
         }
         if (conf.verb_cls) {
-            cout << "c [appmc] Adding banning clause: " << lits << endl;
+            cout << "c o [appmc] Adding banning clause: " << lits << endl;
         }
         solver_add_clause(lits);
     }
@@ -496,21 +494,18 @@ int Counter::find_best_sparse_match()
 {
     for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
         if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampl_vars.size()) {
-            if (conf.verb) {
-                cout << "c [sparse] Using match: " << i
+            verb_print(1,
+                "[appmc-sparse] Using match: " << i
                 << " sampling set size: " << conf.sampl_vars.size()
                 << " prev end inclusive is: " << (i == 0 ? -1 : (int)constants.index_var_maps[i-1].vars_to_inclusive)
                 << " this end inclusive is: " << constants.index_var_maps[i].vars_to_inclusive
                 << " next end inclusive is: " << ((i+1 < (int)constants.index_var_maps.size()) ? ((int)constants.index_var_maps[i+1].vars_to_inclusive) : -1)
-                << " sampl size: " << conf.sampl_vars.size()
-                << endl;
-            }
-
+                << " sampl size: " << conf.sampl_vars.size());
             return i;
         }
     }
 
-    cout << "c [sparse] No match. Using default 0.5" << endl;
+    cout << "c o [sparse] No match. Using default 0.5" << endl;
     return -1;
 }
 
@@ -697,7 +692,7 @@ string Counter::gen_rnd_bits(
 
 void Counter::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
-    cout << "c [appmc] Added XOR ";
+    cout << "c o [appmc] Added XOR ";
     for (size_t i = 0; i < vars.size(); i++) {
         cout << vars[i]+1;
         if (i < vars.size()-1) {
