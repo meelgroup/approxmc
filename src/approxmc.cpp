@@ -323,6 +323,9 @@ DLL_PUBLIC void AppMC::set_weighted(const bool weighted) {
     }
 }
 
+DLL_PUBLIC void AppMC::set_projected(const bool) {
+}
+
 DLL_PUBLIC void AppMC::set_lit_weight(const Lit&, const mpq_class&) {
     cout << "ERROR: Weighted ApproxMC is not supported" << endl;
     exit(-1);

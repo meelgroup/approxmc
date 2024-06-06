@@ -79,6 +79,7 @@ public:
     void set_multiplier_weight(const mpq_class& weight);
     const mpq_class& get_multiplier_weight() const;
     void set_weighted(const bool weighted);
+    void set_projected(const bool projected);
     void set_lit_weight(const CMSat::Lit& lit, const mpq_class& weight);
 
     // Adding constraints
