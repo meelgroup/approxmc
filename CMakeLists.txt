@@ -165,15 +165,13 @@ if (NOT MSVC)
     add_compile_options( -g)
     add_compile_options( -pthread )
 
-    add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:-O3>")
-    add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:-mtune=native>")
+    add_compile_options("$<$<CONFIG:RelWithDebInfo>:-O3>")
 
-    add_compile_options("$<$<CONFIG:RELEASE>:-O3>")
-    add_compile_options("$<$<CONFIG:RELEASE>:-g0>")
-    add_compile_options("$<$<CONFIG:RELEASE>:-DNDEBUG>")
-    add_compile_options("$<$<CONFIG:RELEASE>:-mtune=native>")
+    add_compile_options("$<$<CONFIG:Release>:-O3>")
+    add_compile_options("$<$<CONFIG:Release>:-g0>")
+    add_compile_options("$<$<CONFIG:Release>:-DNDEBUG>")
 
-    add_compile_options("$<$<CONFIG:DEBUG>:-O0>")
+    add_compile_options("$<$<CONFIG:Debug>:-O0>")
 
 else()
     # see https://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx for details
