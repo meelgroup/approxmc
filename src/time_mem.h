@@ -53,11 +53,7 @@ static inline double cpuTimeTotal(void)
 static inline double cpuTime(void)
 {
     struct rusage ru;
-    #ifdef RUSAGE_THREAD
-    int ret = getrusage(RUSAGE_THREAD, &ru);
-    #else
     int ret = getrusage(RUSAGE_SELF, &ru);
-    #endif
 
     //NOTE: This is needed because Windows' Linux subsystem returns non-zero
     //and I can't figure out a way to detect Windows.
