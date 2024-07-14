@@ -344,15 +344,15 @@ static void get_cnf_from_arjun(Counter* self)
 {
     const uint32_t orig_num_vars = self->arjun->get_orig_num_vars();
     self->appmc->new_vars(orig_num_vars);
-    self->arjun->start_getting_constraints(false, false)
+    self->arjun->start_getting_constraints(false, false);
     std::vector<CMSat::Lit> clause;
-    bool is_xor;
+    bool is_xor, rhs;
 
     bool ret = true;
     while (ret) {
-        ret = self->arjun->get_next_small_clause(clause, bool is_xor);
+        ret = self->arjun->get_next_constraint(clause, is_xor, rhs);
+        assert(!is_xor); assert(rhs);
         if (!ret) break;
-        assert(!is_xor);
         bool ok = true;
         for(auto l: clause) {
             if (l.var() >= orig_num_vars) {
@@ -429,30 +429,14 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
             sampling_vars.push_back(l.var());
         }
     }
-
-   uint32_t orig_sampling_set_size = set_up_sampling_set(self, sampling_vars);
-   auto sampling_vars = self->arjun->run_backwards();
-   std::vector<uint32_t> empty_occ_sampl_vars = self->arjun->get_empty_occ_sampl_vars();
-   //print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
-
-    std::set<uint32_t> sampl_vars_set;
-    sampl_vars_set.insert(sampling_vars.begin(), sampling_vars.end());
-    for(auto const& v: empty_occ_sampl_vars) {
-        assert(sampl_vars_set.find(v) != sampl_vars_set.end()); // this is guaranteed by arjun
-        sampl_vars_set.erase(v);
-    }
-    const size_t offset_count_by_2_pow = empty_occ_sampl_vars.size();
-    sampling_vars.clear();
-    sampling_vars.insert(sampling_vars.end(), sampl_vars_set.begin(), sampl_vars_set.end());
+    set_up_sampling_set(self, sampling_vars);
+    sampling_vars = self->arjun->run_backwards();
 
     // Now do ApproxMC
     get_cnf_from_arjun(self);
     transfer_unit_clauses_from_arjun(self);
     ApproxMC::SolCount sol_count;
     if (!sampling_vars.empty()) {
-        mpz_class dummy(2);
-        mpz_pow_ui(dummy.get_mpz_t(), dummy.get_mpz_t(), self->arjun->get_empty_sampl_vars().size());
-        self->appmc->set_multiplier_weight(self->arjun->get_multiplier_weight()*dummy);
         self->appmc->set_sampl_vars(sampling_vars);
         sol_count = self->appmc->count();
     } else {
@@ -469,7 +453,7 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
     PyTuple_SET_ITEM(result, 0, PyLong_FromLong((long)sol_count.cellSolCount));
-    PyTuple_SET_ITEM(result, 1, PyLong_FromLong((long)sol_count.hashCount+offset_count_by_2_pow));
+    PyTuple_SET_ITEM(result, 1, PyLong_FromLong((long)sol_count.hashCount+self->arjun->get_empty_sampl_vars().size()));
     return result;
 }
 
