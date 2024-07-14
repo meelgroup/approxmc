@@ -344,19 +344,15 @@ static void get_cnf_from_arjun(Counter* self)
 {
     const uint32_t orig_num_vars = self->arjun->get_orig_num_vars();
     self->appmc->new_vars(orig_num_vars);
-    self->arjun->start_getting_small_clauses(
-        std::numeric_limits<uint32_t>::max(),
-        std::numeric_limits<uint32_t>::max(),
-        false);
+    self->arjun->start_getting_constraints(false, false)
     std::vector<CMSat::Lit> clause;
+    bool is_xor;
 
     bool ret = true;
     while (ret) {
-        ret = self->arjun->get_next_small_clause(clause);
-        if (!ret) {
-            break;
-        }
-
+        ret = self->arjun->get_next_small_clause(clause, bool is_xor);
+        if (!ret) break;
+        assert(!is_xor);
         bool ok = true;
         for(auto l: clause) {
             if (l.var() >= orig_num_vars) {
@@ -367,7 +363,7 @@ static void get_cnf_from_arjun(Counter* self)
 
         if (ok) self->appmc->add_clause(clause);
     }
-    self->arjun->end_getting_small_clauses();
+    self->arjun->end_getting_constraints();
 }
 
 static void transfer_unit_clauses_from_arjun(Counter* self)
@@ -385,7 +381,7 @@ static void transfer_unit_clauses_from_arjun(Counter* self)
 static uint32_t set_up_sampling_set(Counter* self, const std::vector<uint32_t>& sampling_vars)
 {
     uint32_t orig_sampling_set_size;
-    orig_sampling_set_size = self->arjun->set_starting_sampling_set(sampling_vars);
+    orig_sampling_set_size = self->arjun->set_sampl_vars(sampling_vars);
     return orig_sampling_set_size;
 }
 
@@ -434,9 +430,8 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
         }
     }
 
-   //print_orig_sampling_vars(sampling_vars, self->arjun);
    uint32_t orig_sampling_set_size = set_up_sampling_set(self, sampling_vars);
-   sampling_vars = self->arjun->get_indep_set();
+   auto sampling_vars = self->arjun->run_backwards();
    std::vector<uint32_t> empty_occ_sampl_vars = self->arjun->get_empty_occ_sampl_vars();
    //print_final_indep_set(sampling_vars , orig_sampling_set_size, empty_occ_sampl_vars);
 
@@ -455,7 +450,10 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
     transfer_unit_clauses_from_arjun(self);
     ApproxMC::SolCount sol_count;
     if (!sampling_vars.empty()) {
-        self->appmc->set_projection_set(sampling_vars);
+        mpz_class dummy(2);
+        mpz_pow_ui(dummy.get_mpz_t(), dummy.get_mpz_t(), self->arjun->get_empty_sampl_vars().size());
+        self->appmc->set_multiplier_weight(self->arjun->get_multiplier_weight()*dummy);
+        self->appmc->set_sampl_vars(sampling_vars);
         sol_count = self->appmc->count();
     } else {
         bool ret = self->appmc->find_one_solution();
