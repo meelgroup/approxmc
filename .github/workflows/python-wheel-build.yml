@@ -11,13 +11,34 @@ jobs:
         os: [ubuntu-20.04, windows-2022, macos-13]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - name: Checkout CaDiCaL
+        uses: actions/checkout@v3
+        with:
+          repository: meelgroup/cadical
+          ref: 'add_dynamic_lib'
+          path: python/cadical
+
+      - name: Checkout Cadiback
+        uses: actions/checkout@v3
+        with:
+          repository: meelgroup/cadiback
+          ref: 'mate'
+          path: python/cadiback
+
+      - name: configure and build CaDiCaL
+        run: cd python/cadical && CXXFLAGS=-fPIC ./configure --competition && make -j4
+
+      - name: Configure and build Cadiback
+        run: cd python/cadiback && ./configure && make -j4
+
       - name: Checkout CMS
         uses: actions/checkout@v2
         with:
           repository: msoos/cryptominisat
           ref: 'master'
           path: python/cryptominisat
+
       - name: Checkout Arjun
         uses: actions/checkout@v2
         with:
