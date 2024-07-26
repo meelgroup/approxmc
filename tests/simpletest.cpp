@@ -38,6 +38,7 @@ using std::vector;
 TEST(normal_interface, start)
 {
     AppMC s;
+    s.set_sampl_vars({});
     SolCount c = s.count();
     EXPECT_EQ(1U, c.cellSolCount);
     EXPECT_EQ(0U, c.hashCount);
@@ -48,6 +49,7 @@ TEST(normal_interface, example1)
     AppMC s;
     s.new_vars(2);
     s.add_clause(str_to_cl("-1, 2"));
+    s.set_sampl_vars({0, 1});
     SolCount c = s.count();
     EXPECT_EQ(0U, c.hashCount);
     EXPECT_EQ(3U, c.cellSolCount);
@@ -57,6 +59,10 @@ TEST(normal_interface, example2)
 {
     AppMC s;
     s.new_vars(10);
+    vector<uint32_t> sampl;
+    for(uint32_t i = 0; i < 10; i++) sampl.push_back(i);
+    s.set_sampl_vars(sampl);
+
     SolCount c = s.count();
     uint32_t x = std::pow(2, c.hashCount)*c.cellSolCount;
     EXPECT_EQ(std::pow(2, 10), x);
@@ -66,6 +72,10 @@ TEST(normal_interface, example3)
 {
     AppMC s;
     s.new_vars(10);
+    vector<uint32_t> sampl;
+    for(uint32_t i = 0; i < 10; i++) sampl.push_back(i);
+    s.set_sampl_vars(sampl);
+
     s.add_clause(str_to_cl("-3"));
     SolCount c = s.count();
     uint32_t cnt = std::pow(2, c.hashCount)*c.cellSolCount;
@@ -76,6 +86,10 @@ TEST(normal_interface, example4)
 {
     AppMC s;
     s.new_vars(10);
+    vector<uint32_t> sampl;
+    for(uint32_t i = 0; i < 10; i++) sampl.push_back(i);
+    s.set_sampl_vars(sampl);
+
     s.add_clause(str_to_cl("-3, 4"));
     s.add_clause(str_to_cl("3, -4"));
     SolCount c = s.count();

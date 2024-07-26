@@ -31,7 +31,7 @@
 # the location of GTest source code is probably error prone so using a copy in the
 # repository seems like the easiest thing to do. This also has the added benefit that
 # everyone uses the same version of GTest.
-set(GTEST_PREFIX ${PROJECT_SOURCE_DIR}/utils/gtest)
+set(GTEST_PREFIX gtest)
 message(STATUS "NOTE: if adding the 'gtest' subdirectory fails, you need to issue 'git submodule init' and 'git submodule update'")
 add_subdirectory(${GTEST_PREFIX} gtest)
 set(GTEST_BOTH_LIBRARIES gtest gtest_main)
