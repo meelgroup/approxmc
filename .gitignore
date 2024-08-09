@@ -3,3 +3,7 @@ build/
 python/cryptominisat
 python/arjun
 *.kdev4
+.cache/
+.ccls-cache/
+compile_commands.json
+dist/pyapproxmc*
