@@ -459,6 +459,9 @@ find_package(sbva CONFIG REQUIRED)
 # -----------------------------------------------------------------------------
 set(APPROXMC_EXPORT_NAME "approxmcTargets")
 
+if (ENABLE_TESTING)
+    add_subdirectory(tests/gtest)
+endif()
 add_subdirectory(src apx-src)
 
 # -----------------------------------------------------------------------------
