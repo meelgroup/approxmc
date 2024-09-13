@@ -71,8 +71,8 @@ bool debug = false;
 
 //Arjun
 ArjunNS::SimpConf simp_conf;
+ArjunNS::Arjun::ElimToFileConf etof_conf;
 int with_e = 0;
-bool all_indep = false;
 bool do_arjun = true;
 bool do_backbone = false;
 
@@ -150,7 +150,6 @@ void add_appmc_options()
 
     program.add_argument("inputfile").remaining().help("input CNF");
 }
-
 
 void add_supported_options(int argc, char** argv) {
     add_appmc_options();
@@ -284,7 +283,6 @@ template<class T> void parse_file(const std::string& filename, T* reader) {
   #endif
 
   if (!reader->get_sampl_vars_set()) {
-    all_indep = true;
     vector<uint32_t> tmp;
     for(uint32_t i = 0; i < reader->nVars(); i++) tmp.push_back(i);
     reader->set_sampl_vars(tmp); // will automatically set the opt_sampl_vars
@@ -299,7 +297,7 @@ template<class T> void parse_file(const std::string& filename, T* reader) {
       }
       tmp.insert(s);
     }
-    if (tmp.size() == reader->nVars()) all_indep = true;
+    if (tmp.size() == reader->nVars()) etof_conf.all_indep = true;
     if (!reader->get_opt_sampl_vars_set()) {
       reader->set_opt_sampl_vars(reader->get_sampl_vars());
     }
@@ -321,6 +319,12 @@ int main(int argc, char** argv)
     }
 
     appmc = new ApproxMC::AppMC;
+    simp_conf.appmc = true;
+    simp_conf.oracle_sparsify = false;
+    simp_conf.iter1 = 2;
+    simp_conf.iter2 = 0;
+    etof_conf.do_bce = false;
+    etof_conf.do_extend_indep = false;
     add_supported_options(argc, argv);
     if (verb) {
         print_version();
@@ -342,18 +346,9 @@ int main(int argc, char** argv)
         arjun.set_ite_gate_based(arjun_gates);
         arjun.set_irreg_gate_based(arjun_gates);
         if (do_backbone)
-            arjun.only_backbone(cnf);
-        arjun.only_run_minimize_indep(cnf);
-        bool do_extend_indep = false;
-        bool do_unate = false;
-        bool do_bce = false;
-        int sbva_steps = 1000;
-        int sbva_cls_cutoff = 4;
-        int sbva_lits_cutoff = 5;
-        int sbva_tiebreak = 1;
-        if (with_e) {
-            arjun.elim_to_file(cnf, all_indep, do_extend_indep, do_bce, do_unate, simp_conf, sbva_steps, sbva_cls_cutoff, sbva_lits_cutoff, sbva_tiebreak);
-        }
+            arjun.standalone_backbone(cnf);
+        arjun.standalone_minimize_indep(cnf);
+        if (with_e) arjun.standalone_elim_to_file(cnf, etof_conf, simp_conf);
         appmc->new_vars(cnf.nVars());
         appmc->set_sampl_vars(cnf.sampl_vars);
         for(const auto& c: cnf.clauses) appmc->add_clause(c);
