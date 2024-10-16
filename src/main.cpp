@@ -45,7 +45,6 @@
 
 using namespace CMSat;
 using std::cout;
-using std::cerr;
 using std::endl;
 using std::set;
 using std::string;
