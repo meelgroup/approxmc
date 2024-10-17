@@ -217,7 +217,7 @@ DLL_PUBLIC ApproxMC::SolCount AppMC::count()
     }
 
     if (data->conf.delta <= 0.0 || data->conf.delta > 1.0) {
-        cout << "ERROR: invalid delta" << endl;
+        cout << "ERROR: invalid delta: " << data->conf.delta << endl;
         exit(-1);
     }
 
