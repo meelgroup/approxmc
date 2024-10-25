@@ -89,6 +89,13 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # generate JSON file of compile commands -- useful for code extension
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+# static compilation
+option(BUILD_SHARED_LIBS "Build the shared library" ON)
+option(STATICCOMPILE "Compile to static executable" OFF)
+if (STATICCOMPILE)
+    set(BUILD_SHARED_LIBS OFF)
+endif()
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
@@ -147,18 +154,10 @@ else()
     add_definitions(-D_FORTIFY_SOURCE=0)
 endif()
 
-# static compilation
-option(BUILD_SHARED_LIBS "Build the shared library" ON)
-option(STATICCOMPILE "Compile to static executable" OFF)
-if (STATICCOMPILE)
-    set(BUILD_SHARED_LIBS OFF)
-endif()
-
 
 # Note: O3 gives slight speed increase, 1 more solved from SAT Comp'14 @ 3600s
 if (NOT MSVC)
     add_compile_options( -g)
-    add_compile_options( -pthread )
 
     add_compile_options("$<$<CONFIG:RelWithDebInfo>:-O3>")
 
