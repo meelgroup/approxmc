@@ -96,6 +96,18 @@ if (STATICCOMPILE)
     set(BUILD_SHARED_LIBS OFF)
 endif()
 
+if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+    if(NOT BUILD_SHARED_LIBS)
+        MESSAGE(STATUS "Compiling statically")
+        if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+        endif()
+        SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    else()
+        MESSAGE(STATUS "Compiling for dynamic library use")
+    endif()
+endif()
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
