@@ -26,14 +26,12 @@
  THE SOFTWARE.
  */
 
-
-#include "config.h"
+#include "appmcconfig.h"
 #include <fstream>
 #include <random>
 #include <map>
 #include <utility>
 #include <cstdint>
-#include <mutex>
 #include "approxmc.h"
 #include "appmc_constants.h"
 

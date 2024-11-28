@@ -29,7 +29,7 @@
 #include "approxmc.h"
 #include "counter.h"
 #include "appmc_constants.h"
-#include "config.h"
+#include "appmcconfig.h"
 #include <iostream>
 
 using std::cout;
