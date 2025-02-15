@@ -346,7 +346,7 @@ int main(int argc, char** argv)
         arjun.set_irreg_gate_based(arjun_gates);
         if (do_backbone)
             arjun.standalone_backbone(cnf);
-        arjun.standalone_minimize_indep(cnf);
+        arjun.standalone_minimize_indep(cnf, etof_conf.all_indep);
         if (with_e) arjun.standalone_elim_to_file(cnf, etof_conf, simp_conf);
         appmc->new_vars(cnf.nVars());
         appmc->set_sampl_vars(cnf.sampl_vars);
