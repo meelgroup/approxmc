@@ -32,6 +32,9 @@
 #include <cstdint>
 #include <string>
 #include <gmpxx.h>
+#include <complex>
+
+using std::complex;
 
 namespace AppMCInt {
 
@@ -53,7 +56,7 @@ struct Config {
 
     std::vector<uint32_t> sampl_vars;
     bool sampl_vars_set = false;
-    mpq_class multiplier_weight = 1;
+    complex<mpq_class> multiplier_weight = complex<mpq_class>(1,0);
 };
 
 }

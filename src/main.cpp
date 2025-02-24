@@ -32,6 +32,7 @@
 #include <cfenv>
 #endif
 #include <cstdint>
+#include <complex>
 #include <set>
 #include <gmp.h>
 
@@ -49,6 +50,7 @@ using std::endl;
 using std::set;
 using std::string;
 using std::vector;
+using std::complex;
 ApproxMC::AppMC* appmc = nullptr;
 argparse::ArgumentParser program = argparse::ArgumentParser("approxmc");
 
@@ -215,8 +217,9 @@ template<class T> void read_stdin(T* myreader) {
     #endif
 }
 
-void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const mpq_class& mult)
+void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const complex<mpq_class>& mult)
 {
+    assert(mult.imag() == 0);
     cout << "c [appmc] Number of solutions is: "
     << cell_sol_cnt << "*2**" << hash_count << "*" << mult << endl;
     if (cell_sol_cnt == 0) cout << "s UNSATISFIABLE" << endl;
@@ -225,7 +228,7 @@ void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const mpq_c
     mpz_class num_sols(2);
     mpz_pow_ui(num_sols.get_mpz_t(), num_sols.get_mpz_t(), hash_count);
     num_sols *= cell_sol_cnt;
-    mpq_class final = mult * num_sols;
+    mpq_class final = mult.real() * num_sols;
 
     cout << "s mc " << final << endl;
 }

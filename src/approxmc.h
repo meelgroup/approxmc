@@ -76,11 +76,11 @@ public:
     bool get_sampl_vars_set() const;
     bool get_opt_sampl_vars_set() const { return false; }
     const std::vector<uint32_t>& get_sampl_vars() const;
-    void set_multiplier_weight(const mpq_class& weight);
-    const mpq_class& get_multiplier_weight() const;
+    void set_multiplier_weight(const std::complex<mpq_class>& weight);
+    const std::complex<mpq_class>& get_multiplier_weight() const;
     void set_weighted(const bool weighted);
     void set_projected(const bool projected);
-    void set_lit_weight(const CMSat::Lit& lit, const mpq_class& weight);
+    void set_lit_weight(const CMSat::Lit& lit, const std::complex<mpq_class>& weight);
 
     // Adding constraints
     void new_var();
