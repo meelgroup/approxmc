@@ -179,7 +179,6 @@ The system can be used as a library:
 ```c++
 #include <approxmc/approxmc.h>
 #include <vector>
-#include <complex>
 #include <cassert>
 
 using std::vector;

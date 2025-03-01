@@ -26,13 +26,14 @@
  THE SOFTWARE.
  */
 
+#include "cryptominisat5/solvertypesmini.h"
+#include <memory>
 #include <string>
 #include <vector>
 #if defined(__GNUC__) && defined(__linux__)
 #include <cfenv>
 #endif
 #include <cstdint>
-#include <complex>
 #include <set>
 #include <gmp.h>
 
@@ -50,7 +51,6 @@ using std::endl;
 using std::set;
 using std::string;
 using std::vector;
-using std::complex;
 ApproxMC::AppMC* appmc = nullptr;
 argparse::ArgumentParser program = argparse::ArgumentParser("approxmc");
 
@@ -69,6 +69,7 @@ uint32_t sparse = 0;
 int dump_intermediary_cnf = 0;
 int arjun_gates = 0;
 bool debug = false;
+std::unique_ptr<CMSat::FieldGen> fg;
 
 //Arjun
 ArjunNS::SimpConf simp_conf;
@@ -99,7 +100,7 @@ void print_version() {
 
 void add_appmc_options()
 {
-    ApproxMC::AppMC tmp;
+    ApproxMC::AppMC tmp(fg);
     epsilon = tmp.get_epsilon();
     delta = tmp.get_delta();
     simplify = tmp.get_simplify();
@@ -217,18 +218,18 @@ template<class T> void read_stdin(T* myreader) {
     #endif
 }
 
-void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const complex<mpq_class>& mult)
-{
-    assert(mult.imag() == 0);
+void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const std::unique_ptr<Field>& mult) {
+    const CMSat::Field* ptr = mult.get();
+    const CMSat::FMpz* od = dynamic_cast<const CMSat::FMpz*>(ptr);
     cout << "c [appmc] Number of solutions is: "
-    << cell_sol_cnt << "*2**" << hash_count << "*" << mult << endl;
+    << cell_sol_cnt << "*2**" << hash_count << "*" << od->val << endl;
     if (cell_sol_cnt == 0) cout << "s UNSATISFIABLE" << endl;
     else cout << "s SATISFIABLE" << endl;
 
     mpz_class num_sols(2);
     mpz_pow_ui(num_sols.get_mpz_t(), num_sols.get_mpz_t(), hash_count);
     num_sols *= cell_sol_cnt;
-    mpq_class final = mult.real() * num_sols;
+    mpq_class final = od->val * num_sols;
 
     cout << "s mc " << final << endl;
 }
@@ -267,10 +268,10 @@ void set_approxmc_options()
 template<class T> void parse_file(const std::string& filename, T* reader) {
   #ifndef USE_ZLIB
   FILE * in = fopen(filename.c_str(), "rb");
-  DimacsParser<StreamBuffer<FILE*, CMSat::FN>, T> parser(reader, nullptr, 0);
+  DimacsParser<StreamBuffer<FILE*, CMSat::FN>, T> parser(reader, nullptr, 0, fg);
   #else
   gzFile in = gzopen(filename.c_str(), "rb");
-  DimacsParser<StreamBuffer<gzFile, CMSat::GZ>, T> parser(reader, nullptr, 0);
+  DimacsParser<StreamBuffer<gzFile, CMSat::GZ>, T> parser(reader, nullptr, 0, fg);
   #endif
   if (in == nullptr) {
       std::cout << "ERROR! Could not open file '" << filename
@@ -287,7 +288,7 @@ template<class T> void parse_file(const std::string& filename, T* reader) {
   if (!reader->get_sampl_vars_set()) {
     vector<uint32_t> tmp;
     for(uint32_t i = 0; i < reader->nVars(); i++) tmp.push_back(i);
-    reader->set_sampl_vars(tmp); // will automatically set the opt_sampl_vars
+    reader->set_sampl_vars(tmp);
   } else {
     // Check if CNF has all vars as indep. Then its's all_indep
     set<uint32_t> tmp;
@@ -320,7 +321,8 @@ int main(int argc, char** argv)
         if (i+1 < argc) command_line += " ";
     }
 
-    appmc = new ApproxMC::AppMC;
+    fg = std::make_unique<CMSat::FGenMpz>();
+    appmc = new ApproxMC::AppMC(fg);
     simp_conf.appmc = true;
     simp_conf.oracle_sparsify = false;
     simp_conf.iter1 = 2;
@@ -334,9 +336,9 @@ int main(int argc, char** argv)
     }
     set_approxmc_options();
 
-    ArjunNS::SimplifiedCNF cnf;
-    auto files = program.get<std::vector<std::string>>("inputfile");
-    string fname = files[0];
+    ArjunNS::SimplifiedCNF cnf(fg);
+    const auto& files = program.get<std::vector<std::string>>("inputfile");
+    const string fname(files[0]);
     if (do_arjun) {
         parse_file(fname, &cnf);
         const auto orig_sampl_vars = cnf.sampl_vars;

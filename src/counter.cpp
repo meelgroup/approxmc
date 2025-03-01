@@ -41,7 +41,6 @@
 #include <list>
 #include <array>
 #include <cmath>
-#include <complex>
 
 #include "counter.h"
 #include "appmc_constants.h"

@@ -30,11 +30,12 @@
 #include "counter.h"
 #include "appmc_constants.h"
 #include "appmcconfig.h"
+#include "cryptominisat5/solvertypesmini.h"
 #include <iostream>
+#include <memory>
 
 using std::cout;
 using std::endl;
-using std::complex;
 using namespace AppMCInt;
 
 #if defined _WIN32
@@ -46,7 +47,9 @@ using namespace AppMCInt;
 
 namespace ApproxMC {
     struct AppMCPrivateData {
-        AppMCPrivateData(): counter(conf) {}
+        AppMCPrivateData(const std::unique_ptr<CMSat::FieldGen>& fg):
+            conf(fg),
+            counter(conf, fg) {}
         Config conf;
         Counter counter;
         bool sampl_vars_declared = false;
@@ -55,9 +58,9 @@ namespace ApproxMC {
 
 using namespace ApproxMC;
 
-DLL_PUBLIC AppMC::AppMC()
+DLL_PUBLIC AppMC::AppMC(const std::unique_ptr<CMSat::FieldGen>& _fg)
 {
-    data = new AppMCPrivateData;
+    data = new AppMCPrivateData(_fg);
     data->counter.solver = new SATSolver();
     data->counter.solver->set_up_for_scalmc();
     data->counter.solver->set_allow_otf_gauss();
@@ -309,11 +312,11 @@ DLL_PUBLIC bool AppMC::get_sampl_vars_set() const {
     return data->conf.sampl_vars_set;
 }
 
- DLL_PUBLIC void AppMC::set_multiplier_weight(const complex<mpq_class>& weight) {
-     data->conf.multiplier_weight = weight;
+ DLL_PUBLIC void AppMC::set_multiplier_weight(const std::unique_ptr<CMSat::Field>& weight) {
+     data->conf.multiplier_weight = weight->dup();
  }
 
- DLL_PUBLIC const complex<mpq_class>& AppMC::get_multiplier_weight() const {
+ DLL_PUBLIC const std::unique_ptr<CMSat::Field>& AppMC::get_multiplier_weight() const {
      return data->conf.multiplier_weight;
  }
 
@@ -327,7 +330,7 @@ DLL_PUBLIC void AppMC::set_weighted(const bool weighted) {
 DLL_PUBLIC void AppMC::set_projected(const bool) {
 }
 
-DLL_PUBLIC void AppMC::set_lit_weight(const Lit&, const complex<mpq_class>&) {
+DLL_PUBLIC void AppMC::set_lit_weight(const Lit&, const std::unique_ptr<Field>&) {
     cout << "ERROR: Weighted ApproxMC is not supported" << endl;
     exit(-1);
 }

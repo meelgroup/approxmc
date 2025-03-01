@@ -30,7 +30,9 @@
 #ifndef APPROXMC_H__
 #define APPROXMC_H__
 
+#include <algorithm>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 #ifdef CMS_LOCAL_BUILD
@@ -65,7 +67,7 @@ class AppMC
 #endif
 {
 public:
-    AppMC();
+    AppMC(const std::unique_ptr<CMSat::FieldGen>& _fg);
     ~AppMC();
     ApproxMC::SolCount count();
     bool find_one_solution();
@@ -76,11 +78,11 @@ public:
     bool get_sampl_vars_set() const;
     bool get_opt_sampl_vars_set() const { return false; }
     const std::vector<uint32_t>& get_sampl_vars() const;
-    void set_multiplier_weight(const std::complex<mpq_class>& weight);
-    const std::complex<mpq_class>& get_multiplier_weight() const;
+    void set_multiplier_weight(const std::unique_ptr<CMSat::Field>& weight);
+    const std::unique_ptr<CMSat::Field>& get_multiplier_weight() const;
     void set_weighted(const bool weighted);
     void set_projected(const bool projected);
-    void set_lit_weight(const CMSat::Lit& lit, const std::complex<mpq_class>& weight);
+    void set_lit_weight(const CMSat::Lit& lit, const std::unique_ptr<CMSat::Field>& weight);
 
     // Adding constraints
     void new_var();

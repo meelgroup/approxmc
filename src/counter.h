@@ -28,6 +28,7 @@
 
 #include "appmcconfig.h"
 #include <fstream>
+#include <memory>
 #include <random>
 #include <map>
 #include <utility>
@@ -92,7 +93,7 @@ struct SparseData {
 
 class Counter {
 public:
-    Counter(Config& _conf) : conf(_conf) {}
+    Counter(Config& _conf, const std::unique_ptr<FieldGen>& _fg) : fg(_fg->dup()), conf(_conf) {}
     ApproxMC::SolCount solve();
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
@@ -109,6 +110,7 @@ public:
     bool solver_add_xor_clause(const vector<Lit>& lits, const bool rhs);
 
 private:
+    std::unique_ptr<FieldGen> fg;
     Config& conf;
     ApproxMC::SolCount count();
     void add_appmc_options();
