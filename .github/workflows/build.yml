@@ -113,19 +113,19 @@ jobs:
        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
        make -j8
        cd ../..
-   
-    - name: Checkout Arjun
-      uses: actions/checkout@v2
+
+    - name: Checkout arjun
+      uses: actions/checkout@v4
       with:
         repository: meelgroup/arjun
+        ref: synthesis2
         path: arjun
-     
-    - name: Build Arjun
+    - name: Build arjun
       run: |
        cd arjun
        mkdir build && cd build
        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
-       make
+       make -j8
        cd ../..
 
     - name: Configure CMake
