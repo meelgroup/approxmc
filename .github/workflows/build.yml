@@ -143,6 +143,7 @@ jobs:
         cd build
         ln -s ../scripts/*.sh .
         cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+        cmake --build . --config ${{matrix.build_type}} -v
         cd ../..
 
     - name: Checkout cereal
@@ -181,7 +182,7 @@ jobs:
         mkdir build
         cd build
         cmake ..
-        cmake --build . --config ${{matrix.build_type}}
+        cmake --build . --config ${{matrix.build_type}} -v
         sudo make install
         cd ../..
 
@@ -197,7 +198,7 @@ jobs:
         mkdir build
         cd build
         cmake -DBUILD_SHARED_LIBS=ON -DBUILD_CLI_EXECUTABLES=OFF ..
-        cmake --build . --config ${{matrix.build_type}}
+        cmake --build . --config ${{matrix.build_type}} -v
         sudo make install
         cd ../..
 
@@ -219,7 +220,7 @@ jobs:
         -DSTATICCOMPILE=${{ matrix.staticcompile }} \
         -DENABLE_TESTING=OFF \
         -S ..
-        cmake --build . --config ${{matrix.build_type}}
+        cmake --build . --config ${{matrix.build_type}} -v
         cd ../..
 
     - uses: actions/checkout@v4
@@ -237,7 +238,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
         -DSTATICCOMPILE=${{ matrix.staticcompile }} \
         -S ..
-        cmake --build . --config ${{matrix.build_type}}
+        cmake --build . --config ${{matrix.build_type}} -v
 
     - name: Test
       run: ctest -C ${{matrix.build_type}} --verbose
