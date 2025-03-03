@@ -152,8 +152,7 @@ jobs:
         -DSTATICCOMPILE=${{ matrix.staticcompile }}
         -S ${{ github.workspace }}
 
+
     - name: Build
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
-      run: cmake --build .
+      run: cmake --build . --config ${{env.build_type}}
 
