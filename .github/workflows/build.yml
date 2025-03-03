@@ -17,6 +17,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         build_type: [Release]
+        staticcompile: [ON, OFF]
         c_compiler: [gcc, clang, cl]
         include:
           - os: ubuntu-latest
