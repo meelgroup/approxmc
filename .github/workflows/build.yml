@@ -78,7 +78,7 @@ jobs:
     - name: Build Cadical
       run: |
        cd cadical
-       ./configure
+       CXXFLAGS=-fPIC ./configure --competition
        make -j8
        cd ..
 
@@ -143,8 +143,8 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      working-directory: ${{runner.workspace}}/build
       run: >
+        mkdir -p build && cd build
         cmake
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
@@ -155,6 +155,6 @@ jobs:
 
     - name: Build
       shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config ${{matrix.build_type}}
+      run: >
+        cmake --build . --config ${{matrix.build_type}}
 
