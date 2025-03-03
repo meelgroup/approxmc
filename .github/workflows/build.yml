@@ -18,6 +18,7 @@ jobs:
         build_type: [Release]
         staticcompile: [ON, OFF]
         c_compiler: [gcc]
+        cpp_compiler: [g++]
 
     steps:
     - uses: actions/setup-python@v5
