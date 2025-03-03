@@ -200,7 +200,28 @@ jobs:
         cmake --build . --config ${{matrix.build_type}}
         sudo make install
         cd ../..
-      
+
+    - name: Checkout arjun
+      uses: actions/checkout@v4
+      with:
+        repository: meelgroup/arjun
+        ref: synthesis2
+        path: arjun
+    - name: Build arjun
+      run: |
+        cd arjun
+        mkdir build
+        cd build
+        cmake \
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+        -DSTATICCOMPILE=${{ matrix.staticcompile }} \
+        -DENABLE_TESTING=OFF \
+        -S ..
+        cmake --build . --config ${{matrix.build_type}}
+        cd ../..
+
     - uses: actions/checkout@v4
       with:
         path: project
