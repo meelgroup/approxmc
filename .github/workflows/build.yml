@@ -11,7 +11,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
       fail-fast: false
 
       matrix:
@@ -35,11 +34,6 @@ jobs:
         #     c_compiler: cl
 
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{runner.workspace}}/build
-    
     - name: Install dependencies for Linux
       if: matrix.os == 'ubuntu-latest'
       run: sudo apt-get update && sudo apt-get install -yq help2man libgmp-dev libmpfr-dev libmlpack-dev libensmallen-dev
@@ -141,9 +135,14 @@ jobs:
        make -j8
        cd ../..
 
+    - uses: actions/checkout@v4
+      with:
+        path: project
+        submodules: 'true'
+    
     - name: Configure CMake
-      shell: bash
       run: |
+        cd project
         mkdir -p build && cd build
         cmake \
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
@@ -153,6 +152,7 @@ jobs:
         -S ${{ github.workspace }}
 
     - name: Build
-      shell: bash
-      run: cmake --build . --config ${{matrix.build_type}} --verbose
+      run: cmake --build . --config ${{matrix.build_type}}
 
+    - name: Test
+      run: ctest -C ${{matrix.build_type}} --verbose
