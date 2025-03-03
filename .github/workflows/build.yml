@@ -240,5 +240,26 @@ jobs:
         -S ..
         cmake --build . --config ${{matrix.build_type}} -v
 
+    - name: Upload Artifact - Linux
+      if: matrix.os == 'ubuntu-latest' && matrix.staticcompile == 'ON'
+      uses: actions/upload-artifact@v4
+      with:     
+        name: approxmc-linux-amd64
+        path: build/cryptominisat5
+    
+    - name: Upload Artifact - Mac
+      if: matrix.os == 'macos-13' && matrix.staticcompile == 'ON'
+      uses: actions/upload-artifact@v4
+      with:
+        name: approxmc-mac-amd64
+        path: project/approxmc
+
+    - name: Upload Artifact - Windows
+      if: matrix.os == 'windows-2022' && matrix.staticcompile == 'ON'
+      uses: actions/upload-artifact@v4
+      with:
+        name: approxmc-win64.exe
+        path: project\Release\approxmc.exe
+
     - name: Test
       run: ctest -C ${{matrix.build_type}} --verbose
