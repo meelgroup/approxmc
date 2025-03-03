@@ -8,20 +8,33 @@ on:
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
     runs-on: ${{ matrix.os }}
+
     strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
       matrix:
-        #os: [ubuntu-20.04, windows-2022, macos-13]
-        os: [ubuntu-20.04, macos-13]
-        build_type: ['Release']
-        staticcompile: ['ON', 'OFF']
-        
+        os: [ubuntu-latest]
+        build_type: [Release]
+        c_compiler: [gcc, clang, cl]
+        include:
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: cl
+
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
@@ -57,7 +70,7 @@ jobs:
         cd ..
        
     - name: Checkout Cadical
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: meelgroup/cadical
         ref: mate-only-libraries-1.8.0
@@ -71,7 +84,7 @@ jobs:
        cd ..
 
     - name: Checkout Cadiback
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: meelgroup/cadiback
         ref: mate
@@ -85,7 +98,7 @@ jobs:
        cd ..
     
     - name: Checkout CMS
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: msoos/cryptominisat
         ref: 'master'
