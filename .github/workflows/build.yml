@@ -103,14 +103,14 @@ jobs:
         ref: 'synthesis'
         path: cryptominisat
         submodules: 'true'
-    
+   
     - name: Build CMS
       run: |
-       cd cryptominisat
-       mkdir build && cd build
-       cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
-       make
-       cd ../..
+        cd cryptominisat
+        mkdir build &&cd build
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+        cmake --build . --config ${{matrix.build_type}}
+        cd ../..
        
     - name: Checkout SBVA
       uses: actions/checkout@v4
@@ -154,5 +154,5 @@ jobs:
 
 
     - name: Build
-      run: cmake --build . --config ${{env.build_type}}
+      run: cmake --build . --config ${{matrix.build_type}}
 
