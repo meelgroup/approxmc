@@ -14,24 +14,10 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-14]
         build_type: [Release]
         staticcompile: [ON, OFF]
         c_compiler: [gcc]
-        include:
-          - os: ubuntu-latest
-            c_compiler: gcc
-            cpp_compiler: g++
-          # - os: ubuntu-latest
-          #   c_compiler: clang
-          #   cpp_compiler: clang++
-        # exclude:
-        #   - os: windows-latest
-        #     c_compiler: gcc
-        #   - os: windows-latest
-        #     c_compiler: clang
-        #   - os: ubuntu-latest
-        #     c_compiler: cl
 
     steps:
     - uses: actions/setup-python@v5
@@ -43,7 +29,7 @@ jobs:
         pip install numpy lit
 
     - name: Install gmp for Mac
-      if: matrix.os == 'macos-13'
+      if: matrix.os == 'macos-14'
       run: | 
         HOMEBREW_NO_AUTO_UPDATE=1 brew install cmake
         HOMEBREW_NO_AUTO_UPDATE=1 brew install zlib
@@ -56,7 +42,7 @@ jobs:
         cd ..
   
     - name: Install mpfr for Mac
-      if: matrix.os == 'macos-13'
+      if: matrix.os == 'macos-14'
       run: | 
         wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz 
         tar xf mpfr-4.2.1.tar.xz 
@@ -245,13 +231,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:     
         name: approxmc-linux-amd64
-        path: build/cryptominisat5
+        path: build/approxmc
     
     - name: Upload Artifact - Mac
-      if: matrix.os == 'macos-13' && matrix.staticcompile == 'ON'
+      if: matrix.os == 'macos-14' && matrix.staticcompile == 'ON'
       uses: actions/upload-artifact@v4
       with:
-        name: approxmc-mac-amd64
+        name: approxmc-mac-arm64
         path: project/approxmc
 
     - name: Upload Artifact - Windows
