@@ -149,7 +149,7 @@ jobs:
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
         -DSTATICCOMPILE=${{ matrix.staticcompile }} \
-        -S ${{ github.workspace }}
+        -S ..
 
     - name: Build
       run: cmake --build . --config ${{matrix.build_type}}
