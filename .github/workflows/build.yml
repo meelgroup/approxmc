@@ -42,7 +42,7 @@ jobs:
     
     - name: Install dependencies for Linux
       if: matrix.os == 'ubuntu-latest'
-      run: sudo apt-get update && sudo apt-get install -yq help2man libgmp-dev libmpfr-dev libarmadillo-dev
+      run: sudo apt-get update && sudo apt-get install -yq help2man libgmp-dev libmpfr-dev libarmadillo-dev libmlpack-dev
     
     - name: Install gmp for Mac
       if: matrix.os == 'macos-13'
