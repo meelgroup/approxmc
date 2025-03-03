@@ -111,7 +111,7 @@ jobs:
         mkdir build
         cd build
         cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
-        cd ../../
+        cd ../..
 
     - name: Checkout CMS
       uses: actions/checkout@v4
@@ -157,6 +157,7 @@ jobs:
         cmake -DJUST_INSTALL_CEREAL=ON ..
         make -j6
         sudo make install
+        cd ..
 
     - name: Checkout armadillo
       run: |
@@ -168,6 +169,7 @@ jobs:
         ./configure
         make -j6
         sudo make install
+        cd ..
 
     - name: Checkout ensmallen
       run: |
@@ -181,6 +183,7 @@ jobs:
         cmake ..
         cmake --build . --config ${{matrix.build_type}}
         sudo make install
+        cd ../..
 
     - name: Checkout mlpack
       uses: actions/checkout@v4
@@ -196,8 +199,8 @@ jobs:
         cmake -DBUILD_SHARED_LIBS=ON -DBUILD_CLI_EXECUTABLES=OFF ..
         cmake --build . --config ${{matrix.build_type}}
         sudo make install
+        cd ../..
       
-
     - uses: actions/checkout@v4
       with:
         path: project
