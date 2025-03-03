@@ -158,6 +158,17 @@ jobs:
         make -j6
         sudo make install
 
+    - name: Checkout armadillo
+      run: |
+        wget https://sourceforge.net/projects/arma/files/armadillo-14.0.2.tar.xz
+    - name: Build armadillo
+      run: |
+        tar xvf armadillo-14.0.2.tar.xz
+        cd armadillo-14.0.2/
+        ./configure
+        make -j6
+        sudo make install
+
     - name: Checkout ensmallen
       run: |
         wget https://ensmallen.org/files/ensmallen-2.21.1.tar.gz
