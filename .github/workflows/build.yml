@@ -143,18 +143,16 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      run: >
+      run: |
         mkdir -p build && cd build
-        cmake
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DSTATICCOMPILE=${{ matrix.staticcompile }}
+        cmake \
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+        -DSTATICCOMPILE=${{ matrix.staticcompile }} \
         -S ${{ github.workspace }}
-
 
     - name: Build
       shell: bash
-      run: >
-        cmake --build . --config ${{matrix.build_type}}
+      run: cmake --build . --config ${{matrix.build_type}} --verbose
 
