@@ -34,10 +34,14 @@ jobs:
         #     c_compiler: cl
 
     steps:
-    - name: Install dependencies for Linux
-      if: matrix.os == 'ubuntu-latest'
-      run: sudo apt-get update && sudo apt-get install -yq help2man libgmp-dev libmpfr-dev libmlpack-dev libensmallen-dev
-    
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install python dependencies
+      run: |
+        pip install numpy lit
+
     - name: Install gmp for Mac
       if: matrix.os == 'macos-13'
       run: | 
@@ -50,7 +54,7 @@ jobs:
         make -j8
         sudo make install
         cd ..
-      
+  
     - name: Install mpfr for Mac
       if: matrix.os == 'macos-13'
       run: | 
@@ -61,20 +65,24 @@ jobs:
         make -j8
         sudo make install
         cd ..
-       
+    
+    - name: Install dependencies for Linux
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get update && sudo apt-get install -yq help2man libgmp-dev libmpfr-dev
+      
     - name: Checkout Cadical
       uses: actions/checkout@v4
       with:
         repository: meelgroup/cadical
-        ref: mate-only-libraries-1.8.0
+        ref: add_dynamic_lib
         path: cadical
         
     - name: Build Cadical
       run: |
-       cd cadical
-       CXXFLAGS=-fPIC ./configure --competition
-       make -j8
-       cd ..
+        cd cadical
+        CXXFLAGS=-fPIC ./configure --competition
+        make -j8
+        cd ..
 
     - name: Checkout Cadiback
       uses: actions/checkout@v4
@@ -85,19 +93,34 @@ jobs:
         
     - name: Build Cadiback
       run: |
-       cd cadiback
-       ./configure
-       make -j8
-       cd ..
+        cd cadiback
+        CXX=c++ ./configure
+        make -j8
+        cd ..
     
+    - name: Checkout breakid
+      uses: actions/checkout@v4
+      with:
+        repository: meelgroup/breakid
+        ref: master
+        path: breakid
+        
+    - name: Build Breakid
+      run: |
+        cd breakid
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+        cd ../../
+
     - name: Checkout CMS
       uses: actions/checkout@v4
       with:
         repository: msoos/cryptominisat
-        ref: 'synthesis'
+        ref: synthesis
         path: cryptominisat
         submodules: 'true'
-   
+        
     - name: Build CMS
       run: |
         cd cryptominisat
@@ -105,42 +128,71 @@ jobs:
         cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
         cmake --build . --config ${{matrix.build_type}}
         cd ../..
-       
+
     - name: Checkout SBVA
       uses: actions/checkout@v4
       with:
-        repository: meelgroup/sbva
+        repository: meelgroup/SBVA
         ref: master
-        path: sbva    
+        path: sbva
         
     - name: Build SBVA
       run: |
-       cd sbva
-       mkdir build && cd build
-       cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
-       make -j8
-       cd ../..
+        cd sbva
+        mkdir build
+        cd build
+        ln -s ../scripts/*.sh .
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+        cd ../..
 
-    - name: Checkout arjun
+    - name: Checkout cereal
+      run: |
+        wget https://github.com/USCiLab/cereal/archive/v1.3.2.tar.gz
+    - name: Build cereal
+      run: |
+        tar xvf v1.3.2.tar.gz
+        cd cereal-1.3.2
+        mkdir build
+        cd build
+        cmake -DJUST_INSTALL_CEREAL=ON ..
+        make -j6
+        sudo make install
+
+    - name: Checkout ensmallen
+      run: |
+        wget https://ensmallen.org/files/ensmallen-2.21.1.tar.gz
+    - name: Build ensmallen
+      run: |
+        tar xvf ensmallen-2.21.1.tar.gz
+        cd ensmallen-2.21.1
+        mkdir build
+        cd build
+        cmake ..
+        cmake --build . --config ${{matrix.build_type}}
+        sudo make install
+
+    - name: Checkout mlpack
       uses: actions/checkout@v4
       with:
-        repository: meelgroup/arjun
-        ref: synthesis2
-        path: arjun
-    - name: Build arjun
+        repository: mlpack/mlpack
+        ref: 4.4.0
+        path: mlpack
+    - name: Build mlpack
       run: |
-       cd arjun
-       mkdir build && cd build
-       cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
-       make -j8
-       cd ../..
+        cd mlpack
+        mkdir build
+        cd build
+        cmake -DBUILD_SHARED_LIBS=ON -DBUILD_CLI_EXECUTABLES=OFF ..
+        cmake --build . --config ${{matrix.build_type}}
+        sudo make install
+      
 
     - uses: actions/checkout@v4
       with:
         path: project
         submodules: 'true'
-    
-    - name: Configure CMake
+
+    - name: Build project
       run: |
         cd project
         mkdir -p build && cd build
@@ -150,9 +202,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
         -DSTATICCOMPILE=${{ matrix.staticcompile }} \
         -S ..
-
-    - name: Build
-      run: cmake --build . --config ${{matrix.build_type}}
+        cmake --build . --config ${{matrix.build_type}}
 
     - name: Test
       run: ctest -C ${{matrix.build_type}} --verbose
