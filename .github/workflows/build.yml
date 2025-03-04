@@ -253,21 +253,21 @@ jobs:
       uses: actions/upload-artifact@v4
       with:     
         name: approxmc-linux-amd64
-        path: approxmc
+        path: project/build/approxmc
     
     - name: Upload Artifact - Mac
       if: matrix.os == 'macos-14' && matrix.staticcompile == 'ON'
       uses: actions/upload-artifact@v4
       with:
         name: approxmc-mac-arm64
-        path: approxmc
+        path: project/build/approxmc
 
     - name: Upload Artifact - Windows
       if: matrix.os == 'windows-2022' && matrix.staticcompile == 'ON'
       uses: actions/upload-artifact@v4
       with:
         name: approxmc-win64.exe
-        path: Release\approxmc.exe
+        path: project\build\Release\approxmc.exe
 
     - name: Test
       run: ctest -C ${{matrix.build_type}} --verbose
