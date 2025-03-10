@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "cryptominisat5/solvertypesmini.h"
 #include "test_helper.h"
 #include <memory>
+#include <cmath>
 #include <string>
 #include <vector>
 using std::string;

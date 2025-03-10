@@ -7,3 +7,4 @@ python/arjun
 .ccls-cache/
 compile_commands.json
 dist/pyapproxmc*
+compare
