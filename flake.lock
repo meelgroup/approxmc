@@ -1,0 +1,329 @@
+{
+  "nodes": {
+    "arjun": {
+      "inputs": {
+        "cadiback": "cadiback",
+        "cadical": "cadical_2",
+        "cryptominisat": "cryptominisat",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741816476,
+        "narHash": "sha256-uONfMNbj/0VFErH3SlmOoIwjs5Gd/qquPJsq49JUuho=",
+        "owner": "itepastra",
+        "repo": "arjun",
+        "rev": "67c2a90760c43d5ef1af2b9844f4e488722c5f3b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "arjun",
+        "type": "github"
+      }
+    },
+    "cadiback": {
+      "inputs": {
+        "cadical": "cadical",
+        "nixpkgs": [
+          "arjun",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741797581,
+        "narHash": "sha256-74vgCcCQafIZYstYnDwnGwoGK37ZLKm/FyXoLirLL2U=",
+        "owner": "itepastra",
+        "repo": "cadiback",
+        "rev": "75a0ea4a49c4b6293614a992bc2a82759792a962",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cadiback",
+        "type": "github"
+      }
+    },
+    "cadiback_2": {
+      "inputs": {
+        "cadical": "cadical_3",
+        "nixpkgs": [
+          "arjun",
+          "cryptominisat",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741797581,
+        "narHash": "sha256-74vgCcCQafIZYstYnDwnGwoGK37ZLKm/FyXoLirLL2U=",
+        "owner": "itepastra",
+        "repo": "cadiback",
+        "rev": "75a0ea4a49c4b6293614a992bc2a82759792a962",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cadiback",
+        "type": "github"
+      }
+    },
+    "cadiback_3": {
+      "inputs": {
+        "cadical": "cadical_5",
+        "nixpkgs": [
+          "cryptominisat",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741797581,
+        "narHash": "sha256-74vgCcCQafIZYstYnDwnGwoGK37ZLKm/FyXoLirLL2U=",
+        "owner": "itepastra",
+        "repo": "cadiback",
+        "rev": "75a0ea4a49c4b6293614a992bc2a82759792a962",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cadiback",
+        "type": "github"
+      }
+    },
+    "cadical": {
+      "inputs": {
+        "nixpkgs": [
+          "arjun",
+          "cadiback",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741795024,
+        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
+        "owner": "itepastra",
+        "repo": "cadical",
+        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cadical",
+        "type": "github"
+      }
+    },
+    "cadical_2": {
+      "inputs": {
+        "nixpkgs": [
+          "arjun",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741795024,
+        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
+        "owner": "itepastra",
+        "repo": "cadical",
+        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cadical",
+        "type": "github"
+      }
+    },
+    "cadical_3": {
+      "inputs": {
+        "nixpkgs": [
+          "arjun",
+          "cryptominisat",
+          "cadiback",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741795024,
+        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
+        "owner": "itepastra",
+        "repo": "cadical",
+        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cadical",
+        "type": "github"
+      }
+    },
+    "cadical_4": {
+      "inputs": {
+        "nixpkgs": [
+          "arjun",
+          "cryptominisat",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741795024,
+        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
+        "owner": "itepastra",
+        "repo": "cadical",
+        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cadical",
+        "type": "github"
+      }
+    },
+    "cadical_5": {
+      "inputs": {
+        "nixpkgs": [
+          "cryptominisat",
+          "cadiback",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741795024,
+        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
+        "owner": "itepastra",
+        "repo": "cadical",
+        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cadical",
+        "type": "github"
+      }
+    },
+    "cadical_6": {
+      "inputs": {
+        "nixpkgs": [
+          "cryptominisat",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741795024,
+        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
+        "owner": "itepastra",
+        "repo": "cadical",
+        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cadical",
+        "type": "github"
+      }
+    },
+    "cryptominisat": {
+      "inputs": {
+        "cadiback": "cadiback_2",
+        "cadical": "cadical_4",
+        "nixpkgs": [
+          "arjun",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741798258,
+        "narHash": "sha256-C9SFm6EPlFY3ozl9dOET9tnk07W14YQ8SRtec89QPwc=",
+        "owner": "itepastra",
+        "repo": "cryptominisat",
+        "rev": "0087864e0c9a4fe54e48f1de8ff14d9087de5231",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cryptominisat",
+        "type": "github"
+      }
+    },
+    "cryptominisat_2": {
+      "inputs": {
+        "cadiback": "cadiback_3",
+        "cadical": "cadical_6",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741798258,
+        "narHash": "sha256-C9SFm6EPlFY3ozl9dOET9tnk07W14YQ8SRtec89QPwc=",
+        "owner": "itepastra",
+        "repo": "cryptominisat",
+        "rev": "0087864e0c9a4fe54e48f1de8ff14d9087de5231",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "cryptominisat",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1741708242,
+        "narHash": "sha256-cNRqdQD4sZpN7JLqxVOze4+WsWTmv2DGH0wNCOVwrWc=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "b62d2a95c72fb068aecd374a7262b37ed92df82b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "arjun": "arjun",
+        "cryptominisat": "cryptominisat_2",
+        "nixpkgs": "nixpkgs",
+        "sbva": "sbva"
+      }
+    },
+    "sbva": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741818348,
+        "narHash": "sha256-uIZjMl4/p8XNPeyltfM82vCMdXTbLgowdnBFEa+/93E=",
+        "owner": "itepastra",
+        "repo": "sbva",
+        "rev": "0bf98e8f2a3fbfd84f4e9c76780c3cdc7428aa59",
+        "type": "github"
+      },
+      "original": {
+        "owner": "itepastra",
+        "ref": "add-flake",
+        "repo": "sbva",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
