@@ -8,3 +8,4 @@ python/arjun
 compile_commands.json
 dist/pyapproxmc*
 compare
+/result
