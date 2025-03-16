@@ -7,7 +7,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     cryptominisat = {
-      url = "github:meelgroup/cryptominisat/synthesis";
+      url = "github:msoos/cryptominisat/synthesis";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     sbva = {
