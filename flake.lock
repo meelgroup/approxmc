@@ -7,19 +7,20 @@
         "cryptominisat": "cryptominisat",
         "nixpkgs": [
           "nixpkgs"
-        ]
+        ],
+        "sbva": "sbva"
       },
       "locked": {
-        "lastModified": 1741816476,
-        "narHash": "sha256-uONfMNbj/0VFErH3SlmOoIwjs5Gd/qquPJsq49JUuho=",
-        "owner": "itepastra",
+        "lastModified": 1742128110,
+        "narHash": "sha256-iNh6BTmywhurF1gYg/gcdTeB7zG9Sl2jW9OAq4z7dhc=",
+        "owner": "meelgroup",
         "repo": "arjun",
-        "rev": "67c2a90760c43d5ef1af2b9844f4e488722c5f3b",
+        "rev": "4dc67add8647da0b0bf5842e7f2dc5399ae257b9",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "synthesis2",
         "repo": "arjun",
         "type": "github"
       }
@@ -33,16 +34,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741797581,
-        "narHash": "sha256-74vgCcCQafIZYstYnDwnGwoGK37ZLKm/FyXoLirLL2U=",
-        "owner": "itepastra",
+        "lastModified": 1742124943,
+        "narHash": "sha256-i1S5+YhYQPIod4jnkdMDHlzIHqvZaZfyN8Sa+HVoRks=",
+        "owner": "meelgroup",
         "repo": "cadiback",
-        "rev": "75a0ea4a49c4b6293614a992bc2a82759792a962",
+        "rev": "c24a73f62da2f984df6d3f1cf37283b1ca1c9f9e",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "synthesis",
         "repo": "cadiback",
         "type": "github"
       }
@@ -57,16 +58,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741797581,
-        "narHash": "sha256-74vgCcCQafIZYstYnDwnGwoGK37ZLKm/FyXoLirLL2U=",
-        "owner": "itepastra",
+        "lastModified": 1742124943,
+        "narHash": "sha256-i1S5+YhYQPIod4jnkdMDHlzIHqvZaZfyN8Sa+HVoRks=",
+        "owner": "meelgroup",
         "repo": "cadiback",
-        "rev": "75a0ea4a49c4b6293614a992bc2a82759792a962",
+        "rev": "c24a73f62da2f984df6d3f1cf37283b1ca1c9f9e",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "synthesis",
         "repo": "cadiback",
         "type": "github"
       }
@@ -80,16 +81,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741797581,
-        "narHash": "sha256-74vgCcCQafIZYstYnDwnGwoGK37ZLKm/FyXoLirLL2U=",
-        "owner": "itepastra",
+        "lastModified": 1742124943,
+        "narHash": "sha256-i1S5+YhYQPIod4jnkdMDHlzIHqvZaZfyN8Sa+HVoRks=",
+        "owner": "meelgroup",
         "repo": "cadiback",
-        "rev": "75a0ea4a49c4b6293614a992bc2a82759792a962",
+        "rev": "c24a73f62da2f984df6d3f1cf37283b1ca1c9f9e",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "synthesis",
         "repo": "cadiback",
         "type": "github"
       }
@@ -103,16 +104,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741795024,
-        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
-        "owner": "itepastra",
+        "lastModified": 1742124921,
+        "narHash": "sha256-zJi1YgOmmqfLCbL1nCQ0qmjwvy9xhKMAOI9Udqi/tBQ=",
+        "owner": "meelgroup",
         "repo": "cadical",
-        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "rev": "8fcb8139c453e7cb85c470cea5d783db8e229518",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "add_dynamic_lib",
         "repo": "cadical",
         "type": "github"
       }
@@ -125,16 +126,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741795024,
-        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
-        "owner": "itepastra",
+        "lastModified": 1742124921,
+        "narHash": "sha256-zJi1YgOmmqfLCbL1nCQ0qmjwvy9xhKMAOI9Udqi/tBQ=",
+        "owner": "meelgroup",
         "repo": "cadical",
-        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "rev": "8fcb8139c453e7cb85c470cea5d783db8e229518",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "add_dynamic_lib",
         "repo": "cadical",
         "type": "github"
       }
@@ -149,16 +150,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741795024,
-        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
-        "owner": "itepastra",
+        "lastModified": 1742124921,
+        "narHash": "sha256-zJi1YgOmmqfLCbL1nCQ0qmjwvy9xhKMAOI9Udqi/tBQ=",
+        "owner": "meelgroup",
         "repo": "cadical",
-        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "rev": "8fcb8139c453e7cb85c470cea5d783db8e229518",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "add_dynamic_lib",
         "repo": "cadical",
         "type": "github"
       }
@@ -172,16 +173,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741795024,
-        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
-        "owner": "itepastra",
+        "lastModified": 1742124921,
+        "narHash": "sha256-zJi1YgOmmqfLCbL1nCQ0qmjwvy9xhKMAOI9Udqi/tBQ=",
+        "owner": "meelgroup",
         "repo": "cadical",
-        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "rev": "8fcb8139c453e7cb85c470cea5d783db8e229518",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "add_dynamic_lib",
         "repo": "cadical",
         "type": "github"
       }
@@ -195,16 +196,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741795024,
-        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
-        "owner": "itepastra",
+        "lastModified": 1742124921,
+        "narHash": "sha256-zJi1YgOmmqfLCbL1nCQ0qmjwvy9xhKMAOI9Udqi/tBQ=",
+        "owner": "meelgroup",
         "repo": "cadical",
-        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "rev": "8fcb8139c453e7cb85c470cea5d783db8e229518",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "add_dynamic_lib",
         "repo": "cadical",
         "type": "github"
       }
@@ -217,16 +218,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741795024,
-        "narHash": "sha256-7cHubV0xHcIixU6JMZ0s5cxaJ1wJSG+CmPxUJ4G2n+0=",
-        "owner": "itepastra",
+        "lastModified": 1742124921,
+        "narHash": "sha256-zJi1YgOmmqfLCbL1nCQ0qmjwvy9xhKMAOI9Udqi/tBQ=",
+        "owner": "meelgroup",
         "repo": "cadical",
-        "rev": "13b5ddf5713933648ddc23d2723854de3f40a589",
+        "rev": "8fcb8139c453e7cb85c470cea5d783db8e229518",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "add_dynamic_lib",
         "repo": "cadical",
         "type": "github"
       }
@@ -241,16 +242,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1741798258,
-        "narHash": "sha256-C9SFm6EPlFY3ozl9dOET9tnk07W14YQ8SRtec89QPwc=",
-        "owner": "itepastra",
+        "lastModified": 1742125330,
+        "narHash": "sha256-neW9yD6eJuBj6LL3/2sFh3uEwRyWhp6OLuVsqKzUDhQ=",
+        "owner": "msoos",
         "repo": "cryptominisat",
-        "rev": "0087864e0c9a4fe54e48f1de8ff14d9087de5231",
+        "rev": "7bafb07aebb273bf8404212387b47dbe0ee191e9",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "msoos",
+        "ref": "synthesis",
         "repo": "cryptominisat",
         "type": "github"
       }
@@ -264,27 +265,27 @@
         ]
       },
       "locked": {
-        "lastModified": 1741798258,
-        "narHash": "sha256-C9SFm6EPlFY3ozl9dOET9tnk07W14YQ8SRtec89QPwc=",
-        "owner": "itepastra",
+        "lastModified": 1742125330,
+        "narHash": "sha256-neW9yD6eJuBj6LL3/2sFh3uEwRyWhp6OLuVsqKzUDhQ=",
+        "owner": "msoos",
         "repo": "cryptominisat",
-        "rev": "0087864e0c9a4fe54e48f1de8ff14d9087de5231",
+        "rev": "7bafb07aebb273bf8404212387b47dbe0ee191e9",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "msoos",
+        "ref": "synthesis",
         "repo": "cryptominisat",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1741708242,
-        "narHash": "sha256-cNRqdQD4sZpN7JLqxVOze4+WsWTmv2DGH0wNCOVwrWc=",
+        "lastModified": 1741865919,
+        "narHash": "sha256-4thdbnP6dlbdq+qZWTsm4ffAwoS8Tiq1YResB+RP6WE=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "b62d2a95c72fb068aecd374a7262b37ed92df82b",
+        "rev": "573c650e8a14b2faa0041645ab18aed7e60f0c9a",
         "type": "github"
       },
       "original": {
@@ -299,26 +300,48 @@
         "arjun": "arjun",
         "cryptominisat": "cryptominisat_2",
         "nixpkgs": "nixpkgs",
-        "sbva": "sbva"
+        "sbva": "sbva_2"
       }
     },
     "sbva": {
+      "inputs": {
+        "nixpkgs": [
+          "arjun",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1742125112,
+        "narHash": "sha256-ZPeJDFzC1/gyt3nY6kW4XCitUALEhfi/KWiKur0gXcM=",
+        "owner": "meelgroup",
+        "repo": "sbva",
+        "rev": "1b3beb40bbc3afc3b15e4cc84e43cef99d0ee5a5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "meelgroup",
+        "ref": "master",
+        "repo": "sbva",
+        "type": "github"
+      }
+    },
+    "sbva_2": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1741818348,
-        "narHash": "sha256-uIZjMl4/p8XNPeyltfM82vCMdXTbLgowdnBFEa+/93E=",
-        "owner": "itepastra",
+        "lastModified": 1742125112,
+        "narHash": "sha256-ZPeJDFzC1/gyt3nY6kW4XCitUALEhfi/KWiKur0gXcM=",
+        "owner": "meelgroup",
         "repo": "sbva",
-        "rev": "0bf98e8f2a3fbfd84f4e9c76780c3cdc7428aa59",
+        "rev": "1b3beb40bbc3afc3b15e4cc84e43cef99d0ee5a5",
         "type": "github"
       },
       "original": {
-        "owner": "itepastra",
-        "ref": "add-flake",
+        "owner": "meelgroup",
+        "ref": "master",
         "repo": "sbva",
         "type": "github"
       }
