@@ -27,10 +27,8 @@
  */
 
 
-#ifndef APPROXMC_H__
-#define APPROXMC_H__
+#pragma once
 
-#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -94,7 +92,7 @@ public:
     bool add_xor_clause(const std::vector<uint32_t>& vars, bool rhs);
 
     // Information about approxmc
-    std::string get_version_info();
+    static std::string get_version_sha1();
     void print_stats(const double start_time);
 
     //Main options
@@ -135,5 +133,3 @@ private:
 };
 
 }
-
-#endif

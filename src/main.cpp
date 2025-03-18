@@ -92,10 +92,12 @@ bool do_backbone = false;
 
 void print_version() {
     std::stringstream ss;
-    cout << "c o CMS revision: " << CMSat::SATSolver::get_version_sha1() << endl;
-    cout << "c o Arjun SHA revision: " << ArjunNS::Arjun ::get_version_info() << endl;
-    cout << "c o Arjun SBVA SHA revision: " << ArjunNS::Arjun::get_sbva_version_info() << endl;
-    cout << appmc->get_version_info();
+    cout << "c o CMS SHA1: " << CMSat::SATSolver::get_version_sha1() << endl;
+    cout << "c o Arjun SHA1: " << ArjunNS::Arjun ::get_version_sha1() << endl;
+    cout << "c o Arjun SBVA SHA1: " << ArjunNS::Arjun::get_sbva_version_sha1() << endl;
+    cout << "c o ApproxMC SHA1: " << ApproxMC::AppMC::get_version_sha1() << endl;
+    cout << CMSat::SATSolver::get_thanks_info("c o ");
+    cout << ArjunNS::Arjun::get_thanks_info("c o ");
 }
 
 void add_appmc_options()

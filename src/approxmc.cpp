@@ -33,6 +33,7 @@
 #include "cryptominisat5/solvertypesmini.h"
 #include <iostream>
 #include <memory>
+#include "GitSHA1.h"
 
 using std::cout;
 using std::endl;
@@ -93,9 +94,9 @@ void setup_sampling_vars(AppMCPrivateData* data)
     data->counter.solver->set_sampl_vars(data->conf.sampl_vars);
 }
 
-DLL_PUBLIC string AppMC::get_version_info()
+DLL_PUBLIC string AppMC::get_version_sha1()
 {
-    return data->counter.get_version_info();
+    return AppMCInt::get_version_sha1();
 }
 
 DLL_PUBLIC void AppMC::set_up_log(string log_file_name)

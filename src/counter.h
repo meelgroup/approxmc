@@ -102,7 +102,6 @@ public:
     bool gen_rhs();
     uint32_t threshold_appmcgen;
     SATSolver* solver = nullptr;
-    string get_version_info(const char* prefix = "c ") const;
     ApproxMC::SolCount calc_est_count();
     const Constants constants;
     bool solver_add_clause(const vector<Lit>& cl);

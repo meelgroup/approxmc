@@ -33,19 +33,15 @@
 #include <iostream>
 #include <iomanip>
 #include <map>
-#include <set>
 #include <utility>
 #include <fstream>
 #include <sys/stat.h>
 #include <cstring>
-#include <list>
-#include <array>
 #include <cmath>
 
 #include "counter.h"
 #include "appmc_constants.h"
 #include "time_mem.h"
-#include "GitSHA1.h"
 #ifdef CMS_LOCAL_BUILD
 #include "arjun.h"
 #else
@@ -717,29 +713,6 @@ template<class T> inline T Counter::find_min(const vector<T>& nums) {
         if (a < min) min = a;
     }
     return min;
-}
-
-string scalmc_version_info(const char* prefix)
-{
-    std::stringstream ss;
-    ss << prefix << "ApproxMC SHA revision " << AppMCInt::get_version_sha1() << endl;
-    ss << prefix << "ApproxMC version " << AppMCInt::get_version_tag() << endl;
-    ss << prefix << "ApproxMC compilation env " << AppMCInt::get_compilation_env() << endl;
-    #ifdef __GNUC__
-    ss << prefix << "ApproxMC compiled with gcc version " << __VERSION__ << endl;
-    #else
-    ss << prefix << "ApproxMC compiled with non-gcc compiler" << endl;
-    #endif
-
-    return ss.str();
-}
-
-string Counter::get_version_info(const char* prefix) const
-{
-    string ret = ::scalmc_version_info(prefix);
-    ret += solver->get_text_version_info(prefix);
-
-    return ret;
 }
 
 void Counter::open_logfile()
