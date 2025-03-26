@@ -32,7 +32,6 @@ jobs:
     - name: Install gmp for Mac
       if: matrix.os == 'macos-14'
       run: |
-        HOMEBREW_NO_AUTO_UPDATE=1 brew install cmake
         wget https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
         tar xf gmp-6.3.0.tar.xz
         cd gmp-6.3.0
