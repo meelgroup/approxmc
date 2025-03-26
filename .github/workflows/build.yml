@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-latest, macos-14]
+        os: [ubuntu-latest, macos-14, ubuntu-24.04-arm]
         build_type: [Release]
         staticcompile: [ON, OFF]
         c_compiler: [gcc]
@@ -31,7 +31,7 @@ jobs:
 
     - name: Install gmp for Mac
       if: matrix.os == 'macos-14'
-      run: | 
+      run: |
         HOMEBREW_NO_AUTO_UPDATE=1 brew install cmake
         wget https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
         tar xf gmp-6.3.0.tar.xz
@@ -43,7 +43,7 @@ jobs:
 
     - name: Install zlib for Mac dynamic
       if: matrix.os == 'macos-14' && matrix.staticcompile == 'OFF'
-      run: | 
+      run: |
         wget https://www.zlib.net/zlib-1.3.1.tar.gz
         tar xzvf zlib-1.3.1.tar.gz
         cd zlib-1.3.1
@@ -51,10 +51,10 @@ jobs:
         make -j8
         sudo make install
         cd ..
-    
+
     - name: Install zlib for Mac static
       if: matrix.os == 'macos-14' && matrix.staticcompile == 'ON'
-      run: | 
+      run: |
         wget https://www.zlib.net/zlib-1.3.1.tar.gz
         tar xzvf zlib-1.3.1.tar.gz
         cd zlib-1.3.1
@@ -62,29 +62,29 @@ jobs:
         make -j8
         sudo make install
         cd ..
-  
+
     - name: Install mpfr for Mac
       if: matrix.os == 'macos-14'
-      run: | 
-        wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz 
-        tar xf mpfr-4.2.1.tar.xz 
+      run: |
+        wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz
+        tar xf mpfr-4.2.1.tar.xz
         cd mpfr-4.2.1
         ./configure --enable-static -enable-cxx --enable-shared
         make -j8
         sudo make install
         cd ..
-    
+
     - name: Install dependencies for Linux
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-24.04-arm'
       run: sudo apt-get update && sudo apt-get install -yq help2man libgmp-dev libmpfr-dev
-      
+
     - name: Checkout Cadical
       uses: actions/checkout@v4
       with:
         repository: meelgroup/cadical
         ref: add_dynamic_lib
         path: cadical
-        
+
     - name: Build Cadical
       run: |
         cd cadical
@@ -98,21 +98,21 @@ jobs:
         repository: meelgroup/cadiback
         ref: synthesis
         path: cadiback
-        
+
     - name: Build Cadiback
       run: |
         cd cadiback
         CXX=c++ ./configure
         make -j8
         cd ..
-    
+
     - name: Checkout breakid
       uses: actions/checkout@v4
       with:
         repository: meelgroup/breakid
         ref: master
         path: breakid
-        
+
     - name: Build Breakid
       run: |
         cd breakid
@@ -128,7 +128,7 @@ jobs:
         ref: synthesis
         path: cryptominisat
         submodules: 'true'
-        
+
     - name: Build CMS
       run: |
         cd cryptominisat
@@ -143,7 +143,7 @@ jobs:
         repository: meelgroup/SBVA
         ref: master
         path: sbva
-        
+
     - name: Build SBVA
       run: |
         cd sbva
@@ -251,15 +251,22 @@ jobs:
     - name: Upload Artifact - Linux
       if: matrix.os == 'ubuntu-latest' && matrix.staticcompile == 'ON'
       uses: actions/upload-artifact@v4
-      with:     
+      with:
         name: approxmc-linux-amd64
         path: project/build/approxmc
-    
+
     - name: Upload Artifact - Mac
       if: matrix.os == 'macos-14' && matrix.staticcompile == 'ON'
       uses: actions/upload-artifact@v4
       with:
         name: approxmc-mac-arm64
+        path: project/build/approxmc
+
+    - name: Upload Artifact - Linux arm
+      if: matrix.os == 'ubuntu-24.04-arm' && matrix.staticcompile == 'ON'
+      uses: actions/upload-artifact@v4
+      with:
+        name: approxmc-linux-arm64
         path: project/build/approxmc
 
     - name: Upload Artifact - Windows
