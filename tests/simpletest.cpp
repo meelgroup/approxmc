@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "approxmc.h"
 #include "cryptominisat5/solvertypesmini.h"
 #include "test_helper.h"
+#include <arjun/arjun.h>
 #include <memory>
 #include <cmath>
 #include <string>
@@ -39,7 +40,7 @@ using std::vector;
 
 TEST(normal_interface, start)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<CMSat::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
     AppMC s(fg);
     s.set_sampl_vars({});
     SolCount c = s.count();
@@ -49,7 +50,7 @@ TEST(normal_interface, start)
 
 TEST(normal_interface, example1)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<CMSat::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
     AppMC s(fg);
     s.new_vars(2);
     s.add_clause(str_to_cl("-1, 2"));
@@ -61,7 +62,7 @@ TEST(normal_interface, example1)
 
 TEST(normal_interface, example2)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<CMSat::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
     AppMC s(fg);
     s.new_vars(10);
     vector<uint32_t> sampl;
@@ -75,7 +76,7 @@ TEST(normal_interface, example2)
 
 TEST(normal_interface, example3)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<CMSat::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
     AppMC s(fg);
     s.new_vars(10);
     vector<uint32_t> sampl;
@@ -90,7 +91,7 @@ TEST(normal_interface, example3)
 
 TEST(normal_interface, example4)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<CMSat::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
     AppMC s(fg);
     s.new_vars(10);
     vector<uint32_t> sampl;
@@ -103,7 +104,6 @@ TEST(normal_interface, example4)
     uint32_t cnt = std::pow(2, c.hashCount)*c.cellSolCount;
     EXPECT_EQ(std::pow(2, 9), cnt);
 }
-
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

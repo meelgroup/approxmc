@@ -37,6 +37,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src/)
 include_directories(${PROJECT_BINARY_DIR}/apx-src)
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
+include_directories(${ARJUN_INCLUDE_DIRS})
 
 set (MY_TESTS
     simpletest

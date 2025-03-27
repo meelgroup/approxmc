@@ -222,7 +222,7 @@ template<class T> void read_stdin(T* myreader) {
 
 void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const std::unique_ptr<Field>& mult) {
     const CMSat::Field* ptr = mult.get();
-    const CMSat::FMpz* od = dynamic_cast<const CMSat::FMpz*>(ptr);
+    const ArjunNS::FMpz* od = dynamic_cast<const ArjunNS::FMpz*>(ptr);
     cout << "c [appmc] Number of solutions is: "
     << cell_sol_cnt << "*2**" << hash_count << "*" << od->val << endl;
     if (cell_sol_cnt == 0) cout << "s UNSATISFIABLE" << endl;
@@ -323,7 +323,7 @@ int main(int argc, char** argv)
         if (i+1 < argc) command_line += " ";
     }
 
-    fg = std::make_unique<CMSat::FGenMpz>();
+    fg = std::make_unique<ArjunNS::FGenMpz>();
     appmc = new ApproxMC::AppMC(fg);
     simp_conf.appmc = true;
     simp_conf.oracle_sparsify = false;
