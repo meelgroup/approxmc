@@ -155,7 +155,7 @@ void add_appmc_options()
     program.add_argument("inputfile").remaining().help("input CNF");
 }
 
-void add_supported_options(int argc, char** argv) {
+void parse_supported_options(int argc, char** argv) {
     add_appmc_options();
     try {
         program.parse_args(argc, argv);
@@ -314,7 +314,7 @@ int main(int argc, char** argv)
     #if defined(__GNUC__) && defined(__linux__)
     feenableexcept(FE_INVALID   | FE_DIVBYZERO | FE_OVERFLOW);
     #endif
-    double start_time = cpuTime();
+    double start_time = cpu_time();
 
     //Reconstruct the command line so we can emit it later if needed
     string command_line;
@@ -331,7 +331,7 @@ int main(int argc, char** argv)
     simp_conf.iter2 = 0;
     etof_conf.do_bce = false;
     etof_conf.do_extend_indep = false;
-    add_supported_options(argc, argv);
+    parse_supported_options(argc, argv);
     if (verb) {
         print_version();
         cout << "c o executed with command line: " << command_line << endl;
@@ -340,11 +340,15 @@ int main(int argc, char** argv)
 
     ArjunNS::SimplifiedCNF cnf(fg);
     const auto& files = program.get<std::vector<std::string>>("inputfile");
+    if (files.empty()) {
+      cout << "ERROR: you provided --inputfile but no file. Strange. Exiting. " << endl;
+      exit(-1);
+    }
     const string fname(files[0]);
     if (do_arjun) {
         parse_file(fname, &cnf);
         const auto orig_sampl_vars = cnf.sampl_vars;
-        double my_time = cpuTime();
+        double my_time = cpu_time();
         ArjunNS::Arjun arjun;
         arjun.set_verb(verb);
         arjun.set_or_gate_based(arjun_gates);
@@ -361,7 +365,7 @@ int main(int argc, char** argv)
         for(const auto& c: cnf.red_clauses) appmc->add_red_clause(c);
         appmc->set_multiplier_weight(cnf.multiplier_weight);
         print_final_indep_set(cnf.sampl_vars, orig_sampl_vars.size());
-        cout << "c o [arjun] Arjun finished. T: " << (cpuTime() - my_time) << endl;
+        cout << "c o [arjun] Arjun finished. T: " << (cpu_time() - my_time) << endl;
     } else {
         parse_file(fname, appmc);
         print_final_indep_set(appmc->get_sampl_vars(), appmc->get_sampl_vars().size());
@@ -370,7 +374,7 @@ int main(int argc, char** argv)
     ApproxMC::SolCount sol_count;
     sol_count = appmc->count();
     appmc->print_stats(start_time);
-    cout << "c o [appmc+arjun] Total time: " << (cpuTime() - start_time) << endl;
+    cout << "c o [appmc+arjun] Total time: " << (cpu_time() - start_time) << endl;
     print_num_solutions(sol_count.cellSolCount, sol_count.hashCount, appmc->get_multiplier_weight());
 
     delete appmc;

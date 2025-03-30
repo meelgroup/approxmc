@@ -190,7 +190,7 @@ SolNum Counter::bounded_sol_count(
         HashesModels* hm
 ) {
     verb_print(1, "[appmc] "
-        "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-start_time) << " ]"
+        "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpu_time()-start_time) << " ]"
         << " bounded_sol_count looking for " << std::setw(4) << max_solutions << " solutions"
         << " -- hashes active: " << hash_cnt);
 
@@ -206,16 +206,16 @@ SolNum Counter::bounded_sol_count(
 
     if (conf.simplify >= 2) {
         verb_print(2, "[appmc] inter-simplifying");
-        double my_time = cpuTime();
+        double my_time = cpu_time();
         solver->simplify(&new_assumps);
-        total_inter_simp_time += cpuTime() - my_time;
+        total_inter_simp_time += cpu_time() - my_time;
         verb_print(1, "[appmc] inter-simp finished, total simp time: " << total_inter_simp_time);
     }
 
     cnf_dump_no = 0;
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hash_cnt);
     uint64_t solutions = repeat;
-    double last_found_time = cpuTimeTotal();
+    double last_found_time = cpu_time();
     vector<vector<lbool>> models;
     while (solutions < max_solutions) {
         lbool ret = solver->solve(&new_assumps, !conf.force_sol_extension);
@@ -231,13 +231,13 @@ SolNum Counter::bounded_sol_count(
             else cout << " No more. " << std::setw(3) << "";
             cout << " T: "
             << std::setw(7) << std::setprecision(2) << std::fixed
-            << (cpuTimeTotal()-start_time)
+            << (cpu_time()-start_time)
             << " -- hashes act: " << hash_cnt
             << " -- T since last: "
             << std::setw(7) << std::setprecision(2) << std::fixed
-            << (cpuTimeTotal()-last_found_time) << endl;
+            << (cpu_time()-last_found_time) << endl;
             if (conf.verb >= 4) solver->print_stats();
-            last_found_time = cpuTimeTotal();
+            last_found_time = cpu_time();
         }
         if (ret != l_True) break;
 
@@ -277,7 +277,7 @@ SolNum Counter::bounded_sol_count(
 
 ApproxMC::SolCount Counter::solve() {
     orig_num_vars = solver->nVars();
-    start_time = cpuTimeTotal();
+    start_time = cpu_time();
 
     open_logfile();
     rnd_engine.seed(conf.seed);
@@ -287,7 +287,7 @@ ApproxMC::SolCount Counter::solve() {
         verb_print(1, "[appmc] Formula was UNSAT");
     if (conf.verb >= 2) solver->print_stats();
 
-    verb_print(1, "[appmc] ApproxMC T: " << (cpuTimeTotal() - start_time) << " s");
+    verb_print(1, "[appmc] ApproxMC T: " << (cpu_time() - start_time) << " s");
     return sol_count;
 }
 
@@ -552,10 +552,10 @@ void Counter::one_measurement_count(
         const vector<Lit> assumps = set_num_hashes(hash_cnt, hm->hashes, sparse_data);
 
         verb_print(1, "[appmc] "
-            "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-start_time) << " ]"
+            "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpu_time()-start_time) << " ]"
             << " round: " << std::setw(2) << iter
             << " hashes: " << std::setw(6) << hash_cnt);
-        double my_time = cpuTime();
+        double my_time = cpu_time();
         SolNum sols = bounded_sol_count(
             threshold + 1, //max no. solutions
             &assumps, //assumptions to use
@@ -569,7 +569,7 @@ void Counter::one_measurement_count(
         write_log(
             false, //not sampling
             iter, hash_cnt, found_full, num_sols, sols.repeated,
-            cpuTime() - my_time
+            cpu_time() - my_time
         );
 
         if (num_sols < threshold + 1) {
@@ -758,7 +758,7 @@ void Counter::write_log(
         << " " << std::setw(4) << num_sols
         << " " << std::setw(4) << repeat_sols
         << " " << std::setw(7) << std::fixed << std::setprecision(2) << used_time
-        << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpuTimeTotal() - start_time)
+        << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpu_time() - start_time)
         << endl;
     }
 }
