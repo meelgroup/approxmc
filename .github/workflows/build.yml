@@ -188,7 +188,7 @@ jobs:
         cd ensmallen-2.21.1
         mkdir build
         cd build
-        cmake ..
+        cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
         cmake --build . --config ${{matrix.build_type}} -v
         sudo make install
         cd ../..
