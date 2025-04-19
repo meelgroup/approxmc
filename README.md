@@ -20,112 +20,21 @@ ApproxMC handles CNF formulas and performs approximate counting.
 2. If you are instead interested in DNF formulas, visit our approximate DNF
    counter [Pepin](https://github.com/meelgroup/pepin).
 
-## How to use the Python interface
-Install using pip:
-```bash
-pip install pyapproxmc
-```
+## Installation
+We recommend using a prebuilt binary from our [release
+page](https://github.com/meelgroup/approxmc/releases) which contains binaries
+for many different platforms. You can also install the python package as per
+below. In case you need to re-build the binary, you can follow the [GitHub
+Action](https://github.com/meelgroup/approxmc/actions).
 
-Then you can use it as:
-
-```python
-import pyapproxmc
-c = pyapproxmc.Counter()
-c.add_clause([1,2,3])
-c.add_clause([3,20])
-count = c.count()
-print("Approximate count is: %d*2**%d" % (count[0], count[1]))
-```
-
-The above will print that `Approximate count is: 11*2**16`. Since the largest
-variable in the clauses was 20, the system contained 2\*\*20 (i.e. 1048576)
-potential models. However, some of these models were prohibited by the two
-clauses, and so only approximately 11*2\*\*16 (i.e. 720896) models remained.
-
-If you want to count over a projection set, you need to call
-`count(projection_set)`, for example:
-
-```python
-import pyapproxmc
-c = pyapproxmc.Counter()
-c.add_clause([1,2,3])
-c.add_clause([3,20])
-count = c.count(range(1,10))
-print("Approximate count is: %d*2**%d" % (count[0], count[1]))
-```
-
-This now prints `Approximate count is: 7*2**6`, which corresponds to the
-approximate count of models, projected over variables 1..10.
-
-## How to Build a Binary
-To build on Linux, you will need the following:
-```bash
-sudo apt-get install build-essential cmake
-apt-get install libgmp3-dev
-```
-
-Then, build CryptoMiniSat, Arjun, and ApproxMC:
-```bash
-# not required but very useful
-sudo apt-get install zlib1g-dev
-
-git clone https://github.com/meelgroup/cadical
-cd cadical
-git checkout mate-only-libraries-1.8.0
-./configure
-make
-cd ..
-
-git clone https://github.com/meelgroup/cadiback
-cd cadiback
-git checkout mate
-./configure
-make
-cd ..
-
-git clone https://github.com/msoos/cryptominisat
-cd cryptominisat
-mkdir build && cd build
-cmake ..
-make
-cd ../..
-
-git clone https://github.com/meelgroup/sbva
-cd sbva
-mkdir build && cd build
-cmake ..
-make
-cd ../..
-
-git clone https://github.com/meelgroup/arjun
-cd arjun
-mkdir build && cd build
-cmake ..
-make
-cd ../..
-
-git clone https://github.com/meelgroup/approxmc
-cd approxmc
-mkdir build && cd build
-cmake ..
-make
-sudo make install
-sudo ldconfig
-```
-
-## How to Use the Binary
-First, you must translate your problem to CNF and just pass your file as input
-to ApproxMC. Then issue `./approxmc myfile.cnf`, it will print the number of
-solutions of formula.
-
-### Providing a Sampling Set (or Projection Set)
+## Providing a Projection Set
 For some applications, one is not interested in solutions over all the
 variables and instead interested in counting the number of unique solutions to
 a subset of variables, called sampling set (also called a "projection set").
 ApproxMC allows you to specify the sampling set using the following modified
 version of DIMACS format:
 
-```shell
+```plain
 $ cat myfile.cnf
 c p show 1 3 4 6 7 8 10 0
 p cnf 500 1
@@ -140,11 +49,11 @@ your sampling set only contains 7 variables, then the maximum number of
 solutions can only be at most 2^7 = 128. This is true even if your CNF has
 thousands of variables.
 
-### Running ApproxMC
+## Running ApproxMC
 In our case, the maximum number of solutions could at most be 2^7=128, but our
 CNF should be restricting this. Let's see:
 
-```shell
+```plain
 $ approxmc --seed 5 myfile.cnf
 c ApproxMC version 3.0
 [...]
@@ -163,13 +72,54 @@ c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 c [appmc] Number of solutions is: 48*2**1
 s mc 96
 ```
-ApproxMC reports that we have approximately `96 (=48*2)` solutions to the CNF's independent support. This is because for variables 3 and 4 we have banned the `false,false` solution, so out of their 4 possible settings, one is banned. Therefore, we have `2^5 * (4-1) = 96` solutions.
+ApproxMC reports that we have approximately `96 (=48*2)` solutions to the CNF's
+independent support. This is because for variables 3 and 4 we have banned the
+`false,false` solution, so out of their 4 possible settings, one is banned.
+Therefore, we have `2^5 * (4-1) = 96` solutions.
 
-### Guarantees
-ApproxMC provides so-called "PAC", or Probably Approximately Correct, guarantees. In less fancy words, the system guarantees that the solution found is within a certain tolerance (called "epsilon") with a certain probability (called "delta"). The default tolerance and probability, i.e. epsilon and delta values, are set to 0.8 and 0.2, respectively. Both values are configurable.
+## How to use the Python interface
+Install using pip:
+```bash
+pip install pyapproxmc
+```
+
+Then you can use it as:
+```python
+import pyapproxmc
+c = pyapproxmc.Counter()
+c.add_clause([1,2,3])
+c.add_clause([3,20])
+count = c.count()
+print("Approximate count is: %d*2**%d" % (count[0], count[1]))
+```
+
+The above will print that `Approximate count is: 11*2**16`. Since the largest
+variable in the clauses was 20, the system contained 2\*\*20 (i.e. 1048576)
+potential models. However, some of these models were prohibited by the two
+clauses, and so only approximately 11*2\*\*16 (i.e. 720896) models remained.
+
+If you want to count over a projection set, you need to call
+`count(projection_set)`, for example:
+```python
+import pyapproxmc
+c = pyapproxmc.Counter()
+c.add_clause([1,2,3])
+c.add_clause([3,20])
+count = c.count(range(1,10))
+print("Approximate count is: %d*2**%d" % (count[0], count[1]))
+```
+
+This now prints `Approximate count is: 7*2**6`, which corresponds to the
+approximate count of models, projected over variables 1..10.
+
+## Guarantees
+ApproxMC provides so-called "PAC", or Probably Approximately Correct,
+guarantees. In less fancy words, the system guarantees that the solution found
+is within a certain tolerance (called "epsilon") with a certain probability
+(called "delta"). The default tolerance and probability, i.e. epsilon and delta
+values, are set to 0.8 and 0.2, respectively. Both values are configurable.
 
 ### Library usage
-
 The system can be used as a library:
 
 ```c++
@@ -207,7 +157,7 @@ int main() {
 }
 ```
 
-### ApproxMC5: Sparse-XOR based Approximate Model Counter
+## ApproxMC5: Sparse-XOR based Approximate Model Counter
 Note: this is beta version release, not recommended for general use. We are
 currently working on a tight integration of sparse XORs into ApproxMC based on
 our [LICS-20](http://www.cs.toronto.edu/~meel/Papers/lics20-ma.pdf) paper. You
@@ -216,7 +166,7 @@ LICS-20 paper, this may slow down solving in some cases. It is likely to give a
 significant speedup if the number of solutions is very large.
 
 
-### Issues, questions, bugs, etc.
+## Issues, questions, bugs, etc.
 Please click on "issues" at the top and [create a new issue](https://github.com/meelgroup/mis/issues/new). All issues are responded to promptly.
 
 ## How to Cite
