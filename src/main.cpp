@@ -52,8 +52,9 @@ using std::set;
 using std::string;
 using std::vector;
 ApproxMC::AppMC* appmc = nullptr;
-argparse::ArgumentParser program = argparse::ArgumentParser("approxmc");
-
+argparse::ArgumentParser program = argparse::ArgumentParser("approxmc",
+        ApproxMC::AppMC::get_version_sha1(),
+        argparse::default_arguments::help);
 uint32_t verb = 1;
 uint32_t seed;
 double epsilon;
