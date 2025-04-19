@@ -9,3 +9,5 @@ compile_commands.json
 dist/pyapproxmc*
 compare
 /result
+html/*.js
+html/*.wasm
