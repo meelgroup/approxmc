@@ -27,7 +27,7 @@
  */
 
 #include <Python.h>
-#include "../cryptominisat/src/cryptominisat.h"
+#include <cryptominisat/cryptominisat.h>
 #include "../../src/approxmc.h"
 #include "../arjun/src/arjun.h"
 

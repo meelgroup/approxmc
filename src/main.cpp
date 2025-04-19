@@ -26,7 +26,6 @@
  THE SOFTWARE.
  */
 
-#include "cryptominisat5/solvertypesmini.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -40,6 +39,7 @@
 #include "time_mem.h"
 #include "approxmc.h"
 #include "time_mem.h"
+#include <cryptominisat5/solvertypesmini.h>
 #include <cryptominisat5/dimacsparser.h>
 #include <cryptominisat5/streambuffer.h>
 #include <arjun/arjun.h>
