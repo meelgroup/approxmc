@@ -41,17 +41,16 @@
 namespace ApproxMC {
 
 #ifdef _WIN32
-struct __declspec(dllexport) SolCount
+class __declspec(dllexport) SolCount
 #else
-struct SolCount
+class SolCount
 #endif
 {
-    void clear()
-    {
+    public:
+    void clear() {
         SolCount tmp;
         *this = tmp;
     }
-
     bool valid = false;
     uint32_t hashCount = 0;
     uint32_t cellSolCount = 0;
