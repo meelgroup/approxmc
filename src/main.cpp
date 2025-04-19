@@ -160,7 +160,7 @@ void parse_supported_options(int argc, char** argv) {
     try {
         program.parse_args(argc, argv);
         if (program.is_used("--help")) {
-            cout << "Probilistic Approcimate Counter" << endl << endl
+            cout << "Probilistic Approximate Counter" << endl << endl
             << "approxmc [options] inputfile" << endl;
             cout << program << endl;
             exit(0);
