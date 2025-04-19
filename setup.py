@@ -38,11 +38,11 @@ def gen_modules(version):
     define_macros_val : list[tuple[str, str | None]] | None
     if platform == "win32" or platform == "cygwin":
         extra_compile_args_val = ['/std:c++17', "/DAPPMC_FULL_VERSION=\""+version+"\""]
-        define_macros_val = [("TRACE", "")]
+        define_macros_val = []
 
     else:
-        extra_compile_args_val = ['-std=c++17']
-        define_macros_val = [("TRACE", ""),("APPMC_FULL_VERSION", "\""+version+"\"")]
+        extra_compile_args_val = ['-std=c++21']
+        define_macros_val = [("APPMC_FULL_VERSION", "\""+version+"\"")]
 
     modules = Extension(
         name = "pyapproxmc",
@@ -55,7 +55,7 @@ def gen_modules(version):
            ],
         extra_compile_args = extra_compile_args_val,
         define_macros = define_macros_val,
-        include_dirs = ["src/", "python/cryptominisat/src/", "python/arjun/src/", "python/sbva/src/", ],
+        include_dirs = ["src/"],
         language = "c++",
     )
     return modules
