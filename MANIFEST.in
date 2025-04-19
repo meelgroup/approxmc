@@ -1,6 +1,8 @@
+include LICENSE
+include README.md
 global-exclude *.json
 global-exclude *.timeout
 global-exclude *.in
 global-exclude *.txt
 recursive-include src/ *.h
-recursive-include python/src/ *.h *.hpp
+recursive-include python/src/ *.h *.hpp *.cpp
