@@ -47,19 +47,15 @@ def gen_modules(version):
     modules = Extension(
         name = "pyapproxmc",
         sources = [
-                   "python/src/GitSHA1.cpp",
-                   "python/src/pyapproxmc.cpp",
-                   "src/approxmc.cpp",
-                   "src/appmc_constants.cpp",
-                   "src/counter.cpp",
-               ],
-        depends = [
-                   "python/sbva/src/sbva.h",
-                   "python/cryptominisat5/cryptominisat5.h",
-        ],
+               "python/src/GitSHA1.cpp",
+               "python/src/pyapproxmc.cpp",
+               "src/approxmc.cpp",
+               "src/appmc_constants.cpp",
+               "src/counter.cpp",
+           ],
         extra_compile_args = extra_compile_args_val,
         define_macros = define_macros_val,
-        include_dirs = ["src/", "python/cryptominisat/src/", "python/arjun/src/", "python/sbva/src/", "python/arjun/", "python/sbva/eigen-3.4.0/", "python/sbva/eigen-3.4.0/Eigen/"],
+        include_dirs = ["src/", "python/cryptominisat/src/", "python/arjun/src/", "python/sbva/src/", ],
         language = "c++",
     )
     return modules
