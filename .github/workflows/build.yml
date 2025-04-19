@@ -247,6 +247,9 @@ jobs:
         -S ..
         cmake --build . --config ${{matrix.build_type}} -v
 
+    - name: Test
+      run: ctest -C ${{matrix.build_type}} --verbose
+
     - name: Upload Artifact - Linux
       if: matrix.os == 'ubuntu-latest' && matrix.staticcompile == 'ON'
       uses: actions/upload-artifact@v4
@@ -282,6 +285,3 @@ jobs:
         path: |
           project/build/approxmc
           project/build/lib/*
-
-    - name: Test
-      run: ctest -C ${{matrix.build_type}} --verbose
