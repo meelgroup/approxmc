@@ -96,7 +96,6 @@ public:
     void print_stats(const double start_time);
 
     //Main options
-    void set_up_log(std::string log_file_name);
     void set_verbosity(uint32_t verb);
     void set_seed(uint32_t seed);
     void set_epsilon(double epsilon);

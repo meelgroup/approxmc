@@ -279,7 +279,6 @@ ApproxMC::SolCount Counter::solve() {
     orig_num_vars = solver->nVars();
     start_time = cpu_time();
 
-    open_logfile();
     rnd_engine.seed(conf.seed);
 
     ApproxMC::SolCount sol_count = count();
@@ -555,7 +554,6 @@ void Counter::one_measurement_count(
             "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpu_time()-start_time) << " ]"
             << " round: " << std::setw(2) << iter
             << " hashes: " << std::setw(6) << hash_cnt);
-        double my_time = cpu_time();
         SolNum sols = bounded_sol_count(
             threshold + 1, //max no. solutions
             &assumps, //assumptions to use
@@ -565,13 +563,6 @@ void Counter::one_measurement_count(
         );
         const uint64_t num_sols = std::min<uint64_t>(sols.solutions, threshold + 1);
         assert(num_sols <= threshold + 1);
-        bool found_full = (num_sols == threshold + 1);
-        write_log(
-            false, //not sampling
-            iter, hash_cnt, found_full, num_sols, sols.repeated,
-            cpu_time() - my_time
-        );
-
         if (num_sols < threshold + 1) {
             num_explored = lower_fib + total_max_xors - hash_cnt;
 
@@ -713,54 +704,6 @@ template<class T> inline T Counter::find_min(const vector<T>& nums) {
         if (a < min) min = a;
     }
     return min;
-}
-
-void Counter::open_logfile()
-{
-    if (!conf.logfilename.empty()) {
-        logfile.open(conf.logfilename.c_str());
-        if (!logfile.is_open()) {
-            cout << "[appmc] Cannot open Counter log file '" << conf.logfilename
-                 << "' for writing." << endl;
-            exit(1);
-        }
-
-        logfile << std::left
-        << std::setw(5) << "sampl"
-        << " " << std::setw(4) << "iter"
-        << " " << std::setw(4) << "hash"
-        << " " << std::setw(4) << "full"
-        << " " << std::setw(4) << "sols"
-        << " " << std::setw(4) << "rep"
-        << " " << std::setw(7) << "T"
-        << " " << std::setw(7) << "total T"
-        << endl;
-
-    }
-}
-
-void Counter::write_log(
-    bool sampling,
-    int iter,
-    uint32_t hash_cnt,
-    int found_full,
-    uint32_t num_sols,
-    uint32_t repeat_sols,
-    double used_time
-) {
-    if (!conf.logfilename.empty()) {
-        logfile
-        << std::left
-        << std::setw(5) << (int)sampling
-        << " " << std::setw(4) << iter
-        << " " << std::setw(4) << hash_cnt
-        << " " << std::setw(4) << found_full
-        << " " << std::setw(4) << num_sols
-        << " " << std::setw(4) << repeat_sols
-        << " " << std::setw(7) << std::fixed << std::setprecision(2) << used_time
-        << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpu_time() - start_time)
-        << endl;
-    }
 }
 
 void Counter::check_model(

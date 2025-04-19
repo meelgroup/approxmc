@@ -99,11 +99,6 @@ DLL_PUBLIC string AppMC::get_version_sha1()
     return AppMCInt::get_version_sha1();
 }
 
-DLL_PUBLIC void AppMC::set_up_log(string log_file_name)
-{
-    data->conf.logfilename = log_file_name;
-}
-
 DLL_PUBLIC void AppMC::set_verbosity(uint32_t verb)
 {
     data->conf.verb = verb;

@@ -58,7 +58,6 @@ uint32_t verb = 1;
 uint32_t seed;
 double epsilon;
 double delta;
-string logfilename;
 uint32_t start_iter = 0;
 uint32_t verb_cls = 0;
 uint32_t simplify;
@@ -148,7 +147,6 @@ void add_appmc_options()
     myopt("--velimratio", var_elim_ratio, stod, "Variable elimination ratio for each simplify run");
     myopt("--dumpintercnf", dump_intermediary_cnf, atoi,
             "Dump intermediary CNFs during solving into files cnf_dump-X.cnf. If set to 1 only UNSAT is dumped, if set to 2, all are dumped");
-    myopt("--log", logfilename, string, "Put logs of ApproxMC execution to this file");
     myopt("--debug", debug, atoi, "Turn on more heavy internal debugging");
     myopt("--backbone", do_backbone, atoi, "Run backbone analysis");
 
@@ -259,11 +257,6 @@ void set_approxmc_options()
         appmc->set_force_sol_extension(1);
         appmc->set_debug(1);
         appmc->set_dump_intermediary_cnf(std::max(dump_intermediary_cnf, 1));
-    }
-
-    if (!logfilename.empty()) {
-        appmc->set_up_log(logfilename);
-        cout << "c o [appmc] Logfile set " << logfilename << endl;
     }
 }
 
