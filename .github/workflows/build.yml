@@ -247,16 +247,41 @@ jobs:
         -S ..
         cmake --build . --config ${{matrix.build_type}} -v
 
+    - name: Test
+      run: ctest -C ${{matrix.build_type}} --verbose
+
     - name: Upload Artifact - Linux
-      if: matrix.os == 'ubuntu-20.04' && matrix.staticcompile == 'ON'
-      uses: actions/upload-artifact@v3
+      if: matrix.os == 'ubuntu-latest' && matrix.staticcompile == 'ON'
+      uses: actions/upload-artifact@v4
       with:
         name: approxmc-linux-amd64
-        path: approxmc/approxmc
+        path: |
+          project/build/approxmc
+          project/build/lib/*
 
-    - name: Upload Artifact - Mac
-      if: matrix.os == 'macos-13' && matrix.staticcompile == 'ON'
-      uses: actions/upload-artifact@v3
+    - name: Upload Artifact - Linux arm
+      if: matrix.os == 'ubuntu-24.04-arm' && matrix.staticcompile == 'ON'
+      uses: actions/upload-artifact@v4
       with:
-        name: approxmc-mac-amd64
-        path: approxmc/approxmc
+        name: approxmc-linux-arm64
+        path: |
+          project/build/approxmc
+          project/build/lib/*
+
+    - name: Upload Artifact - Mac arm
+      if: matrix.os == 'macos-14' && matrix.staticcompile == 'ON'
+      uses: actions/upload-artifact@v4
+      with:
+        name: approxmc-mac-arm64
+        path: |
+          project/build/approxmc
+          project/build/lib/*
+
+    - name: Upload Artifact - Mac x86
+      if: matrix.os == 'macos-13' && matrix.staticcompile == 'ON'
+      uses: actions/upload-artifact@v4
+      with:
+        name: approxmc-mac-x86_64
+        path: |
+          project/build/approxmc
+          project/build/lib/*
