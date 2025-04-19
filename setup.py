@@ -41,7 +41,7 @@ def gen_modules(version):
         define_macros_val = []
 
     else:
-        extra_compile_args_val = ['-std=c++21']
+        extra_compile_args_val = ['-std=c++20']
         define_macros_val = [("APPMC_FULL_VERSION", "\""+version+"\"")]
 
     modules = Extension(

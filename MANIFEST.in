@@ -4,7 +4,3 @@ global-exclude *.in
 global-exclude *.txt
 recursive-include src/ *.h
 recursive-include python/src/ *.h *.hpp
-recursive-include python/cryptominisat/src/ *.h *.hpp
-recursive-include python/cryptominisat/src/oracle/ *.h *.hpp
-recursive-include python/cryptominisat/src/picosat/ *.h *.hpp
-recursive-include python/arjun/src/ *.h *.hpp
