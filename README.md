@@ -1,7 +1,5 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![build](https://github.com/meelgroup/approxmc/workflows/build/badge.svg)
-[![Docker Hub](https://img.shields.io/badge/docker-latest-blue.svg)](https://hub.docker.com/r/msoos/approxmc/)
-
 
 # ApproxMC6: Approximate Model Counter
 ApproxMCv6 is a state-of-the-art approximate model counter utilizing an
@@ -23,9 +21,7 @@ ApproxMC handles CNF formulas and performs approximate counting.
    counter [Pepin](https://github.com/meelgroup/pepin).
 
 ## How to use the Python interface
-
 Install using pip:
-
 ```bash
 pip install pyapproxmc
 ```
@@ -179,7 +175,6 @@ The system can be used as a library:
 ```c++
 #include <approxmc/approxmc.h>
 #include <vector>
-#include <complex>
 #include <cassert>
 
 using std::vector;

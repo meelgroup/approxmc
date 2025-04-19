@@ -26,14 +26,13 @@
  THE SOFTWARE.
  */
 
-
-#include "config.h"
+#include "appmcconfig.h"
 #include <fstream>
+#include <memory>
 #include <random>
 #include <map>
 #include <utility>
 #include <cstdint>
-#include <mutex>
 #include "approxmc.h"
 #include "appmc_constants.h"
 
@@ -94,7 +93,7 @@ struct SparseData {
 
 class Counter {
 public:
-    Counter(Config& _conf) : conf(_conf) {}
+    Counter(Config& _conf, const std::unique_ptr<FieldGen>& _fg) : fg(_fg->dup()), conf(_conf) {}
     ApproxMC::SolCount solve();
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
@@ -103,7 +102,6 @@ public:
     bool gen_rhs();
     uint32_t threshold_appmcgen;
     SATSolver* solver = nullptr;
-    string get_version_info() const;
     ApproxMC::SolCount calc_est_count();
     const Constants constants;
     bool solver_add_clause(const vector<Lit>& cl);
@@ -111,6 +109,7 @@ public:
     bool solver_add_xor_clause(const vector<Lit>& lits, const bool rhs);
 
 private:
+    std::unique_ptr<FieldGen> fg;
     Config& conf;
     ApproxMC::SolCount count();
     void add_appmc_options();
@@ -140,16 +139,6 @@ private:
         SparseData sparse_data,
         HashesModels* hm
     );
-    void write_log(
-        bool sampling,
-        int iter,
-        uint32_t hash_count,
-        int found_full,
-        uint32_t num_sols,
-        uint32_t repeat_sols,
-        double used_time
-    );
-    void open_logfile();
     void call_after_parse();
     void ban_one(const uint32_t act_var, const vector<lbool>& model);
     void check_model(
@@ -180,7 +169,6 @@ private:
     // internal data
     ////////////////
     double start_time;
-    std::ofstream logfile;
     std::mt19937 rnd_engine;
     uint32_t orig_num_vars;
     double total_inter_simp_time = 0;

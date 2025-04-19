@@ -29,8 +29,11 @@
 #include "approxmc.h"
 #include "counter.h"
 #include "appmc_constants.h"
-#include "config.h"
+#include "appmcconfig.h"
+#include "cryptominisat5/solvertypesmini.h"
 #include <iostream>
+#include <memory>
+#include "GitSHA1.h"
 
 using std::cout;
 using std::endl;
@@ -45,17 +48,20 @@ using namespace AppMCInt;
 
 namespace ApproxMC {
     struct AppMCPrivateData {
-        AppMCPrivateData(): counter(conf) {}
+        AppMCPrivateData(const std::unique_ptr<CMSat::FieldGen>& fg):
+            conf(fg),
+            counter(conf, fg) {}
         Config conf;
         Counter counter;
+        bool sampl_vars_declared = false;
     };
 }
 
 using namespace ApproxMC;
 
-DLL_PUBLIC AppMC::AppMC()
+DLL_PUBLIC AppMC::AppMC(const std::unique_ptr<CMSat::FieldGen>& _fg)
 {
-    data = new AppMCPrivateData;
+    data = new AppMCPrivateData(_fg);
     data->counter.solver = new SATSolver();
     data->counter.solver->set_up_for_scalmc();
     data->counter.solver->set_allow_otf_gauss();
@@ -70,25 +76,14 @@ DLL_PUBLIC AppMC::~AppMC()
 // Helper function, used only in this unit
 void setup_sampling_vars(AppMCPrivateData* data)
 {
-    if (data->conf.sampl_vars.empty()) {
-        if (data->conf.verb) {
-            cout
-            << "c [appmc] WARNING! Sampling set was not declared! We will be **VERY** slow"
-            << endl;
-        }
-        for (size_t i = 0; i < data->counter.solver->nVars(); i++) {
-            data->conf.sampl_vars.push_back(i);
-        }
-    }
-
     if (data->conf.verb) {
-        cout << "c [appmc] Sampling set size: " << data->conf.sampl_vars.size() << endl;
+        cout << "c o [appmc] Sampling set size: " << data->conf.sampl_vars.size() << endl;
         if (data->conf.sampl_vars.size() > 100) {
             cout
-            << "c [appmc] Sampling var set contains over 100 variables, not displaying"
+            << "c o [appmc] Sampling var set contains over 100 variables, not displaying"
             << endl;
         } else {
-            cout << "c [appmc] Sampling set: ";
+            cout << "c o [appmc] Sampling set: ";
             for (auto v: data->conf.sampl_vars) {
                 cout << v+1 << " ";
             }
@@ -99,22 +94,15 @@ void setup_sampling_vars(AppMCPrivateData* data)
     data->counter.solver->set_sampl_vars(data->conf.sampl_vars);
 }
 
-DLL_PUBLIC string AppMC::get_version_info()
+DLL_PUBLIC string AppMC::get_version_sha1()
 {
-    return data->counter.get_version_info();
-}
-
-DLL_PUBLIC void AppMC::set_up_log(string log_file_name)
-{
-    data->conf.logfilename = log_file_name;
+    return AppMCInt::get_version_sha1();
 }
 
 DLL_PUBLIC void AppMC::set_verbosity(uint32_t verb)
 {
     data->conf.verb = verb;
-    if (verb > 2) {
-        data->counter.solver->set_verbosity(data->conf.verb-2);
-    }
+    data->counter.solver->set_verbosity(std::max<int>(0, (int)data->conf.verb-2));
 }
 
 DLL_PUBLIC void AppMC::set_seed(uint32_t seed)
@@ -215,17 +203,21 @@ DLL_PUBLIC bool AppMC::find_one_solution()
 
 DLL_PUBLIC ApproxMC::SolCount AppMC::count()
 {
+    if (!data->sampl_vars_declared) {
+        cout << "ERROR: Sampling set was not declared!" << endl;
+        exit(-1);
+    }
     if (data->conf.verb > 2) {
-        cout << "c [appmc] using seed: " << data->conf.seed << endl;
+        cout << "c o [appmc] using seed: " << data->conf.seed << endl;
     }
 
     if (data->conf.epsilon < 0.0) {
-        cout << "[appmc] ERROR: invalid epsilon" << endl;
+        cout << "ERROR: invalid epsilon" << endl;
         exit(-1);
     }
 
     if (data->conf.delta <= 0.0 || data->conf.delta > 1.0) {
-        cout << "[appmc] ERROR: invalid delta" << endl;
+        cout << "ERROR: invalid delta: " << data->conf.delta << endl;
         exit(-1);
     }
 
@@ -236,6 +228,7 @@ DLL_PUBLIC ApproxMC::SolCount AppMC::count()
 
 DLL_PUBLIC void AppMC::set_sampl_vars(const vector<uint32_t>& vars)
 {
+    data->sampl_vars_declared = true;
     data->conf.sampl_vars_set = true;
     for(const auto& v: vars) {
         if (v >= data->counter.solver->nVars()) {
@@ -315,11 +308,11 @@ DLL_PUBLIC bool AppMC::get_sampl_vars_set() const {
     return data->conf.sampl_vars_set;
 }
 
- DLL_PUBLIC void AppMC::set_multiplier_weight(const mpz_class& weight) {
-     data->conf.multiplier_weight = weight;
+ DLL_PUBLIC void AppMC::set_multiplier_weight(const std::unique_ptr<CMSat::Field>& weight) {
+     data->conf.multiplier_weight = weight->dup();
  }
 
- DLL_PUBLIC const mpz_class& AppMC::get_multiplier_weight() const {
+ DLL_PUBLIC const std::unique_ptr<CMSat::Field>& AppMC::get_multiplier_weight() const {
      return data->conf.multiplier_weight;
  }
 
@@ -330,7 +323,10 @@ DLL_PUBLIC void AppMC::set_weighted(const bool weighted) {
     }
 }
 
-DLL_PUBLIC void AppMC::set_lit_weight(const Lit&, const double) {
+DLL_PUBLIC void AppMC::set_projected(const bool) {
+}
+
+DLL_PUBLIC void AppMC::set_lit_weight(const Lit&, const std::unique_ptr<Field>&) {
     cout << "ERROR: Weighted ApproxMC is not supported" << endl;
     exit(-1);
 }

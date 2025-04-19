@@ -33,27 +33,20 @@
 #include <iostream>
 #include <iomanip>
 #include <map>
-#include <set>
 #include <utility>
 #include <fstream>
 #include <sys/stat.h>
 #include <cstring>
-#include <list>
-#include <array>
 #include <cmath>
-#include <complex>
 
 #include "counter.h"
+#include "appmc_constants.h"
 #include "time_mem.h"
-#include "GitSHA1.h"
 #ifdef CMS_LOCAL_BUILD
 #include "arjun.h"
 #else
 #include <arjun/arjun.h>
 #endif
-
-#define verb_print(a, x) \
-    do { if (conf.verb >= a) {std::cout << "c " << x << std::endl;} } while (0)
 
 using std::cout;
 using std::endl;
@@ -151,7 +144,7 @@ uint64_t Counter::add_glob_banning_cls(
         }
     }
     if (conf.verb) {
-        cout << "c [appmc] repeat solutions: " << std::setw(6) << repeat
+        cout << "c o [appmc] repeat solutions: " << std::setw(6) << repeat
         << " checked: " << std::setw(6) << checked;
         if (hm) cout << " out of: " << std::setw(6) << hm->glob_model.size();
         cout << endl;
@@ -197,7 +190,7 @@ SolNum Counter::bounded_sol_count(
         HashesModels* hm
 ) {
     verb_print(1, "[appmc] "
-        "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-start_time) << " ]"
+        "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpu_time()-start_time) << " ]"
         << " bounded_sol_count looking for " << std::setw(4) << max_solutions << " solutions"
         << " -- hashes active: " << hash_cnt);
 
@@ -213,16 +206,16 @@ SolNum Counter::bounded_sol_count(
 
     if (conf.simplify >= 2) {
         verb_print(2, "[appmc] inter-simplifying");
-        double my_time = cpuTime();
+        double my_time = cpu_time();
         solver->simplify(&new_assumps);
-        total_inter_simp_time += cpuTime() - my_time;
+        total_inter_simp_time += cpu_time() - my_time;
         verb_print(1, "[appmc] inter-simp finished, total simp time: " << total_inter_simp_time);
     }
 
     cnf_dump_no = 0;
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hash_cnt);
     uint64_t solutions = repeat;
-    double last_found_time = cpuTimeTotal();
+    double last_found_time = cpu_time();
     vector<vector<lbool>> models;
     while (solutions < max_solutions) {
         lbool ret = solver->solve(&new_assumps, !conf.force_sol_extension);
@@ -233,18 +226,18 @@ SolNum Counter::bounded_sol_count(
         }
 
         if (conf.verb >= 2) {
-            cout << "c [appmc] bounded_sol_count ret: " << std::setw(7) << ret;
+            cout << "c o [appmc] bounded_sol_count ret: " << std::setw(7) << ret;
             if (ret == l_True) cout << " sol no.  " << std::setw(3) << solutions;
             else cout << " No more. " << std::setw(3) << "";
             cout << " T: "
             << std::setw(7) << std::setprecision(2) << std::fixed
-            << (cpuTimeTotal()-start_time)
+            << (cpu_time()-start_time)
             << " -- hashes act: " << hash_cnt
             << " -- T since last: "
             << std::setw(7) << std::setprecision(2) << std::fixed
-            << (cpuTimeTotal()-last_found_time) << endl;
+            << (cpu_time()-last_found_time) << endl;
             if (conf.verb >= 4) solver->print_stats();
-            last_found_time = cpuTimeTotal();
+            last_found_time = cpu_time();
         }
         if (ret != l_True) break;
 
@@ -262,7 +255,7 @@ SolNum Counter::bounded_sol_count(
             lits.push_back(Lit(var, solver->get_model()[var] == l_True));
         }
         if (conf.verb_cls) {
-            cout << "c [appmc] Adding banning clause: " << lits << endl;
+            cout << "c o [appmc] Adding banning clause: " << lits << endl;
         }
         solver_add_clause(lits);
     }
@@ -284,9 +277,8 @@ SolNum Counter::bounded_sol_count(
 
 ApproxMC::SolCount Counter::solve() {
     orig_num_vars = solver->nVars();
-    start_time = cpuTimeTotal();
+    start_time = cpu_time();
 
-    open_logfile();
     rnd_engine.seed(conf.seed);
 
     ApproxMC::SolCount sol_count = count();
@@ -294,7 +286,7 @@ ApproxMC::SolCount Counter::solve() {
         verb_print(1, "[appmc] Formula was UNSAT");
     if (conf.verb >= 2) solver->print_stats();
 
-    verb_print(1, "[appmc] ApproxMC T: " << (cpuTimeTotal() - start_time) << " s");
+    verb_print(1, "[appmc] ApproxMC T: " << (cpu_time() - start_time) << " s");
     return sol_count;
 }
 
@@ -439,7 +431,6 @@ ApproxMC::SolCount Counter::count()
         if (conf.simplify >= 1 && j+1 < measurements) simplify();
         hm.clear();
     }
-    assert(!num_hash_list.empty() && "UNSAT should not be possible");
 
     return calc_est_count();
 }
@@ -497,21 +488,18 @@ int Counter::find_best_sparse_match()
 {
     for(int i = 0; i < (int)constants.index_var_maps.size(); i++) {
         if (constants.index_var_maps[i].vars_to_inclusive >= conf.sampl_vars.size()) {
-            if (conf.verb) {
-                cout << "c [sparse] Using match: " << i
+            verb_print(1,
+                "[appmc-sparse] Using match: " << i
                 << " sampling set size: " << conf.sampl_vars.size()
                 << " prev end inclusive is: " << (i == 0 ? -1 : (int)constants.index_var_maps[i-1].vars_to_inclusive)
                 << " this end inclusive is: " << constants.index_var_maps[i].vars_to_inclusive
                 << " next end inclusive is: " << ((i+1 < (int)constants.index_var_maps.size()) ? ((int)constants.index_var_maps[i+1].vars_to_inclusive) : -1)
-                << " sampl size: " << conf.sampl_vars.size()
-                << endl;
-            }
-
+                << " sampl size: " << conf.sampl_vars.size());
             return i;
         }
     }
 
-    cout << "c [sparse] No match. Using default 0.5" << endl;
+    cout << "c o [sparse] No match. Using default 0.5" << endl;
     return -1;
 }
 
@@ -525,8 +513,10 @@ void Counter::one_measurement_count(
     HashesModels* hm)
 {
     if (conf.sampl_vars.empty()) {
+        auto ret = solver->solve();
+        assert(ret != l_Undef);
         num_hash_list.push_back(0);
-        num_count_list.push_back(1);
+        num_count_list.push_back(ret == l_True ? 1 : 0);
         return;
     }
 
@@ -561,10 +551,9 @@ void Counter::one_measurement_count(
         const vector<Lit> assumps = set_num_hashes(hash_cnt, hm->hashes, sparse_data);
 
         verb_print(1, "[appmc] "
-            "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpuTimeTotal()-start_time) << " ]"
+            "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpu_time()-start_time) << " ]"
             << " round: " << std::setw(2) << iter
             << " hashes: " << std::setw(6) << hash_cnt);
-        double my_time = cpuTime();
         SolNum sols = bounded_sol_count(
             threshold + 1, //max no. solutions
             &assumps, //assumptions to use
@@ -574,13 +563,6 @@ void Counter::one_measurement_count(
         );
         const uint64_t num_sols = std::min<uint64_t>(sols.solutions, threshold + 1);
         assert(num_sols <= threshold + 1);
-        bool found_full = (num_sols == threshold + 1);
-        write_log(
-            false, //not sampling
-            iter, hash_cnt, found_full, num_sols, sols.repeated,
-            cpuTime() - my_time
-        );
-
         if (num_sols < threshold + 1) {
             num_explored = lower_fib + total_max_xors - hash_cnt;
 
@@ -696,7 +678,7 @@ string Counter::gen_rnd_bits(
 
 void Counter::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
 {
-    cout << "c [appmc] Added XOR ";
+    cout << "c o [appmc] Added XOR ";
     for (size_t i = 0; i < vars.size(); i++) {
         cout << vars[i]+1;
         if (i < vars.size()-1) {
@@ -722,77 +704,6 @@ template<class T> inline T Counter::find_min(const vector<T>& nums) {
         if (a < min) min = a;
     }
     return min;
-}
-
-string scalmc_version_info()
-{
-    std::stringstream ss;
-    ss << "c ApproxMC SHA revision " << AppMCInt::get_version_sha1() << endl;
-    ss << "c ApproxMC version " << AppMCInt::get_version_tag() << endl;
-    ss << "c ApproxMC compilation env " << AppMCInt::get_compilation_env() << endl;
-    #ifdef __GNUC__
-    ss << "c ApproxMC compiled with gcc version " << __VERSION__ << endl;
-    #else
-    ss << "c ApproxMC compiled with non-gcc compiler" << endl;
-    #endif
-
-    return ss.str();
-}
-
-string Counter::get_version_info() const
-{
-    string ret = ::scalmc_version_info();
-    ret += solver->get_text_version_info();
-
-    return ret;
-}
-
-void Counter::open_logfile()
-{
-    if (!conf.logfilename.empty()) {
-        logfile.open(conf.logfilename.c_str());
-        if (!logfile.is_open()) {
-            cout << "[appmc] Cannot open Counter log file '" << conf.logfilename
-                 << "' for writing." << endl;
-            exit(1);
-        }
-
-        logfile << std::left
-        << std::setw(5) << "sampl"
-        << " " << std::setw(4) << "iter"
-        << " " << std::setw(4) << "hash"
-        << " " << std::setw(4) << "full"
-        << " " << std::setw(4) << "sols"
-        << " " << std::setw(4) << "rep"
-        << " " << std::setw(7) << "T"
-        << " " << std::setw(7) << "total T"
-        << endl;
-
-    }
-}
-
-void Counter::write_log(
-    bool sampling,
-    int iter,
-    uint32_t hash_cnt,
-    int found_full,
-    uint32_t num_sols,
-    uint32_t repeat_sols,
-    double used_time
-) {
-    if (!conf.logfilename.empty()) {
-        logfile
-        << std::left
-        << std::setw(5) << (int)sampling
-        << " " << std::setw(4) << iter
-        << " " << std::setw(4) << hash_cnt
-        << " " << std::setw(4) << found_full
-        << " " << std::setw(4) << num_sols
-        << " " << std::setw(4) << repeat_sols
-        << " " << std::setw(7) << std::fixed << std::setprecision(2) << used_time
-        << " " << std::setw(7) << std::fixed << std::setprecision(2) << (cpuTimeTotal() - start_time)
-        << endl;
-    }
 }
 
 void Counter::check_model(

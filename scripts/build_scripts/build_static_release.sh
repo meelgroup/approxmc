@@ -3,6 +3,5 @@
 set -e
 
 rm -rf lib* Test* tests* include tests scalmc* CM* cmake*
-cmake -DSTATICCOMPILE=ON ..
-make -j6
-make test
+cmake -DCMAKE_BUILD_TYPE=Release -DSTATICCOMPILE=ON ..
+make -j12

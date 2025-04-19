@@ -35,6 +35,12 @@
 using std::vector;
 using std::string;
 
+#define verb_print(a, b) if (conf.verb >= a) cout << "c o " << b << endl
+#define clear_toclear_seen() \
+    do {\
+      for(const auto& x: to_clear) seen[x] = 0;\
+      to_clear.clear();} while (0)
+
 namespace AppMCInt {
 
 struct VarMap

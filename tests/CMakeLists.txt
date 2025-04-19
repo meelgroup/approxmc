@@ -18,53 +18,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+if (NOT WIN32)
+    add_cxx_flag_if_supported("-Wno-sign-compare")
+endif()
 
-# -----------------------------------------------------------------------------
-# Find GTest library which will be used to drive tests
-# -----------------------------------------------------------------------------
-# GoogleTest devs don't recommend using a pre-built GTest library
-# ( https://code.google.com/p/googletest/wiki/FAQ#Why_is_it_not_recommended_to_install_a_pre-compiled_copy_of_Goog ).
-# Because of this, distros like Ubuntu don't provide a pre-built GTest library
-# so ``find_package(GTest REQUIRED)`` fails.
-#
-# Instead it is recommended that projects build their own copy of GTest. Detecting
-# the location of GTest source code is probably error prone so using a copy in the
-# repository seems like the easiest thing to do. This also has the added benefit that
-# everyone uses the same version of GTest.
-set(GTEST_PREFIX ${PROJECT_SOURCE_DIR}/utils/gtest)
+set(GTEST_PREFIX ${PROJECT_SOURCE_DIR}/tests/gtest)
 message(STATUS "NOTE: if adding the 'gtest' subdirectory fails, you need to issue 'git submodule init' and 'git submodule update'")
-add_subdirectory(${GTEST_PREFIX} gtest)
 set(GTEST_BOTH_LIBRARIES gtest gtest_main)
 
-include_directories(${GTEST_PREFIX}/include)
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 add_definitions( -DCMS_TESTING_ENABLED )
 
 # Add handy macros/functions
 include(AddSTPGTest)
 include(AddGTestSuite)
 
-# -----------------------------------------------------------------------------
-
-
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src/)
 include_directories(${PROJECT_BINARY_DIR}/apx-src)
 include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
+include_directories(${ARJUN_INCLUDE_DIRS})
 
-# README test
-# add_executable(readme_test
-#     readme_test.cpp
-# )
-# target_link_libraries(readme_test
-#     cryptominisat5
-# )
-# add_test (
-#     NAME readme_test
-#     COMMAND readme_test
-#     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-# )
-
-# unit tests
 set (MY_TESTS
     simpletest
 )

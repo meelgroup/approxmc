@@ -46,7 +46,6 @@ const char* AppMCInt::get_compilation_env()
     "GMP_FOUND = @GMP_FOUND@ | "
     "ENABLE_ASSERTIONS = @ENABLE_ASSERTIONS@ | "
     "MY_TARGETS = @MY_TARGETS@ | "
-    ""
     ;
     return compilation_env;
 }

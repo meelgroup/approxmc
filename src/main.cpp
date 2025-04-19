@@ -26,6 +26,8 @@
  THE SOFTWARE.
  */
 
+#include "cryptominisat5/solvertypesmini.h"
+#include <memory>
 #include <string>
 #include <vector>
 #if defined(__GNUC__) && defined(__linux__)
@@ -45,20 +47,18 @@
 
 using namespace CMSat;
 using std::cout;
-using std::cerr;
 using std::endl;
 using std::set;
 using std::string;
 using std::vector;
 ApproxMC::AppMC* appmc = nullptr;
-ArjunNS::Arjun* arjun = nullptr;
-argparse::ArgumentParser program = argparse::ArgumentParser("approxmc");
-
+argparse::ArgumentParser program = argparse::ArgumentParser("approxmc",
+        ApproxMC::AppMC::get_version_sha1(),
+        argparse::default_arguments::help);
 uint32_t verb = 1;
 uint32_t seed;
 double epsilon;
 double delta;
-string logfilename;
 uint32_t start_iter = 0;
 uint32_t verb_cls = 0;
 uint32_t simplify;
@@ -67,18 +67,16 @@ uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
 uint32_t sparse = 0;
 int dump_intermediary_cnf = 0;
+int arjun_gates = 0;
+bool debug = false;
+std::unique_ptr<CMSat::FieldGen> fg;
 
 //Arjun
-int ignore_sampl_set = 0;
-int do_arjun = 1;
-int debug_arjun = 0;
-int debug = 0;
-int with_e = 1;
-int e_iter_1 = 2;
-int e_iter_2 = 0;
-int e_vivif = 1;
-int e_sparsify = 0;
-int e_get_reds = 0;
+ArjunNS::SimpConf simp_conf;
+ArjunNS::Arjun::ElimToFileConf etof_conf;
+int with_e = 0;
+bool do_arjun = true;
+bool do_backbone = false;
 
 #define myopt(name, var, fun, hhelp) \
     program.add_argument(name) \
@@ -91,16 +89,26 @@ int e_get_reds = 0;
         .default_value(var) \
         .help(hhelp)
 
+
+void print_version() {
+    std::stringstream ss;
+    cout << "c o CMS SHA1: " << CMSat::SATSolver::get_version_sha1() << endl;
+    cout << "c o Arjun SHA1: " << ArjunNS::Arjun ::get_version_sha1() << endl;
+    cout << "c o Arjun SBVA SHA1: " << ArjunNS::Arjun::get_sbva_version_sha1() << endl;
+    cout << "c o ApproxMC SHA1: " << ApproxMC::AppMC::get_version_sha1() << endl;
+    cout << CMSat::SATSolver::get_thanks_info("c o ");
+    cout << ArjunNS::Arjun::get_thanks_info("c o ");
+}
+
 void add_appmc_options()
 {
-    ApproxMC::AppMC tmp;
+    ApproxMC::AppMC tmp(fg);
     epsilon = tmp.get_epsilon();
     delta = tmp.get_delta();
     simplify = tmp.get_simplify();
     var_elim_ratio = tmp.get_var_elim_ratio();
     sparse = tmp.get_sparse();
     seed = tmp.get_seed();
-
 
     myopt2("-v", "--verb", verb, atoi, "Verbosity");
     myopt2("-s", "--seed", seed, atoi, "Seed");
@@ -113,11 +121,13 @@ void add_appmc_options()
             "(1-d) = probability the count is within range as per epsilon parameter. "
             "So d=0.2 means we are 80%% sure the count is within range as specified by epsilon. "
             "The lower, the higher confidence we have in the count.");
-    myopt("--ignore", ignore_sampl_set, atoi, "Ignore given sampling set and recompute it with Arjun");
+    program.add_argument("-v", "--version") \
+        .action([&](const auto&) {print_version(); exit(0);}) \
+        .flag()
+        .help("Print version and exit");
 
     /* arjun_options.add_options() */
     myopt("--arjun", do_arjun, atoi, "Use arjun to minimize sampling set");
-    myopt("--arjundebug", debug_arjun, atoi, "Use CNF from Arjun, but use sampling set from CNF");
 
     /* improvement_options.add_options() */
     myopt("--sparse", sparse, atoi,
@@ -126,11 +136,11 @@ void add_appmc_options()
     myopt("--forcesolextension", force_sol_extension, atoi,
             "Use trick of not extending solutions in the SAT solver to full solution");
     myopt("--withe", with_e, atoi, "Eliminate variables and simplify CNF as well");
-    myopt("--eiter1", e_iter_1, atoi, "Num iters of E on 1st round");
-    myopt("--eiter2", e_iter_2, atoi, "Num iters of E on 1st round");
-    myopt("--evivif", e_vivif, atoi, "E vivif");
-    myopt("--esparsif", e_sparsify, atoi, "E sparsify");
-    myopt("--egetreds", e_get_reds, atoi, "Get redundant from E");
+    myopt("--eiter1", simp_conf.iter1, atoi, "Num iters of E on 1st round");
+    myopt("--eiter2", simp_conf.iter2, atoi, "Num iters of E on 1st round");
+    myopt("--evivif", simp_conf.oracle_vivify, atoi, "E vivif");
+    myopt("--esparsif", simp_conf.oracle_sparsify, atoi, "E sparsify");
+    myopt("--egetreds", simp_conf.oracle_vivify_get_learnts, atoi, "Get redundant from E");
 
     /* misc_options.add_options() */
     myopt("--verbcls", verb_cls, atoi, "Print banning clause + xor clauses. Highly verbose.");
@@ -138,18 +148,18 @@ void add_appmc_options()
     myopt("--velimratio", var_elim_ratio, stod, "Variable elimination ratio for each simplify run");
     myopt("--dumpintercnf", dump_intermediary_cnf, atoi,
             "Dump intermediary CNFs during solving into files cnf_dump-X.cnf. If set to 1 only UNSAT is dumped, if set to 2, all are dumped");
-    myopt("--log", logfilename, string, "Put logs of ApproxMC execution to this file");
     myopt("--debug", debug, atoi, "Turn on more heavy internal debugging");
+    myopt("--backbone", do_backbone, atoi, "Run backbone analysis");
 
     program.add_argument("inputfile").remaining().help("input CNF");
 }
 
-void add_supported_options(int argc, char** argv) {
+void parse_supported_options(int argc, char** argv) {
     add_appmc_options();
     try {
         program.parse_args(argc, argv);
         if (program.is_used("--help")) {
-            cout << "Probilistic Approcimate Counter" << endl << endl
+            cout << "Probilistic Approximate Counter" << endl << endl
             << "approxmc [options] inputfile" << endl;
             cout << program << endl;
             exit(0);
@@ -159,39 +169,6 @@ void add_supported_options(int argc, char** argv) {
         std::cerr << err.what() << std::endl;
         exit(-1);
     }
-
-    if (program["version"] == true) {
-        cout << appmc->get_version_info();
-        exit(0);
-    }
-}
-
-template<class T> void read_in_file(const string& filename, T* myreader)
-{
-    #ifndef USE_ZLIB
-    FILE * in = fopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verb);
-    #else
-    gzFile in = gzopen(filename.c_str(), "rb");
-    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verb);
-    #endif
-
-    if (in == nullptr) {
-        std::cerr
-        << "ERROR! Could not open file '"
-        << filename
-        << "' for reading: " << strerror(errno) << endl;
-
-        std::exit(-1);
-    }
-
-    if (!parser.parse_DIMACS(in, true)) exit(-1);
-
-    #ifndef USE_ZLIB
-    fclose(in);
-    #else
-    gzclose(in);
-    #endif
 }
 
 inline double stats_line_percent(double num, double total)
@@ -201,8 +178,7 @@ inline double stats_line_percent(double num, double total)
     }
 }
 
-void print_final_indep_set(
-    const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size, const vector<uint32_t>& empty_occs)
+void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size)
 {
     cout << "c ind ";
     for(const uint32_t s: indep_set) cout << s+1 << " ";
@@ -213,11 +189,6 @@ void print_final_indep_set(
     << " percent of original: "
     <<  std::setw(6) << std::setprecision(4)
     << stats_line_percent(indep_set.size(), orig_sampling_set_size)
-    << " %" << endl
-    << "c [arjun] of which empty occs: " << std::setw(7) << empty_occs.size()
-    << " percent of original: "
-    <<  std::setw(6) << std::setprecision(4)
-    << stats_line_percent(empty_occs.size(), orig_sampling_set_size)
     << " %" << endl;
 }
 
@@ -248,54 +219,20 @@ template<class T> void read_stdin(T* myreader) {
     #endif
 }
 
-void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const mpz_class& mult)
-{
+void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const std::unique_ptr<Field>& mult) {
+    const CMSat::Field* ptr = mult.get();
+    const ArjunNS::FMpz* od = dynamic_cast<const ArjunNS::FMpz*>(ptr);
     cout << "c [appmc] Number of solutions is: "
-    << cell_sol_cnt << "*2**" << hash_count << "*" << mult << endl;
+    << cell_sol_cnt << "*2**" << hash_count << "*" << od->val << endl;
     if (cell_sol_cnt == 0) cout << "s UNSATISFIABLE" << endl;
     else cout << "s SATISFIABLE" << endl;
 
     mpz_class num_sols(2);
     mpz_pow_ui(num_sols.get_mpz_t(), num_sols.get_mpz_t(), hash_count);
     num_sols *= cell_sol_cnt;
-    num_sols *= mult;
+    mpq_class final = od->val * num_sols;
 
-    cout << "s mc " << num_sols << endl;
-}
-
-void get_cnf_from_arjun() {
-    const uint32_t orig_num_vars = arjun->get_orig_num_vars();
-    appmc->new_vars(orig_num_vars);
-    arjun->start_getting_constraints();
-    vector<Lit> clause;
-    bool is_xor, rhs;
-    while (arjun->get_next_constraint(clause, is_xor, rhs)) {
-        assert(!is_xor); assert(rhs);
-        bool ok = true;
-        for(auto l: clause) if (l.var() >= orig_num_vars) { ok = false; break; }
-        if (ok) appmc->add_clause(clause);
-    }
-    arjun->end_getting_constraints();
-}
-
-template<class T> void read_input_cnf(T* reader) {
-    try {
-        auto files = program.get<std::vector<std::string>>("inputfile");
-        if (files.size() > 1) {
-            cout << "ERROR: you can only pass at most one positional option, an INPUT file" << endl;
-            exit(-1);
-        }
-        assert(!files.empty());
-        const string inp = files[0];
-        read_in_file(inp, reader);
-    } catch (std::logic_error& e) {
-        read_stdin(reader);
-    }
-    if (!reader->get_sampl_vars_set()  || ignore_sampl_set) {
-        vector<uint32_t> all_vars;
-        for(uint32_t i = 0; i < reader->nVars(); i++) all_vars.push_back(i);
-        reader->set_sampl_vars(all_vars);
-    }
+    cout << "s mc " << final << endl;
 }
 
 void set_approxmc_options()
@@ -322,39 +259,48 @@ void set_approxmc_options()
         appmc->set_debug(1);
         appmc->set_dump_intermediary_cnf(std::max(dump_intermediary_cnf, 1));
     }
-
-    if (!logfilename.empty()) {
-        appmc->set_up_log(logfilename);
-        cout << "c [appmc] Logfile set " << logfilename << endl;
-    }
 }
 
-template<class T>
-void print_orig_sampling_vars(const vector<uint32_t>& orig_sampling_vars, T* ptr)
-{
-    if (!orig_sampling_vars.empty()) {
-        cout << "c Original sampling vars: ";
-        for(auto v: orig_sampling_vars) {
-            cout << v+1 << " ";
-        }
-        cout << endl;
-        cout << "c [appmc] Orig sampling vars size: " << orig_sampling_vars.size() << endl;
-    } else {
-        cout << "c [appmc] No original sampling vars given" << endl;
-        cout << "c [appmc] Orig sampling vars size: " << ptr->nVars() << endl;
-    }
-}
+template<class T> void parse_file(const std::string& filename, T* reader) {
+  #ifndef USE_ZLIB
+  FILE * in = fopen(filename.c_str(), "rb");
+  DimacsParser<StreamBuffer<FILE*, CMSat::FN>, T> parser(reader, nullptr, 0, fg);
+  #else
+  gzFile in = gzopen(filename.c_str(), "rb");
+  DimacsParser<StreamBuffer<gzFile, CMSat::GZ>, T> parser(reader, nullptr, 0, fg);
+  #endif
+  if (in == nullptr) {
+      std::cout << "ERROR! Could not open file '" << filename
+      << "' for reading: " << strerror(errno) << endl;
+      std::exit(-1);
+  }
+  if (!parser.parse_DIMACS(in, true)) exit(-1);
+  #ifndef USE_ZLIB
+  fclose(in);
+  #else
+  gzclose(in);
+  #endif
 
-void transfer_unit_clauses_from_arjun()
-{
-    vector<Lit> cl(1);
-    auto units = arjun->get_zero_assigned_lits();
-    for(const auto& unit: units) {
-        if (unit.var() < appmc->nVars()) {
-            cl[0] = unit;
-            appmc->add_clause(cl);
-        }
+  if (!reader->get_sampl_vars_set()) {
+    vector<uint32_t> tmp;
+    for(uint32_t i = 0; i < reader->nVars(); i++) tmp.push_back(i);
+    reader->set_sampl_vars(tmp);
+  } else {
+    // Check if CNF has all vars as indep. Then its's all_indep
+    set<uint32_t> tmp;
+    for(auto const& s: reader->get_sampl_vars()) {
+      if (s >= reader->nVars()) {
+        cout << "ERROR: Sampling var " << s+1 << " is larger than number of vars in formula: "
+          << reader->nVars() << endl;
+        exit(-1);
+      }
+      tmp.insert(s);
     }
+    if (tmp.size() == reader->nVars()) etof_conf.all_indep = true;
+    if (!reader->get_opt_sampl_vars_set()) {
+      reader->set_opt_sampl_vars(reader->get_sampl_vars());
+    }
+  }
 }
 
 int main(int argc, char** argv)
@@ -362,7 +308,7 @@ int main(int argc, char** argv)
     #if defined(__GNUC__) && defined(__linux__)
     feenableexcept(FE_INVALID   | FE_DIVBYZERO | FE_OVERFLOW);
     #endif
-    double start_time = cpuTime();
+    double start_time = cpu_time();
 
     //Reconstruct the command line so we can emit it later if needed
     string command_line;
@@ -371,65 +317,58 @@ int main(int argc, char** argv)
         if (i+1 < argc) command_line += " ";
     }
 
-    appmc = new ApproxMC::AppMC;
-    add_supported_options(argc, argv);
+    fg = std::make_unique<ArjunNS::FGenMpz>();
+    appmc = new ApproxMC::AppMC(fg);
+    simp_conf.appmc = true;
+    simp_conf.oracle_sparsify = false;
+    simp_conf.iter1 = 2;
+    simp_conf.iter2 = 0;
+    etof_conf.do_bce = false;
+    etof_conf.do_extend_indep = false;
+    parse_supported_options(argc, argv);
     if (verb) {
-        cout << appmc->get_version_info();
-        cout << "c executed with command line: " << command_line << endl;
+        print_version();
+        cout << "c o executed with command line: " << command_line << endl;
     }
     set_approxmc_options();
 
+    ArjunNS::SimplifiedCNF cnf(fg);
+    const auto& files = program.get<std::vector<std::string>>("inputfile");
+    if (files.empty()) {
+      cout << "ERROR: you provided --inputfile but no file. Strange. Exiting. " << endl;
+      exit(-1);
+    }
+    const string fname(files[0]);
     if (do_arjun) {
-        //Arjun-based minimization
-        arjun = new ArjunNS::Arjun;
-        arjun->set_seed(seed);
-        arjun->set_verbosity(verb);
-        arjun->set_simp(simplify);
-        if (verb) cout << "c Arjun SHA revision " <<  arjun->get_version_info() << endl;
-
-        read_input_cnf(arjun);
-        print_orig_sampling_vars(arjun->get_orig_sampl_vars(), arjun);
-        auto debug_sampling_vars = arjun->get_orig_sampl_vars();
-        auto sampl_vars = arjun->run_backwards();
-        print_final_indep_set(sampl_vars, arjun->get_orig_sampl_vars().size(),
-                arjun->get_empty_sampl_vars());
-        if (with_e) {
-            ArjunNS::SimpConf sc;
-            sc.appmc = true;
-            sc.oracle_vivify = e_vivif;
-            sc.oracle_vivify_get_learnts = true;
-            sc.oracle_sparsify = e_sparsify;
-            sc.iter1 = e_iter_1;
-            sc.iter2 = e_iter_2;
-            const auto ret = arjun->get_fully_simplified_renumbered_cnf(sc);
-            appmc->new_vars(ret.nvars);
-            for(const auto& cl: ret.cnf) appmc->add_clause(cl);
-            if (e_get_reds) for(const auto& cl: ret.red_cnf) appmc->add_red_clause(cl);
-            sampl_vars = ret.sampl_vars;
-            appmc->set_multiplier_weight(ret.multiplier_weight);
-        } else {
-            get_cnf_from_arjun();
-            transfer_unit_clauses_from_arjun();
-            mpz_class dummy(2);
-            mpz_pow_ui(dummy.get_mpz_t(), dummy.get_mpz_t(), arjun->get_empty_sampl_vars().size());
-            appmc->set_multiplier_weight(arjun->get_multiplier_weight()*dummy);
-        }
-        if (debug_arjun) {
-            assert(!with_e && "Can't use debug and --withe at the same time");
-            sampl_vars = debug_sampling_vars;
-            appmc->set_multiplier_weight(1);
-        }
-        appmc->set_sampl_vars(sampl_vars);
-        delete arjun;
+        parse_file(fname, &cnf);
+        const auto orig_sampl_vars = cnf.sampl_vars;
+        double my_time = cpu_time();
+        ArjunNS::Arjun arjun;
+        arjun.set_verb(verb);
+        arjun.set_or_gate_based(arjun_gates);
+        arjun.set_xor_gates_based(arjun_gates);
+        arjun.set_ite_gate_based(arjun_gates);
+        arjun.set_irreg_gate_based(arjun_gates);
+        if (do_backbone)
+            arjun.standalone_backbone(cnf);
+        arjun.standalone_minimize_indep(cnf, etof_conf.all_indep);
+        if (with_e) arjun.standalone_elim_to_file(cnf, etof_conf, simp_conf);
+        appmc->new_vars(cnf.nVars());
+        appmc->set_sampl_vars(cnf.sampl_vars);
+        for(const auto& c: cnf.clauses) appmc->add_clause(c);
+        for(const auto& c: cnf.red_clauses) appmc->add_red_clause(c);
+        appmc->set_multiplier_weight(cnf.multiplier_weight);
+        print_final_indep_set(cnf.sampl_vars, orig_sampl_vars.size());
+        cout << "c o [arjun] Arjun finished. T: " << (cpu_time() - my_time) << endl;
     } else {
-        read_input_cnf(appmc);
-        print_final_indep_set(appmc->get_sampl_vars() , 0, vector<uint32_t>());
+        parse_file(fname, appmc);
+        print_final_indep_set(appmc->get_sampl_vars(), appmc->get_sampl_vars().size());
     }
 
     ApproxMC::SolCount sol_count;
     sol_count = appmc->count();
     appmc->print_stats(start_time);
-    cout << "c [appmc+arjun] Total time: " << (cpuTime() - start_time) << endl;
+    cout << "c o [appmc+arjun] Total time: " << (cpu_time() - start_time) << endl;
     print_num_solutions(sol_count.cellSolCount, sol_count.hashCount, appmc->get_multiplier_weight());
 
     delete appmc;

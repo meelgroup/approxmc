@@ -1,6 +1,6 @@
 /*********************************************************
 MiniSat -- Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
-CryptoMiniSat -- Copyright (c) 2009 Mate Soos
+CryptoMiniSat -- Copyright (C) 2009-2020 Authors of CryptoMiniSat, see AUTHORS file
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,57 +24,36 @@ THE SOFTWARE.
 #pragma once
 
 #include <cassert>
+#include <functional>
 #include <ctime>
-#include <cstdint>
 
-#include <ios>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <string>
 #include <csignal>
+#include <cstdint>
 
 // note: MinGW64 defines both __MINGW32__ and __MINGW64__
-#if defined (_MSC_VER) || defined (__MINGW32__) || defined(_WIN32)
+#if defined (_MSC_VER) || defined (__MINGW32__) || defined(_WIN32) || defined(__EMSCRIPTEN__)
 #include <ctime>
-static inline double cpuTime(void)
-{
-    return (double)clock() / CLOCKS_PER_SEC;
-}
-static inline double cpuTimeTotal(void)
+static inline double cpu_time(void)
 {
     return (double)clock() / CLOCKS_PER_SEC;
 }
 
-#else //_MSC_VER
+#else //Linux or POSIX
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
 
-static inline double cpuTime(void)
+static inline double cpu_time(void)
 {
     struct rusage ru;
-    #ifdef RUSAGE_THREAD
-    int ret = getrusage(RUSAGE_THREAD, &ru);
-    #else
-    int ret = getrusage(RUSAGE_SELF, &ru);
-    #endif
-
-    //NOTE: This is needed because Windows' Linux subsystem returns non-zero
-    //and I can't figure out a way to detect Windows.
-    if (ret != 0) {
-        return (double)clock() / CLOCKS_PER_SEC;
-    }
-
-    return (double)ru.ru_utime.tv_sec + (double)ru.ru_utime.tv_usec / 1000000.0;
-}
-
-static inline double cpuTimeTotal(void)
-{
-    struct rusage ru;
-    int ret = getrusage(RUSAGE_SELF, &ru);
+    [[maybe_unused]] int ret = getrusage(RUSAGE_SELF, &ru);
     assert(ret == 0);
 
-    return (double)ru.ru_utime.tv_sec + (double)ru.ru_utime.tv_usec / 1000000.0;
+    return (double)ru.ru_utime.tv_sec + ((double)ru.ru_utime.tv_usec / 1000000.0);
 }
 
 #endif
@@ -85,7 +64,7 @@ static inline double cpuTimeTotal(void)
 // size and resident set size, and return the results in KB.
 //
 // On failure, returns 0.0, 0.0
-static inline uint64_t memUsedTotal(double& vm_usage)
+static inline uint64_t mem_used(double& vm_usage, std::string* max_mem_usage = nullptr)
 {
    //double& vm_usage
    using std::ios_base;
@@ -100,20 +79,53 @@ static inline uint64_t memUsedTotal(double& vm_usage)
 
    // dummy vars for leading entries in stat that we don't care about
    //
-   string pid, comm, state, ppid, pgrp, session, tty_nr;
-   string tpgid, flags, minflt, cminflt, majflt, cmajflt;
-   string utime, stime, cutime, cstime, priority, nice;
-   string O, itrealvalue, starttime;
+   string pid; //                        The process ID.
+   string comm;  //The  filename  of the executable, in parentheses.
+   string state; //One of the following characters, indicating process (see man stat(2))
+   string ppid; //The PID of the parent of this process.
+   string pgrp; //The process group ID of the process.
+   string session; //The session ID of the process.
 
-   // the two fields we want
-   //
-   unsigned long vsize;
+   //The  controlling  terminal of the process.  (The minor device number is contained in the combina‐
+   //tion of bits 31 to 20 and 7 to 0; the major device number is in bits 15 to 8.)
+   string tty_nr;
+
+   //The ID of the foreground process group of the controlling terminal of the process.
+   string tpgid;
+
+
+   string flags;
+   string minflt;
+   string cminflt;
+   string majflt;
+   string cmajflt;
+   string utime;
+   string stime;
+   string cutime;
+   string cstime;
+   string priority;
+   string nice;
+
+   //Number of threads in this process (since Linux 2.6).  Before kernel  2.6,  this  field  was  hard
+   //coded to 0 as a placeholder for an earlier removed field.
+   string num_threads;
+
+   string itrealvalue;
+   string starttime;
+
+   /**** the two fields we want *****/
+   unsigned long vsize; //Virtual memory size in bytes.
+
+   //Resident Set Size: number of pages the process has in real memory.  This is just the pages  which
+   //count toward text, data, or stack space.  This does not include pages which have not been demand-
+   //loaded in, or which are swapped out.
    long rss;
+   /**** the two fields we want *****/
 
    stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
                >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
                >> utime >> stime >> cutime >> cstime >> priority >> nice
-               >> O >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
+               >> num_threads >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
 
    stat_stream.close();
 
@@ -121,11 +133,34 @@ static inline uint64_t memUsedTotal(double& vm_usage)
    vm_usage     = vsize;
    double resident_set = (double)rss * (double)page_size_kb;
 
+   if (max_mem_usage != nullptr) {
+       //NOTE: we could query the MAXIMUM resident size using
+       //   /proc/self/status
+       //   as it contains: * VmHWM: Peak resident set size ("high water mark").
+       //   but we'd need to parse it, etc.
+       //   see man(5) proc for details
+       //   This note is related to issue #629 in CryptoMiniSat
+       ifstream stat_stream2("/proc/self/status",ios_base::in);
+       string tp;
+       while(getline(stat_stream2, tp)){
+           if (tp.size() > 7 && tp.find("VmHWM:") != std::string::npos) {
+               tp.erase(0, 7);
+               tp.erase(tp.begin(),
+                        std::find_if(tp.begin(), tp.end(),
+                          std::bind(std::not_equal_to<char>(), '\t', std::placeholders::_1)));
+               tp.erase(tp.begin(),
+                        std::find_if(tp.begin(), tp.end(),
+                          std::bind(std::not_equal_to<char>(), ' ', std::placeholders::_1)));
+               *max_mem_usage = tp;
+           }
+      }
+   }
+
    return resident_set;
 }
 #elif defined(__FreeBSD__)
 #include <sys/types.h>
-inline uint64_t memUsedTotal(double& vm_usage)
+inline uint64_t mem_used(double& vm_usage, std::string* max_mem_usage = nullptr)
 {
     vm_usage = 0;
 
@@ -134,7 +169,7 @@ inline uint64_t memUsedTotal(double& vm_usage)
     return ru.ru_maxrss*1024;
 }
 #else //Windows
-static inline size_t memUsedTotal(double& vm_usage)
+static inline size_t mem_used(double& vm_usage, std::string* max_mem_usage = nullptr)
 {
     vm_usage = 0;
     return 0;

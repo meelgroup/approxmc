@@ -23,10 +23,7 @@
 # THE SOFTWARE.
 
 
-import sys
-import os
 from setuptools import Extension, setup
-import sysconfig
 import toml
 import pathlib
 from sys import platform
@@ -37,23 +34,15 @@ def _parse_toml(pyproject_path):
     return pyproject_data['project']['version']
 
 
-picosatlib = ('picosatlib', {
-    'sources': [
-               "python/cryptominisat/src/mpicosat/mpicosat.c",
-               "python/cryptominisat/src/mpicosat/version.c"],
-    'language' : "c",
-    'include_dirs' : ["python/cryptominisat/src/"]
-    })
-
-
 def gen_modules(version):
+    define_macros_val : list[tuple[str, str | None]] | None
     if platform == "win32" or platform == "cygwin":
-        extra_compile_args_val = ['/std:c++17', "/DCMS_LOCAL_BUILD=1", "/DAPPMC_FULL_VERSION=\""+version+"\""]
+        extra_compile_args_val = ['/std:c++17', "/DAPPMC_FULL_VERSION=\""+version+"\""]
         define_macros_val = [("TRACE", "")]
 
     else:
         extra_compile_args_val = ['-std=c++17']
-        define_macros_val = [('CMS_LOCAL_BUILD', 1),("TRACE", ""),("APPMC_FULL_VERSION", "\""+version+"\"")]
+        define_macros_val = [("TRACE", ""),("APPMC_FULL_VERSION", "\""+version+"\"")]
 
     modules = Extension(
         name = "pyapproxmc",
@@ -63,57 +52,6 @@ def gen_modules(version):
                    "src/approxmc.cpp",
                    "src/appmc_constants.cpp",
                    "src/counter.cpp",
-                   "python/cryptominisat/python/src/GitSHA1.cpp",
-                   "python/cryptominisat/src/backbone.cpp",
-                   "python/cryptominisat/src/cardfinder.cpp",
-                   "python/cryptominisat/src/ccnr_cms.cpp",
-                   "python/cryptominisat/src/ccnr.cpp",
-                   "python/cryptominisat/src/clauseallocator.cpp",
-                   "python/cryptominisat/src/clausecleaner.cpp",
-                   "python/cryptominisat/src/cnf.cpp",
-                   "python/cryptominisat/src/completedetachreattacher.cpp",
-                   "python/cryptominisat/src/cryptominisat.cpp",
-                   "python/cryptominisat/src/datasync.cpp",
-                   "python/cryptominisat/src/distillerbin.cpp",
-                   "python/cryptominisat/src/distillerlitrem.cpp",
-                   "python/cryptominisat/src/distillerlong.cpp",
-                   "python/cryptominisat/src/distillerlongwithimpl.cpp",
-                   "python/cryptominisat/src/frat.cpp",
-                   "python/cryptominisat/src/gatefinder.cpp",
-                   "python/cryptominisat/src/gaussian.cpp",
-                   "python/cryptominisat/src/get_clause_query.cpp",
-                   "python/cryptominisat/src/hyperengine.cpp",
-                   "python/cryptominisat/src/intree.cpp",
-                   "python/cryptominisat/src/lucky.cpp",
-                   "python/cryptominisat/src/matrixfinder.cpp",
-                   "python/cryptominisat/src/occsimplifier.cpp",
-                   "python/cryptominisat/src/packedrow.cpp",
-                   "python/cryptominisat/src/probe.cpp",
-                   "python/cryptominisat/src/propengine.cpp",
-                   "python/cryptominisat/src/reducedb.cpp",
-                   "python/cryptominisat/src/sccfinder.cpp",
-                   "python/cryptominisat/src/searcher.cpp",
-                   "python/cryptominisat/src/searchstats.cpp",
-                   "python/cryptominisat/src/sls.cpp",
-                   "python/cryptominisat/src/solutionextender.cpp",
-                   "python/cryptominisat/src/solverconf.cpp",
-                   "python/cryptominisat/src/solver.cpp",
-                   "python/cryptominisat/src/str_impl_w_impl.cpp",
-                   "python/cryptominisat/src/subsumeimplicit.cpp",
-                   "python/cryptominisat/src/subsumestrengthen.cpp",
-                   "python/cryptominisat/src/vardistgen.cpp",
-                   "python/cryptominisat/src/varreplacer.cpp",
-                   "python/cryptominisat/src/xorfinder.cpp",
-                   "python/cryptominisat/src/oracle/oracle.cpp",
-                   "python/sbva/src/sbva.cpp",
-                   "python/sbva/python/GitSHA1.cpp",
-                   "python/arjun/src/arjun.cpp",
-                   "python/arjun/src/backward.cpp",
-                   "python/arjun/src/common.cpp",
-                   "python/arjun/src/extend.cpp",
-                   "python/arjun/src/puura.cpp",
-                   "python/arjun/src/simplify.cpp",
-                   "python/arjun/python/src/GitSHA1.cpp",
                ],
         depends = [
                    "python/sbva/src/sbva.h",
@@ -132,5 +70,4 @@ if __name__ == '__main__':
     modules = gen_modules(version)
     setup(
         ext_modules =  [modules],
-        libraries = [picosatlib],
     )

@@ -116,10 +116,22 @@ IF (ZLIB_FOUND)
 ENDIF()
 
 target_link_libraries(approxmc-bin ${approxmc_exec_link_libs} approxmc)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 set_target_properties(approxmc-bin PROPERTIES
-        OUTPUT_NAME approxmc
-        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
-        INSTALL_RPATH_USE_LINK_PATH TRUE)
+    OUTPUT_NAME approxmc
+    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+    LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_RUNTIME_METHODS='[\"callMain\", \"ccall\", \"cwrap\", \"FS\", \"print\"]' -s FORCE_FILESYSTEM=1"
+)
+else()
+set_target_properties(approxmc-bin PROPERTIES
+    OUTPUT_NAME approxmc
+    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)
+endif()
+
 
 install(TARGETS approxmc-bin
     EXPORT ${APPROXMC_EXPORT_NAME}
