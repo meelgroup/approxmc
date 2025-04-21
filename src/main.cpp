@@ -96,8 +96,8 @@ void print_version() {
     cout << "c o Arjun SHA1: " << ArjunNS::Arjun ::get_version_sha1() << endl;
     cout << "c o Arjun SBVA SHA1: " << ArjunNS::Arjun::get_sbva_version_sha1() << endl;
     cout << "c o ApproxMC SHA1: " << ApproxMC::AppMC::get_version_sha1() << endl;
-    cout << CMSat::SATSolver::get_thanks_info("c o ");
-    cout << ArjunNS::Arjun::get_thanks_info("c o ");
+    cout << CMSat::SATSolver::get_thanks_info("c o ") << endl;
+    cout << ArjunNS::Arjun::get_thanks_info("c o ") << endl;
 }
 
 void add_appmc_options()
@@ -180,12 +180,12 @@ inline double stats_line_percent(double num, double total)
 
 void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size)
 {
-    cout << "c ind ";
+    cout << "c o ind ";
     for(const uint32_t s: indep_set) cout << s+1 << " ";
     cout << "0" << endl;
 
     cout
-    << "c [arjun] final set size:      " << std::setw(7) << indep_set.size()
+    << "c o [arjun] final set size:      " << std::setw(7) << indep_set.size()
     << " percent of original: "
     <<  std::setw(6) << std::setprecision(4)
     << stats_line_percent(indep_set.size(), orig_sampling_set_size)
