@@ -247,6 +247,7 @@ jobs:
         path: |
           project/build/approxmc
           project/build/lib/*
+          project/build/include/*
 
     - name: Upload Artifact - Linux arm
       if: matrix.os == 'ubuntu-24.04-arm' && matrix.staticcompile == 'ON'
@@ -256,6 +257,7 @@ jobs:
         path: |
           project/build/approxmc
           project/build/lib/*
+          project/build/include/*
 
     - name: Upload Artifact - Mac arm
       if: matrix.os == 'macos-14' && matrix.staticcompile == 'ON'
@@ -265,6 +267,7 @@ jobs:
         path: |
           project/build/approxmc
           project/build/lib/*
+          project/build/include/*
 
     - name: Upload Artifact - Mac x86
       if: matrix.os == 'macos-13' && matrix.staticcompile == 'ON'
@@ -274,3 +277,4 @@ jobs:
         path: |
           project/build/approxmc
           project/build/lib/*
+          project/build/include/*
