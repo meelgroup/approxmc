@@ -33,11 +33,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#ifdef CMS_LOCAL_BUILD
-#include "cryptominisat.h"
-#else
 #include <cryptominisat5/cryptominisat.h>
-#endif
 namespace ApproxMC {
 
 #ifdef _WIN32
