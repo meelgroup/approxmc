@@ -50,12 +50,6 @@ set(approxmc_lib_files
 )
 add_library(approxmc ${approxmc_lib_files})
 
-set_target_properties(approxmc PROPERTIES
-    PUBLIC_HEADER "${approxmc_public_headers}"
-    VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-)
-
 target_link_libraries(approxmc
     LINK_PUBLIC ${ARJUN_LIBRARIES}
     LINK_PUBLIC ${CRYPTOMINISAT5_LIBRARIES}
@@ -67,13 +61,18 @@ target_link_libraries(approxmc
 #     $<INSTALL_INTERFACE:include>
 # )
 
-GENERATE_EXPORT_HEADER(approxmc)
 add_executable(approxmc-bin main.cpp ${approxmc_lib_files})
 set(approxmc_exec_link_libs ${GMP_LIBRARY})
 
 IF (ZLIB_FOUND)
     SET(approxmc_exec_link_libs ${approxmc_exec_link_libs} ${ZLIB_LIBRARY})
 ENDIF()
+
+set_target_properties(approxmc PROPERTIES
+    PUBLIC_HEADER "${approxmc_public_headers}"
+    VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+)
 
 target_link_libraries(approxmc-bin ${approxmc_exec_link_libs} approxmc)
 
@@ -92,7 +91,7 @@ else()
     )
 endif()
 
-approxmc_add_public_header(approxmc "${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h" )
+approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h )
 
 # -----------------------------------------------------------------------------
 # Copy public headers into build directory include directory.
@@ -111,7 +110,6 @@ foreach(public_header ${approxmc_public_headers})
     )
 endforeach()
 
-
 install(TARGETS approxmc
     EXPORT ${APPROXMC_EXPORT_NAME}
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
@@ -122,10 +120,6 @@ install(TARGETS approxmc
 
 install(TARGETS approxmc-bin
     EXPORT ${APPROXMC_EXPORT_NAME}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/approxmc"
 )
 SET(CPACK_PACKAGE_EXECUTABLES "approxmc-bin" "approxmc")
