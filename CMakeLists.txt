@@ -356,9 +356,6 @@ message(STATUS "All defines at startup: ${COMPILE_DEFINES}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 
-# -----------------------------------------------------------------------------
-# headers
-# -----------------------------------------------------------------------------
 macro(approxmc_add_public_header LIBTARGET HEADER)
     get_target_property(EXISTING_PUBLIC_HEADERS ${LIBTARGET} PUBLIC_HEADER)
     if(EXISTING_PUBLIC_HEADERS)
@@ -393,14 +390,12 @@ endif()
 find_package(GMP REQUIRED)
 
 find_package(cryptominisat5 CONFIG REQUIRED)
-message(STATUS "Found CryptoMiniSat 5.x")
 message(STATUS "CryptoMiniSat5 dynamic lib: ${CRYPTOMINISAT5_LIBRARIES}")
 message(STATUS "CryptoMiniSat5 static lib:  ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
 message(STATUS "CryptoMiniSat5 static lib deps: ${CRYPTOMINISAT5_STATIC_LIBRARIES_DEPS}")
 message(STATUS "CryptoMiniSat5 include dirs: ${CRYPTOMINISAT5_INCLUDE_DIRS}")
 
 find_package(arjun CONFIG REQUIRED)
-message(STATUS "Found Arjun")
 message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
 message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
 find_package(sbva CONFIG REQUIRED)
@@ -450,9 +445,8 @@ set(APPROXMC_TARGETS_FILENAME "approxmcTargets.cmake")
 set(APPROXMC_CONFIG_FILENAME "approxmcConfig.cmake")
 
 # Export targets
-set(MY_TARGETS approxmc)
 export(
-    TARGETS ${MY_TARGETS}
+    TARGETS approxmc
     FILE "${CMAKE_CURRENT_BINARY_DIR}/${APPROXMC_TARGETS_FILENAME}"
 )
 
@@ -464,13 +458,12 @@ configure_file(approxmcConfig.cmake.in
 )
 
 # Export this package to the CMake user package registry
-# Now the user can just use find_package(cryptominisat5) on their system
+# Now the user can just use find_package(approxmc) on their system
 export(PACKAGE approxmc)
 
 set(DEF_INSTALL_CMAKE_DIR lib/cmake/approxmc)
 set(APPROXMC_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
     "Installation directory for approxmc CMake files")
-
 
 # Create approxmcConfig file
 set(EXPORT_TYPE "installed")
