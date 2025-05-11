@@ -63,7 +63,6 @@
             arjun
             sbva
           ];
-          postInstall = ''mv $out/include/approxmc/approxmc.h $out/include/approxmc.h'';
         };
 
     in
