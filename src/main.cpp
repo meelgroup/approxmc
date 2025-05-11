@@ -333,6 +333,10 @@ int main(int argc, char** argv)
     set_approxmc_options();
 
     ArjunNS::SimplifiedCNF cnf(fg);
+    if (!program.is_used("inputfile")) {
+        cout << "ERROR: you need to provide an input file. Exiting." << endl;
+        exit(-1);
+    }
     const auto& files = program.get<std::vector<std::string>>("inputfile");
     if (files.empty()) {
       cout << "ERROR: you provided --inputfile but no file. Strange. Exiting. " << endl;
