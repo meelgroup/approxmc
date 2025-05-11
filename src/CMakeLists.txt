@@ -56,10 +56,10 @@ target_link_libraries(approxmc
 )
 
 # # Make sure the exported target has the include directory set
-# target_include_directories(approxmc PUBLIC
-#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-#     $<INSTALL_INTERFACE:include>
-# )
+target_include_directories(approxmc PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/approxmc>
+    $<INSTALL_INTERFACE:include/approxmc>
+)
 
 add_executable(approxmc-bin main.cpp ${approxmc_lib_files})
 set(approxmc_exec_link_libs ${GMP_LIBRARY})
