@@ -2,17 +2,18 @@
 ![build](https://github.com/meelgroup/approxmc/workflows/build/badge.svg)
 
 # ApproxMC6: Approximate Model Counter
-ApproxMCv6 is a state-of-the-art approximate model counter utilizing an
-improved version of CryptoMiniSat to give approximate model counts to problems
-of size and complexity that were not possible before.
+ApproxMCv6 is a state-of-the-art approximate model counter using
+[Arjun](https://github.com/meelgroup/arjun) and
+[CryptoMiniSat](https://github.com/msoos/cryptominisat) to give probabilistic
+approximate model counts to problems of size and complexity that were not
+possible before.
 
 This work is the culmination of work by a number of people, including but not
 limited to, Mate Soos, Jiong Yang, Stephan Gocht, Yash Pote, and Kuldeep S.
 Meel. Publications: published [in
 AAAI-19](https://www.cs.toronto.edu/~meel/Papers/aaai19-sm.pdf), [in
 CAV2020](https://www.cs.toronto.edu/~meel/Papers/cav20-sgm.pdf), and [in
-CAV2023](https://arxiv.org/pdf/2305.09247). A large part of the work is in
-[CryptoMiniSat](https://github.com/msoos/cryptominisat).
+CAV2023](https://arxiv.org/pdf/2305.09247).
 
 ApproxMC handles CNF formulas and performs approximate counting.
 1. If you are interested in exact model counting, visit our exact counter
@@ -173,7 +174,9 @@ significant speedup if the number of solutions is very large.
 
 
 ## Issues, questions, bugs, etc.
-Please click on "issues" at the top and [create a new issue](https://github.com/meelgroup/mis/issues/new). All issues are responded to promptly.
+Please click on "issues" at the top and [create a new
+issue](https://github.com/meelgroup/mis/issues/new). All issues are responded
+to promptly.
 
 ## How to Cite
 If you use ApproxMC, please cite the following papers:
