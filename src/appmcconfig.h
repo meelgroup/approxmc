@@ -54,6 +54,7 @@ public:
     int dump_intermediary_cnf = 0;
     int debug = 0;
     int force_sol_extension = false;
+    double appmc7_eps_cutoff = 5;
 
     std::vector<uint32_t> sampl_vars;
     bool sampl_vars_set = false;
