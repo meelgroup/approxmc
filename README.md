@@ -23,12 +23,15 @@ ApproxMC handles CNF formulas and performs approximate counting.
 ## Installation
 We recommend using a prebuilt binary from our [release
 page](https://github.com/meelgroup/approxmc/releases) which contains binaries
-for many different platforms. The next best option is to use nix:
+for many different platforms. The second best thing to use is Nix. Simply [install
+nix](https://nixos.org/download/) and then:
 ```shell
 git clone https://github.com/meelgroup/approxmc
 cd approxmc
 nix-shell
 ```
+
+Then you will have `approxmc` binary available and ready to use.
 
 ## Providing a Projection Set
 For some applications, one is not interested in solutions over all the
