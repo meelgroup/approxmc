@@ -23,9 +23,12 @@ ApproxMC handles CNF formulas and performs approximate counting.
 ## Installation
 We recommend using a prebuilt binary from our [release
 page](https://github.com/meelgroup/approxmc/releases) which contains binaries
-for many different platforms. You can also install the python package as per
-below. In case you need to re-build the binary, you can follow the [GitHub
-Action](https://github.com/meelgroup/approxmc/actions).
+for many different platforms. The next best option is to use nix:
+```shell
+git clone https://github.com/meelgroup/approxmc
+cd approxmc
+nix-shell
+```
 
 ## Providing a Projection Set
 For some applications, one is not interested in solutions over all the
@@ -77,6 +80,13 @@ independent support. This is because for variables 3 and 4 we have banned the
 `false,false` solution, so out of their 4 possible settings, one is banned.
 Therefore, we have `2^5 * (4-1) = 96` solutions.
 
+## Guarantees
+ApproxMC provides so-called "PAC", or Probably Approximately Correct,
+guarantees. In less fancy words, the system guarantees that the solution found
+is within a certain tolerance (called "epsilon") with a certain probability
+(called "delta"). The default tolerance and probability, i.e. epsilon and delta
+values, are set to 0.8 and 0.2, respectively. Both values are configurable.
+
 ## How to use the Python interface
 Install using pip:
 ```bash
@@ -111,13 +121,6 @@ print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 
 This now prints `Approximate count is: 7*2**6`, which corresponds to the
 approximate count of models, projected over variables 1..10.
-
-## Guarantees
-ApproxMC provides so-called "PAC", or Probably Approximately Correct,
-guarantees. In less fancy words, the system guarantees that the solution found
-is within a certain tolerance (called "epsilon") with a certain probability
-(called "delta"). The default tolerance and probability, i.e. epsilon and delta
-values, are set to 0.8 and 0.2, respectively. Both values are configurable.
 
 ### Library usage
 The system can be used as a library:
