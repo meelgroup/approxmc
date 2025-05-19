@@ -369,6 +369,11 @@ void Counter::set_up_probs_threshold_measurements(
 
     verb_print(1, "[appmc] threshold set to " << threshold << " sparse: " << (int)using_sparse);
 
+    // Error probability of ApproxMC6
+    // See Lemma 4 in CAV23 paper "Rounding Meets Approximate Model Counting"
+    // https://link.springer.com/chapter/10.1007/978-3-031-37703-7_7
+
+    // Upper bound on the probability of underestimation event (L)
     double p_L = 0;
     if (conf.epsilon < sqrt(2)-1) {
         p_L = 0.262;
@@ -382,6 +387,7 @@ void Counter::set_up_probs_threshold_measurements(
         p_L = 0.023;
     }
 
+    // Upper bound on the probability of overestimation event (U)
     double p_U = 0;
     if (conf.epsilon < 3) {
         p_U = 0.169;
@@ -389,15 +395,23 @@ void Counter::set_up_probs_threshold_measurements(
         p_U = 0.044;
     }
 
-    // ApproxMC7
+    // Error probability of ApproxMC7
+    // See AAAI25 paper "Towards Real-Time Approximate Counting"
+    // https://ojs.aaai.org/index.php/AAAI/article/view/33231
+    
     if (conf.epsilon >= conf.appmc7_eps_cutoff) {
+        // Line 6 in Algorithm 4
         threshold = 0;
+        // Line 4 in Algorithm 4
         beta = (1 + sqrt( 1 + 2*(1+conf.epsilon)*(1+conf.epsilon) ))/2;
         alpha = beta - 1;
+        // Lemma 5.b
         p_L = 1 / (1 + alpha);
+        // Lemma 5.a
         p_U = 1 / beta;
     }
 
+    // Algorithm 6 of ApproxMC6 or Algorithm 3 of ApproxMC7
     for (measurements = 1; ; measurements+=2) {
        if (calc_error_bound(measurements, p_L) + calc_error_bound(measurements, p_U) <= conf.delta) {
            break;
@@ -453,26 +467,41 @@ ApproxMC::SolCount Counter::calc_est_count()
     ApproxMC::SolCount ret_count;
     if (num_hash_list.empty() || num_count_list.empty()) return ret_count;
 
-    // round model counts
     if (num_hash_list[0] > 0) {
         double pivot = 9.84*(1.0+(1.0/conf.epsilon))*(1.0+(1.0/conf.epsilon));
 	    for (auto cnt_it = num_count_list.begin(); cnt_it != num_count_list.end(); cnt_it++) {
+            // Adjust model counts of ApproxMC7 to improve confidence.
+            // See Line 15 of Algorithm 4 in AAAI25 paper "Towards Real-Time Approximate Counting"
+            // https://ojs.aaai.org/index.php/AAAI/article/view/33231
+            // The usage of sqrt(2*alpha/beta) is justified in the proof of Lemma 5, specifically, Equation 7 and 10.
             if (conf.epsilon >= conf.appmc7_eps_cutoff) {
                 *cnt_it *= sqrt(2*alpha/beta);
+
+            // Round model counts of ApproxMC6 to improve confidence.
+            // See Algorithm 5 and Line 5-8 of Algorithm 4 in CAV23 paper "Rounding Meets Approximate Model Counting"
+            // https://link.springer.com/chapter/10.1007/978-3-031-37703-7_7
+            // The usage of various rounded values is justified in the proof of Lemma 4.
+            // The breakpoints in epsilon are explained at the end of Section 5.3.
+
+            // Line 1 in Algorithm 5
             } else if (conf.epsilon < sqrt(2)-1) {
 	            if (*cnt_it < sqrt(1+2*conf.epsilon)/2 * pivot) {
 	    	        *cnt_it = sqrt(1+2*conf.epsilon)/2 * pivot;
 	            }
+            // Line 2 in Algorithm 5
             } else if (conf.epsilon < 1) {
 	            if (*cnt_it < pivot / sqrt(2)) {
 	    	        *cnt_it = pivot / sqrt(2);
 	            }
+            // Line 3 in Algorithm 5
             } else if (conf.epsilon < 3) {
 	            if (*cnt_it < pivot) {
 	    	        *cnt_it = pivot;
 	            }
+            // Line 4 in Algorithm 5
             } else if (conf.epsilon < 4*sqrt(2)-1) {
                 *cnt_it = pivot;
+            // Line 5 in Algorithm 5
             } else {
                 *cnt_it = sqrt(2)*pivot;
             }
@@ -648,8 +677,9 @@ void Counter::one_measurement_count(
     }
 }
 
-//See Algorithm 4 in paper "Towards Real-Time Approximate Counting"
-//https://ojs.aaai.org/index.php/AAAI/article/view/33231
+// Compute an estimate of model count in ApproxMC7
+// See Algorithm 4 (excluding Line 15) in AAAI25 paper "Towards Real-Time Approximate Counting"
+// https://ojs.aaai.org/index.php/AAAI/article/view/33231
 void Counter::appmc7_one_measurement_count(
     int64_t& prev_measure,
     const uint32_t iter,
