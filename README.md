@@ -27,9 +27,7 @@ page](https://github.com/meelgroup/approxmc/releases) which contains binaries
 for many different platforms. The second best thing to use is Nix. Simply [install
 nix](https://nixos.org/download/) and then:
 ```shell
-git clone https://github.com/meelgroup/approxmc
-cd approxmc
-nix-shell
+nix profile install github:meelgroup/approxmc
 ```
 
 Then you will have `approxmc` binary available and ready to use.
