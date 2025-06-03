@@ -30,7 +30,9 @@ nix](https://nixos.org/download/) and then:
 nix profile install github:meelgroup/approxmc
 ```
 
-Then you will have `approxmc` binary available and ready to use.
+Then you will have `approxmc` binary available and ready to use. If you want
+to build from source, you can follow the instructions in the instructions
+in the GitHub Action under the folder `.github`
 
 ## Providing a Projection Set
 For some applications, one is not interested in solutions over all the
