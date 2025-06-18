@@ -22,17 +22,21 @@ ApproxMC handles CNF formulas and performs approximate counting.
    counter [Pepin](https://github.com/meelgroup/pepin).
 
 ## Installation
-We recommend using a prebuilt binary from our [release
-page](https://github.com/meelgroup/approxmc/releases) which contains binaries
-for many different platforms. The second best thing to use is Nix. Simply [install
+It is strongly recommended to not build, but to use the precompiled
+binaries as in our [release](https://github.com/meelgroup/approxmc/releases).
+The second best thing to use is Nix. Simply [install
 nix](https://nixos.org/download/) and then:
 ```shell
-nix profile install github:meelgroup/approxmc
+git clone https://github.com/meelgroup/approxmc
+cd approxmc
+nix shell
 ```
 
-Then you will have `approxmc` binary available and ready to use. If you want
-to build from source, you can follow the instructions in the instructions
-in the GitHub Action under the folder `.github`
+Then you will have `approxmc` binary available and ready to use.
+
+If this is somehow not what you want, you can also build it. See the [GitHub
+Action](https://github.com/meelgroup/approxmc/actions/workflows/build.yml) for the
+specific set of steps.
 
 ## Providing a Projection Set
 For some applications, one is not interested in solutions over all the
