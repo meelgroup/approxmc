@@ -22,6 +22,8 @@ ApproxMC handles CNF formulas and performs approximate counting.
    counter [Pepin](https://github.com/meelgroup/pepin).
 
 ## Installation
+You can try out ApproxMC [from your browser](https://www.msoos.org/approxmc/).
+
 It is strongly recommended to not build, but to use the precompiled
 binaries as in our [release](https://github.com/meelgroup/approxmc/releases).
 The second best thing to use is Nix. Simply [install
