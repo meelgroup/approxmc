@@ -153,8 +153,6 @@ private:
         , const uint32_t num_hashes = std::numeric_limits<uint32_t>::max()
     );
 
-    void read_in_a_file(SATSolver* solver2, const string& filename);
-    void read_stdin(SATSolver* solver2);
     int find_best_sparse_match();
     void set_up_probs_threshold_measurements(uint32_t& measurements, SparseData& sparse_data);
     double calc_error_bound(uint32_t t, double p);
