@@ -168,12 +168,10 @@ int main() {
 }
 ```
 
-## ApproxMC5: Sparse-XOR based Approximate Model Counter
-Note: this is beta version release, not recommended for general use. We are
-currently working on a tight integration of sparse XORs into ApproxMC based on
-our [LICS-20](http://www.cs.toronto.edu/~meel/Papers/lics20-ma.pdf) paper. You
-can turn on the sparse XORs using the flag `--sparse 1` but beware as reported in
-LICS-20 paper, this may slow down solving in some cases. It is likely to give a
+## Sparse XOR Counting
+You can turn on the sparse XORs using the flag `--sparse 1` but beware as reported in
+[LICS-20](http://www.cs.toronto.edu/~meel/Papers/lics20-ma.pdf) paper,
+this may slow down solving in some cases. It is likely to give a
 significant speedup if the number of solutions is very large.
 
 
