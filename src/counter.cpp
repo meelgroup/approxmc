@@ -474,6 +474,8 @@ ApproxMC::SolCount Counter::calc_est_count()
             // https://ojs.aaai.org/index.php/AAAI/article/view/33231
             // The usage of sqrt(2*alpha/beta) is justified in the proof of Lemma 5, specifically, Equation 7 and 10.
             if (conf.epsilon >= conf.appmc7_eps_cutoff) {
+                assert(alpha != -1);
+                assert(beta != -1);
                 *cnt_it *= sqrt(2*alpha/beta);
 
             // Round model counts of ApproxMC6 to improve confidence.
