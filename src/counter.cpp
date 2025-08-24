@@ -374,7 +374,7 @@ void Counter::set_up_probs_threshold_measurements(
     // https://link.springer.com/chapter/10.1007/978-3-031-37703-7_7
 
     // Upper bound on the probability of underestimation event (L)
-    double p_L = 0;
+    double p_L;
     if (conf.epsilon < sqrt(2)-1) {
         p_L = 0.262;
     } else if (conf.epsilon < 1) {
