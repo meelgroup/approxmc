@@ -398,7 +398,6 @@ void Counter::set_up_probs_threshold_measurements(
     // Error probability of ApproxMC7
     // See AAAI25 paper "Towards Real-Time Approximate Counting"
     // https://ojs.aaai.org/index.php/AAAI/article/view/33231
-    
     if (conf.epsilon >= conf.appmc7_eps_cutoff) {
         // Line 6 in Algorithm 4
         threshold = 0;
