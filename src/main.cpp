@@ -192,45 +192,18 @@ void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_samp
     << " %" << endl;
 }
 
-template<class T> void read_stdin(T* myreader) {
-    cout << "c Reading from standard input... Use '-h' or '--help' for help." << endl;
-
-    #ifndef USE_ZLIB
-    FILE * in = stdin;
-    #else
-    gzFile in = gzdopen(0, "rb"); //opens stdin, which is 0
-    #endif
-
-    if (in == nullptr) {
-        std::cerr << "ERROR! Could not open standard input for reading" << endl;
-        std::exit(1);
-    }
-
-    #ifndef USE_ZLIB
-    DimacsParser<StreamBuffer<FILE*, FN>, T> parser(myreader, nullptr, verb);
-    #else
-    DimacsParser<StreamBuffer<gzFile, GZ>, T> parser(myreader, nullptr, verb);
-    #endif
-
-    if (!parser.parse_DIMACS(in, false)) exit(-1);
-
-    #ifdef USE_ZLIB
-    gzclose(in);
-    #endif
-}
-
-void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const std::unique_ptr<Field>& mult) {
-    const CMSat::Field* ptr = mult.get();
-    const ArjunNS::FMpz* od = dynamic_cast<const ArjunNS::FMpz*>(ptr);
+void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const std::unique_ptr<Field>& mult_ptr) {
+    const CMSat::Field* ptr = mult_ptr.get();
+    const ArjunNS::FMpq* mult = dynamic_cast<const ArjunNS::FMpq*>(ptr);
     cout << "c [appmc] Number of solutions is: "
-    << cell_sol_cnt << "*2**" << hash_count << "*" << od->val << endl;
-    if (cell_sol_cnt == 0) cout << "s UNSATISFIABLE" << endl;
+    << cell_sol_cnt << "*2**" << hash_count << "*" << mult->val << endl;
+    if (cell_sol_cnt == 0 || mult->val == 0) cout << "s UNSATISFIABLE" << endl;
     else cout << "s SATISFIABLE" << endl;
 
     mpz_class num_sols(2);
     mpz_pow_ui(num_sols.get_mpz_t(), num_sols.get_mpz_t(), hash_count);
     num_sols *= cell_sol_cnt;
-    mpq_class final = od->val * num_sols;
+    auto final = mult->val * num_sols;
 
     cout << "s mc " << final << endl;
 }
@@ -317,7 +290,7 @@ int main(int argc, char** argv)
         if (i+1 < argc) command_line += " ";
     }
 
-    fg = std::make_unique<ArjunNS::FGenMpz>();
+    fg = std::make_unique<ArjunNS::FGenMpq>();
     appmc = new ApproxMC::AppMC(fg);
     simp_conf.appmc = true;
     simp_conf.oracle_sparsify = false;
