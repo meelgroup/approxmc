@@ -8,9 +8,7 @@ ApproxMCv6 is a state-of-the-art approximate model counter using
 approximate model counts to problems of size and complexity that were not
 possible before.
 
-This work is the culmination of work by a number of people, including but not
-limited to, Mate Soos, Jiong Yang, Stephan Gocht, Yash Pote, and Kuldeep S.
-Meel. See publication list at the end of this README for more details.
+This work is the culmination of work by a number of people. See publication list at the end of this README for more details.
 
 ApproxMC handles CNF formulas and performs approximate counting.
 1. If you are interested in exact model counting, visit our exact counter
@@ -179,13 +177,15 @@ significant speedup if the number of solutions is very large.
 
 ## How to Cite
 If you use ApproxMC, please cite the following papers:
+* [CAV-23](https://arxiv.org/pdf/2305.09247)
 * [AAAI-19](https://www.cs.toronto.edu/~meel/Papers/aaai19-sm.pdf)
-* [CAV2020](https://www.cs.toronto.edu/~meel/Papers/cav20-sgm.pdf)
-* [CAV2023](https://arxiv.org/pdf/2305.09247)
-* [CAV20](https://dblp.uni-trier.de/rec/conf/cav/SoosGM20.html?view=bibtex)
-* [AAAI19](https://www.cs.toronto.edu/~meel/bib/SM19.bib)
-* [IJCAI16](https://www.cs.toronto.edu/~meel/bib/CMV16.bib)
-* [LICS20](https://www.cs.toronto.edu/~meel/publications/AM20.bib)
+* [CAV-20](https://www.cs.toronto.edu/~meel/Papers/cav20-sgm.pdf)
+* [CAV-20](https://dblp.uni-trier.de/rec/conf/cav/SoosGM20.html?view=bibtex)
+* [LICS-20](https://www.cs.toronto.edu/~meel/publications/AM20.bib)
+* [AAAI-19](https://www.cs.toronto.edu/~meel/publications/SM19.bib)
+* [IJCAI-16](https://www.cs.toronto.edu/~meel/publications/CMV16.bib)
+* [CP-13](https://www.cs.toronto.edu/~meel/publications/CMV13b.bib)
+
 * [Related Publications](https://www.cs.toronto.edu/~meel/publications.html)
 
 The benchmarks used in our evaluation can be found [here](https://zenodo.org/records/10449477)
