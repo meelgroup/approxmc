@@ -66,11 +66,13 @@ public:
     bool find_one_solution();
 
     // Sampling set
+    void set_sampl_vars(const std::set<uint32_t>& vars);
     void set_sampl_vars(const std::vector<uint32_t>& vars);
+    void set_opt_sampl_vars(const std::set<uint32_t>& vars);
     void set_opt_sampl_vars(const std::vector<uint32_t>& vars);
     bool get_sampl_vars_set() const;
     bool get_opt_sampl_vars_set() const { return false; }
-    const std::vector<uint32_t>& get_sampl_vars() const;
+    const std::set<uint32_t>& get_sampl_vars() const;
     void set_multiplier_weight(const std::unique_ptr<CMSat::Field>& weight);
     const std::unique_ptr<CMSat::Field>& get_multiplier_weight() const;
     void set_weighted(const bool weighted);
@@ -110,7 +112,7 @@ public:
     void set_force_sol_extension(int val);
 
     //Querying default values
-    const std::vector<uint32_t>& get_sampling_set() const;
+    const std::set<uint32_t>& get_sampling_set() const;
     double get_epsilon();
     uint32_t get_seed();
     double get_delta();

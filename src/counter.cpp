@@ -77,8 +77,11 @@ Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
     const string random_bits = gen_rnd_bits(conf.sampl_vars.size(), hash_index, sparse_data);
 
     vector<uint32_t> vars;
-    for (uint32_t j = 0; j < conf.sampl_vars.size(); j++) {
-        if (random_bits[j] == '1') vars.push_back(conf.sampl_vars[j]);
+    uint32_t j = 0;
+    for (const auto& v: conf.sampl_vars) {
+        assert(j < random_bits.size());
+        if (random_bits[j] == '1') vars.push_back(v);
+        j++;
     }
 
     solver->new_var();

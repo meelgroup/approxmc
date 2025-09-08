@@ -29,7 +29,7 @@
 #pragma once
 
 #include <memory>
-#include <vector>
+#include <set>
 #include <cstdint>
 #include <string>
 #include <gmpxx.h>
@@ -55,7 +55,7 @@ public:
     int debug = 0;
     int force_sol_extension = false;
 
-    std::vector<uint32_t> sampl_vars;
+    std::set<uint32_t> sampl_vars;
     bool sampl_vars_set = false;
     std::unique_ptr<CMSat::Field> multiplier_weight = nullptr;
 };

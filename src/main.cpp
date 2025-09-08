@@ -178,7 +178,7 @@ inline double stats_line_percent(double num, double total)
     }
 }
 
-void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_sampling_set_size)
+void print_final_indep_set(const set<uint32_t>& indep_set, uint32_t orig_sampling_set_size)
 {
     cout << "c o ind ";
     for(const uint32_t s: indep_set) cout << s+1 << " ";
@@ -255,8 +255,8 @@ template<class T> void parse_file(const std::string& filename, T* reader) {
   #endif
 
   if (!reader->get_sampl_vars_set()) {
-    vector<uint32_t> tmp;
-    for(uint32_t i = 0; i < reader->nVars(); i++) tmp.push_back(i);
+    set<uint32_t> tmp;
+    for(uint32_t i = 0; i < reader->nVars(); i++) tmp.insert(i);
     reader->set_sampl_vars(tmp);
   } else {
     // Check if CNF has all vars as indep. Then its's all_indep

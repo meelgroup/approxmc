@@ -33,8 +33,10 @@
 #include "cryptominisat5/solvertypesmini.h"
 #include <iostream>
 #include <memory>
+#include <set>
 #include "GitSHA1.h"
 
+using std::set;
 using std::cout;
 using std::endl;
 using namespace AppMCInt;
@@ -90,8 +92,11 @@ void setup_sampling_vars(AppMCPrivateData* data)
             cout << "0" << endl;
         }
     }
-
-    data->counter.solver->set_sampl_vars(data->conf.sampl_vars);
+    vector<uint32_t> sampl_vars_vec(
+        data->conf.sampl_vars.begin(),
+        data->conf.sampl_vars.end()
+    );
+    data->counter.solver->set_sampl_vars(sampl_vars_vec);
 }
 
 DLL_PUBLIC string AppMC::get_version_sha1()
@@ -226,7 +231,7 @@ DLL_PUBLIC ApproxMC::SolCount AppMC::count()
     return sol_count;
 }
 
-DLL_PUBLIC void AppMC::set_sampl_vars(const vector<uint32_t>& vars)
+DLL_PUBLIC void AppMC::set_sampl_vars(const set<uint32_t>& vars)
 {
     data->sampl_vars_declared = true;
     data->conf.sampl_vars_set = true;
@@ -240,7 +245,13 @@ DLL_PUBLIC void AppMC::set_sampl_vars(const vector<uint32_t>& vars)
     data->conf.sampl_vars = vars;
 }
 
-DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampl_vars() const  {
+DLL_PUBLIC void AppMC::set_sampl_vars(const vector<uint32_t>& vars)
+{
+    std::set<uint32_t> varset(vars.begin(), vars.end());
+    set_sampl_vars(varset);
+}
+
+DLL_PUBLIC const std::set<uint32_t>& AppMC::get_sampl_vars() const  {
     return data->conf.sampl_vars;
 }
 
@@ -284,7 +295,7 @@ DLL_PUBLIC CMSat::SATSolver* AppMC::get_solver()
     return data->counter.solver;
 }
 
-DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampling_set() const
+DLL_PUBLIC const std::set<uint32_t>& AppMC::get_sampling_set() const
 {
     return data->conf.sampl_vars;
 }
@@ -330,6 +341,10 @@ DLL_PUBLIC void AppMC::set_lit_weight(const Lit&, const std::unique_ptr<Field>&)
     cout << "ERROR: Weighted ApproxMC is not supported" << endl;
     exit(-1);
 }
+
+ DLL_PUBLIC void AppMC::set_opt_sampl_vars(const std::set<uint32_t>&) {
+     // Not interesting for AppMC
+ }
 
  DLL_PUBLIC void AppMC::set_opt_sampl_vars(const std::vector<uint32_t>&) {
      // Not interesting for AppMC

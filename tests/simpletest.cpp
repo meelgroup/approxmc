@@ -29,20 +29,18 @@ THE SOFTWARE.
 #include <memory>
 #include <cmath>
 #include <string>
-#include <vector>
+#include <set>
 using std::string;
-using std::vector;
+using std::set;
 
 using namespace ApproxMC;
-#include <vector>
-using std::vector;
 
 
 TEST(normal_interface, start)
 {
     std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
     AppMC s(fg);
-    s.set_sampl_vars({});
+    s.set_sampl_vars(std::set<uint32_t>());
     SolCount c = s.count();
     EXPECT_EQ(1U, c.cellSolCount);
     EXPECT_EQ(0U, c.hashCount);
@@ -54,7 +52,7 @@ TEST(normal_interface, example1)
     AppMC s(fg);
     s.new_vars(2);
     s.add_clause(str_to_cl("-1, 2"));
-    s.set_sampl_vars({0, 1});
+    s.set_sampl_vars(std::set<uint32_t>{0, 1});
     SolCount c = s.count();
     EXPECT_EQ(0U, c.hashCount);
     EXPECT_EQ(3U, c.cellSolCount);
@@ -65,8 +63,8 @@ TEST(normal_interface, example2)
     std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
     AppMC s(fg);
     s.new_vars(10);
-    vector<uint32_t> sampl;
-    for(uint32_t i = 0; i < 10; i++) sampl.push_back(i);
+    set<uint32_t> sampl;
+    for(uint32_t i = 0; i < 10; i++) sampl.insert(i);
     s.set_sampl_vars(sampl);
 
     SolCount c = s.count();
@@ -79,8 +77,8 @@ TEST(normal_interface, example3)
     std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
     AppMC s(fg);
     s.new_vars(10);
-    vector<uint32_t> sampl;
-    for(uint32_t i = 0; i < 10; i++) sampl.push_back(i);
+    set<uint32_t> sampl;
+    for(uint32_t i = 0; i < 10; i++) sampl.insert(i);
     s.set_sampl_vars(sampl);
 
     s.add_clause(str_to_cl("-3"));
@@ -94,8 +92,8 @@ TEST(normal_interface, example4)
     std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
     AppMC s(fg);
     s.new_vars(10);
-    vector<uint32_t> sampl;
-    for(uint32_t i = 0; i < 10; i++) sampl.push_back(i);
+    set<uint32_t> sampl;
+    for(uint32_t i = 0; i < 10; i++) sampl.insert(i);
     s.set_sampl_vars(sampl);
 
     s.add_clause(str_to_cl("-3, 4"));
