@@ -189,7 +189,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: mlpack/mlpack
-        ref: 4.4.0
+        ref: 4.6.2
         path: mlpack
     - name: Build mlpack
       run: |
