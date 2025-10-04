@@ -153,7 +153,13 @@ jobs:
         tar xvf v1.3.2.tar.gz
         # Fix cereal compilation on clang 19+; see
         # https://github.com/USCiLab/cereal/pull/835
-        sed -i 's|::template apply|::apply|' cereal-1.3.2/include/cereal/types/tuple.hpp
+        if sed --version >/dev/null 2>&1; then
+            # GNU sed (Linux)
+            sed -i 's|::template apply|::apply|' cereal-1.3.2/include/cereal/types/tuple.hpp
+        else
+            # BSD sed (macOS)
+            sed -i '' 's|::template apply|::apply|' cereal-1.3.2/include/cereal/types/tuple.hpp
+        fi
         cd cereal-1.3.2
         mkdir build
         cd build
