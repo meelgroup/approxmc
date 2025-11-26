@@ -30,7 +30,7 @@ binaries as in our [release](https://github.com/meelgroup/approxmc/releases).
 The second best thing to use is Nix. Simply [install
 nix](https://nixos.org/download/) and then:
 ```shell
-nix shell github:meelgroup/approxmc
+nix shell github:meelgroup/approxmc#approxmc
 ```
 
 Then you will have `approxmc` binary available and ready to use.
