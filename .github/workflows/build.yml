@@ -182,11 +182,11 @@ jobs:
 
     - name: Checkout ensmallen
       run: |
-        wget https://ensmallen.org/files/ensmallen-2.21.1.tar.gz
+        wget https://ensmallen.org/files/ensmallen-2.22.2.tar.gz
     - name: Build ensmallen
       run: |
-        tar xvf ensmallen-2.21.1.tar.gz
-        cd ensmallen-2.21.1
+        tar xvf ensmallen-2.22.2.tar.gz
+        cd ensmallen-2.22.2
         mkdir build
         cd build
         cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
