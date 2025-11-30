@@ -177,15 +177,15 @@ significant speedup if the number of solutions is very large.
 
 ## How to Cite
 If you use ApproxMC, please cite the following papers:
-* [CAV-23](https://arxiv.org/pdf/2305.09247)
-* [AAAI-19](https://www.cs.toronto.edu/~meel/Papers/aaai19-sm.pdf)
-* [CAV-20](https://www.cs.toronto.edu/~meel/Papers/cav20-sgm.pdf)
-* [CAV-20](https://dblp.uni-trier.de/rec/conf/cav/SoosGM20.html?view=bibtex)
-* [LICS-20](https://www.cs.toronto.edu/~meel/publications/AM20.bib)
-* [AAAI-19](https://www.cs.toronto.edu/~meel/publications/SM19.bib)
-* [IJCAI-16](https://www.cs.toronto.edu/~meel/publications/CMV16.bib)
-* [CP-13](https://www.cs.toronto.edu/~meel/publications/CMV13b.bib)
+[CAV-23](https://arxiv.org/pdf/2305.09247)
+, [AAAI-19](https://www.cs.toronto.edu/~meel/Papers/aaai19-sm.pdf)
+, [CAV-20](https://www.cs.toronto.edu/~meel/Papers/cav20-sgm.pdf)
+, [CAV-20](https://dblp.uni-trier.de/rec/conf/cav/SoosGM20.html?view=bibtex)
+, [LICS-20](https://www.cs.toronto.edu/~meel/publications/AM20.bib)
+, [AAAI-19](https://www.cs.toronto.edu/~meel/publications/SM19.bib)
+, [IJCAI-16](https://www.cs.toronto.edu/~meel/publications/CMV16.bib)
+, [CP-13](https://www.cs.toronto.edu/~meel/publications/CMV13b.bib)
+, [Related Publications](https://www.cs.toronto.edu/~meel/publications.html)
 
-* [Related Publications](https://www.cs.toronto.edu/~meel/publications.html)
-
+## Benchmarks Used
 The benchmarks used in our evaluation can be found [here](https://zenodo.org/records/10449477)
