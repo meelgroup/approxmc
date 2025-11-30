@@ -185,7 +185,8 @@ If you use ApproxMC, please cite the following papers:
 , [AAAI-19](https://www.cs.toronto.edu/~meel/publications/SM19.bib)
 , [IJCAI-16](https://www.cs.toronto.edu/~meel/publications/CMV16.bib)
 , [CP-13](https://www.cs.toronto.edu/~meel/publications/CMV13b.bib)
-, [Related Publications](https://www.cs.toronto.edu/~meel/publications.html)
+
+Additional related publications can be found [here](https://www.cs.toronto.edu/~meel/publications.html)
 
 ## Benchmarks Used
 The benchmarks used in our evaluation can be found [here](https://zenodo.org/records/10449477)
