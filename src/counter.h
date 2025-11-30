@@ -139,6 +139,12 @@ private:
         SparseData sparse_data,
         HashesModels* hm
     );
+    void appmc7_one_measurement_count(
+        int64_t& prev_measure,
+        const unsigned iter,
+        SparseData sparse_data,
+        HashesModels* hm
+    );
     void call_after_parse();
     void ban_one(const uint32_t act_var, const vector<lbool>& model);
     void check_model(
@@ -174,6 +180,8 @@ private:
     uint32_t cnf_dump_no = 0;
     vector<vector<Lit>> cls_in_solver; // needed for accurate dumping
     vector<pair<vector<Lit>, bool>> xors_in_solver; // needed for accurate dumping
+    double alpha = -1;
+    double beta = -1;
 
     int argc;
     char** argv;

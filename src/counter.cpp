@@ -369,7 +369,12 @@ void Counter::set_up_probs_threshold_measurements(
 
     verb_print(1, "[appmc] threshold set to " << threshold << " sparse: " << (int)using_sparse);
 
-    double p_L = 0;
+    // Error probability of ApproxMC6
+    // See Lemma 4 in CAV23 paper "Rounding Meets Approximate Model Counting"
+    // https://link.springer.com/chapter/10.1007/978-3-031-37703-7_7
+
+    // Upper bound on the probability of underestimation event (L)
+    double p_L;
     if (conf.epsilon < sqrt(2)-1) {
         p_L = 0.262;
     } else if (conf.epsilon < 1) {
@@ -382,6 +387,7 @@ void Counter::set_up_probs_threshold_measurements(
         p_L = 0.023;
     }
 
+    // Upper bound on the probability of overestimation event (U)
     double p_U = 0;
     if (conf.epsilon < 3) {
         p_U = 0.169;
@@ -389,6 +395,22 @@ void Counter::set_up_probs_threshold_measurements(
         p_U = 0.044;
     }
 
+    // Error probability of ApproxMC7
+    // See AAAI25 paper "Towards Real-Time Approximate Counting"
+    // https://ojs.aaai.org/index.php/AAAI/article/view/33231
+    if (conf.epsilon >= conf.appmc7_eps_cutoff) {
+        // Line 6 in Algorithm 4
+        threshold = 0;
+        // Line 4 in Algorithm 4
+        beta = (1 + sqrt( 1 + 2*(1+conf.epsilon)*(1+conf.epsilon) ))/2;
+        alpha = beta - 1;
+        // Lemma 5.b
+        p_L = 1 / (1 + alpha);
+        // Lemma 5.a
+        p_U = 1 / beta;
+    }
+
+    // Algorithm 6 of ApproxMC6 or Algorithm 3 of ApproxMC7
     for (measurements = 1; ; measurements+=2) {
        if (calc_error_bound(measurements, p_L) + calc_error_bound(measurements, p_U) <= conf.delta) {
            break;
@@ -421,8 +443,12 @@ ApproxMC::SolCount Counter::count()
     //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
     //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
     for (uint32_t j = 0; j < measurements; j++) {
-        one_measurement_count(prev_measure, j, sparse_data, &hm);
-        if (prev_measure == 0) {
+        if (conf.epsilon < conf.appmc7_eps_cutoff) {
+            one_measurement_count(prev_measure, j, sparse_data, &hm);
+        } else {
+            appmc7_one_measurement_count(prev_measure, j, sparse_data, &hm);
+        }
+        if (prev_measure == 0 && (conf.epsilon < conf.appmc7_eps_cutoff || num_count_list.back() == 0)) {
             // Exact count, no need to measure multiple times.
             verb_print(1, "[appmc] Counted without XORs, i.e. we got exact count");
             break;
@@ -440,24 +466,43 @@ ApproxMC::SolCount Counter::calc_est_count()
     ApproxMC::SolCount ret_count;
     if (num_hash_list.empty() || num_count_list.empty()) return ret_count;
 
-    // round model counts
     if (num_hash_list[0] > 0) {
         double pivot = 9.84*(1.0+(1.0/conf.epsilon))*(1.0+(1.0/conf.epsilon));
 	    for (auto cnt_it = num_count_list.begin(); cnt_it != num_count_list.end(); cnt_it++) {
-            if (conf.epsilon < sqrt(2)-1) {
+            // Adjust model counts of ApproxMC7 to improve confidence.
+            // See Line 15 of Algorithm 4 in AAAI25 paper "Towards Real-Time Approximate Counting"
+            // https://ojs.aaai.org/index.php/AAAI/article/view/33231
+            // The usage of sqrt(2*alpha/beta) is justified in the proof of Lemma 5, specifically, Equation 7 and 10.
+            if (conf.epsilon >= conf.appmc7_eps_cutoff) {
+                assert(alpha != -1);
+                assert(beta != -1);
+                *cnt_it *= sqrt(2*alpha/beta);
+
+            // Round model counts of ApproxMC6 to improve confidence.
+            // See Algorithm 5 and Line 5-8 of Algorithm 4 in CAV23 paper "Rounding Meets Approximate Model Counting"
+            // https://link.springer.com/chapter/10.1007/978-3-031-37703-7_7
+            // The usage of various rounded values is justified in the proof of Lemma 4.
+            // The breakpoints in epsilon are explained at the end of Section 5.3.
+
+            // Line 1 in Algorithm 5
+            } else if (conf.epsilon < sqrt(2)-1) {
 	            if (*cnt_it < sqrt(1+2*conf.epsilon)/2 * pivot) {
 	    	        *cnt_it = sqrt(1+2*conf.epsilon)/2 * pivot;
 	            }
+            // Line 2 in Algorithm 5
             } else if (conf.epsilon < 1) {
 	            if (*cnt_it < pivot / sqrt(2)) {
 	    	        *cnt_it = pivot / sqrt(2);
 	            }
+            // Line 3 in Algorithm 5
             } else if (conf.epsilon < 3) {
 	            if (*cnt_it < pivot) {
 	    	        *cnt_it = pivot;
 	            }
+            // Line 4 in Algorithm 5
             } else if (conf.epsilon < 4*sqrt(2)-1) {
                 *cnt_it = pivot;
+            // Line 5 in Algorithm 5
             } else {
                 *cnt_it = sqrt(2)*pivot;
             }
@@ -632,6 +677,141 @@ void Counter::one_measurement_count(
         hash_prev = cur_hash_cnt;
     }
 }
+
+// Compute an estimate of model count in ApproxMC7
+// See Algorithm 4 (excluding Line 15) in AAAI25 paper "Towards Real-Time Approximate Counting"
+// https://ojs.aaai.org/index.php/AAAI/article/view/33231
+void Counter::appmc7_one_measurement_count(
+    int64_t& prev_measure,
+    const uint32_t iter,
+    SparseData sparse_data,
+    HashesModels* hm)
+{
+    if (conf.sampl_vars.empty()) {
+        auto ret = solver->solve();
+        assert(ret != l_Undef);
+        num_hash_list.push_back(0);
+        num_count_list.push_back(ret == l_True ? 1 : 0);
+        return;
+    }
+
+    //Tells whether a solution is found at hash number N
+    //sols_for_hash[N] tells whether a solution is found when N hashes were added
+    map<uint64_t,int64_t> sols_for_hash;
+
+    //threshold_sols[hash_num]==1 tells us that at hash_num number of hashes
+    //a solution was found
+    //threshold_sols[hash_num]==0 tells that no solution was found.
+    map<uint64_t,bool> threshold_sols;
+    int64_t total_max_xors = conf.sampl_vars.size();
+    int64_t num_explored = 0;
+    int64_t lower_fib = 0;
+    int64_t upper_fib = total_max_xors+1;
+    threshold_sols[lower_fib] = 1;
+    sols_for_hash[lower_fib] = 1;
+    threshold_sols[upper_fib] = 0;
+    sols_for_hash[upper_fib] = 0;
+
+    int64_t hash_cnt = prev_measure;
+    int64_t hash_prev = hash_cnt;
+
+    //We are doing a galloping search here (see our paper for more details).
+    //lower_fib is referred to as loIndex and upper_fib is referred to as hiIndex
+    //The key idea is that we first do an exponential search and then do binary search
+    //This is implemented by using two sentinels: lower_fib and upper_fib. The correct answer
+    // is always between lower_fib and upper_fib. We do exponential search until upper_fib < lower_fib*2
+    // Once upper_fib < lower_fib*2; we do a binary search.
+    while (num_explored < total_max_xors) {
+        uint64_t cur_hash_cnt = hash_cnt;
+        const vector<Lit> assumps = set_num_hashes(hash_cnt, hm->hashes, sparse_data);
+
+        verb_print(1, "[appmc] "
+            "[ " << std::setw(7) << std::setprecision(2) << std::fixed << (cpu_time()-start_time) << " ]"
+            << " round: " << std::setw(2) << iter
+            << " hashes: " << std::setw(6) << hash_cnt);
+        SolNum sols = bounded_sol_count(
+            1, //max no. solutions
+            &assumps, //assumptions to use
+            hash_cnt,
+            iter,
+            hm
+        );
+        const uint64_t num_sols = std::min<uint64_t>(sols.solutions, 1);
+        assert(num_sols <= 1);
+        if (num_sols < 1) {
+            num_explored = lower_fib + total_max_xors - hash_cnt;
+
+            //one less hash count had threshold solutions
+            //this one has less than threshold
+            //so this is the real deal!
+            if (hash_cnt == 0) {
+                num_hash_list.push_back(0);
+                num_count_list.push_back(0);
+                prev_measure = 0;
+                return;
+            }
+            if (threshold_sols.find(hash_cnt-1) != threshold_sols.end()
+                    && threshold_sols[hash_cnt-1] == 1) {
+                num_hash_list.push_back(hash_cnt-1);
+                num_count_list.push_back(1);
+                prev_measure = hash_cnt-1;
+                return;
+            }
+
+            threshold_sols[hash_cnt] = 0;
+            sols_for_hash[hash_cnt] = 0;
+            if (iter > 0 &&
+                std::abs(hash_cnt - prev_measure) <= 2
+            ) {
+                //Doing linear, this is a re-count
+                upper_fib = hash_cnt;
+                hash_cnt--;
+            } else {
+                if (hash_prev > hash_cnt) hash_prev = 0;
+                upper_fib = hash_cnt;
+                if (hash_prev > lower_fib) lower_fib = hash_prev;
+                hash_cnt = (upper_fib+lower_fib)/2;
+            }
+        } else {
+            assert(num_sols == 1);
+            num_explored = hash_cnt + total_max_xors - upper_fib;
+
+            //success record for +1 hashcount exists and is 0
+            //so one-above hashcount was below threshold, this is above
+            //we have a winner -- the one above!
+            if (threshold_sols.find(hash_cnt+1) != threshold_sols.end()
+                && threshold_sols[hash_cnt+1] == 0
+            ) {
+                num_hash_list.push_back(hash_cnt);
+                num_count_list.push_back(1);
+                prev_measure = hash_cnt;
+                return;
+            }
+
+            threshold_sols[hash_cnt] = 1;
+            sols_for_hash[hash_cnt] = 1;
+            if (iter > 0
+                && std::abs(hash_cnt - prev_measure) < 2
+            ) {
+                //Doing linear, this is a re-count
+                lower_fib = hash_cnt;
+                hash_cnt++;
+            } else if (lower_fib + (hash_cnt-lower_fib)*2 >= upper_fib-1) {
+
+                // Whenever the above condition is satisfied, we are in binary search mode
+                lower_fib = hash_cnt;
+                hash_cnt = (lower_fib+upper_fib)/2;
+            } else {
+                // We are in exponential search mode.
+                const auto old_hash_cnt = hash_cnt;
+                hash_cnt = lower_fib + (hash_cnt-lower_fib)*2;
+                if (old_hash_cnt == hash_cnt) hash_cnt++;
+            }
+        }
+        hash_prev = cur_hash_cnt;
+    }
+}
+
 bool Counter::gen_rhs()
 {
     std::uniform_int_distribution<uint32_t> dist{0, 1};
