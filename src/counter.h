@@ -27,7 +27,6 @@
  */
 
 #include "appmcconfig.h"
-#include <fstream>
 #include <memory>
 #include <random>
 #include <map>

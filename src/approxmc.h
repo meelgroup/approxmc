@@ -50,7 +50,7 @@ class SolCount
     }
     bool valid = false;
     uint32_t hashCount = 0;
-    uint32_t cellSolCount = 0;
+    uint64_t cellSolCount = 0;
 };
 
 struct AppMCPrivateData;

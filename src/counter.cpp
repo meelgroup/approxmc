@@ -471,6 +471,9 @@ ApproxMC::SolCount Counter::calc_est_count()
         ; hash_it != num_hash_list.end() && cnt_it != num_count_list.end()
         ; hash_it++, cnt_it++
     ) {
+        assert(*hash_it >= min_hash);
+        assert((*cnt_it) >= 0);
+        assert((*hash_it) - min_hash <= 100);
         *cnt_it *= pow(2, (*hash_it) - min_hash);
     }
     ret_count.valid = true;
@@ -684,7 +687,7 @@ void Counter::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
     cout << " = " << (rhs ? "True" : "False") << endl;
 }
 
-template<class T> inline T Counter::find_median(const vector<T>& nums) {
+template<class T> T Counter::find_median(const vector<T>& nums) {
     assert(!nums.empty());
     auto tmp = nums;
 
@@ -694,7 +697,7 @@ template<class T> inline T Counter::find_median(const vector<T>& nums) {
     return tmp[med_index];
 }
 
-template<class T> inline T Counter::find_min(const vector<T>& nums) {
+template<class T> T Counter::find_min(const vector<T>& nums) {
     T min = std::numeric_limits<T>::max();
     for (const auto a: nums) {
         if (a < min) min = a;
