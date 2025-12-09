@@ -651,6 +651,7 @@ string Counter::gen_rnd_bits(
         //Do we need to update the probability?
         const auto& table = constants.index_var_maps[sparse_data.table_no];
         const auto next_var_index = table.index_var_map[sparse_data.next_index];
+        assert(!table.index_var_map.empty());
         if (hash_index >= next_var_index) {
             sparse_data.sparseprob = constants.probval[sparse_data.next_index];
             sparse_data.next_index = std::min<uint32_t>(
@@ -667,11 +668,12 @@ string Counter::gen_rnd_bits(
         }
     }
 
+    random_bits.reserve(size);
     while (random_bits.size() < size) {
         bool val = dist(rnd_engine) < cutoff;
         random_bits += '0' + val;
     }
-    assert(random_bits.size() >= size);
+    assert(random_bits.size() == size);
     return random_bits;
 }
 
