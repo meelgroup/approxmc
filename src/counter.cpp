@@ -27,7 +27,6 @@
  */
 
 #include <ctime>
-#include <cerrno>
 #include <algorithm>
 #include <sstream>
 #include <iostream>
@@ -164,7 +163,8 @@ void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t it
 
     std::ofstream f;
     f.open(ss.str(), std::ios::out);
-    f << "p cnf " << solver->nVars()+1 << " " << cls_in_solver.size()+xors_in_solver.size()+assumps.size() << endl;
+    f << "p cnf " << solver->nVars()+1 << " "
+        << cls_in_solver.size()+xors_in_solver.size()+assumps.size() << endl;
     for(const auto& cl: cls_in_solver) f << cl << " 0" << endl;
     f << "c XORs below" << endl;
     for(const auto& x: xors_in_solver) {
@@ -330,7 +330,8 @@ double Counter::calc_error_bound(uint32_t t, double p)
 {
     double curr = pow(p, t);
     double sum = curr;
-    for (auto k=t-1; k>=std::ceil(double(t)/2); k--) {
+    assert(t >= 1);
+    for (int32_t k=(int32_t)t-1; k>=std::ceil(double(t)/2); k--) {
        curr *= double((k+1))/(t-k) * (1-p)/p;
        sum += curr;
     }
@@ -470,11 +471,9 @@ ApproxMC::SolCount Counter::calc_est_count()
         ; hash_it != num_hash_list.end() && cnt_it != num_count_list.end()
         ; hash_it++, cnt_it++
     ) {
-        if ((*hash_it) - min_hash > 10) {
-            cout << "Internal ERROR: Something is VERY fishy, the difference between each count must"
-                " never be this large. Please report this bug to the maintainers" << endl;
-            exit(-1);
-        }
+        assert(*hash_it >= min_hash);
+        assert((*cnt_it) >= 0);
+        assert((*hash_it) - min_hash <= 100);
         *cnt_it *= pow(2, (*hash_it) - min_hash);
     }
     ret_count.valid = true;
@@ -509,7 +508,7 @@ int Counter::find_best_sparse_match()
 void Counter::one_measurement_count(
     int64_t& prev_measure,
     const uint32_t iter,
-    SparseData sparse_data,
+    SparseData sparse_data, // passed by value on purpose, will be modified
     HashesModels* hm)
 {
     if (conf.sampl_vars.empty()) {
@@ -632,11 +631,11 @@ void Counter::one_measurement_count(
         hash_prev = cur_hash_cnt;
     }
 }
+
 bool Counter::gen_rhs()
 {
     std::uniform_int_distribution<uint32_t> dist{0, 1};
-    bool rhs = dist(rnd_engine);
-    return rhs;
+    return dist(rnd_engine);
 }
 
 string Counter::gen_rnd_bits(
@@ -652,6 +651,7 @@ string Counter::gen_rnd_bits(
         //Do we need to update the probability?
         const auto& table = constants.index_var_maps[sparse_data.table_no];
         const auto next_var_index = table.index_var_map[sparse_data.next_index];
+        assert(!table.index_var_map.empty());
         if (hash_index >= next_var_index) {
             sparse_data.sparseprob = constants.probval[sparse_data.next_index];
             sparse_data.next_index = std::min<uint32_t>(
@@ -668,11 +668,12 @@ string Counter::gen_rnd_bits(
         }
     }
 
+    random_bits.reserve(size);
     while (random_bits.size() < size) {
         bool val = dist(rnd_engine) < cutoff;
         random_bits += '0' + val;
     }
-    assert(random_bits.size() >= size);
+    assert(random_bits.size() == size);
     return random_bits;
 }
 
@@ -688,17 +689,17 @@ void Counter::print_xor(const vector<uint32_t>& vars, const uint32_t rhs)
     cout << " = " << (rhs ? "True" : "False") << endl;
 }
 
-template<class T> inline T Counter::find_median(const vector<T>& nums) {
+template<class T> T Counter::find_median(const vector<T>& nums) {
     assert(!nums.empty());
     auto tmp = nums;
 
     std::sort(tmp.begin(), tmp.end());
     size_t med_index = tmp.size() / 2;
-    if (med_index >= tmp.size()) return tmp[tmp.size() - 1];
+    assert(med_index < tmp.size());
     return tmp[med_index];
 }
 
-template<class T> inline T Counter::find_min(const vector<T>& nums) {
+template<class T> T Counter::find_min(const vector<T>& nums) {
     T min = std::numeric_limits<T>::max();
     for (const auto a: nums) {
         if (a < min) min = a;
