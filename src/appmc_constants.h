@@ -35,7 +35,7 @@
 using std::vector;
 using std::string;
 
-#define verb_print(a, b) if (conf.verb >= a) cout << "c o " << b << endl
+#define verb_print(a, b) do { if (conf.verb >= a) cout << "c o " << b << endl; } while (0)
 #define clear_toclear_seen() \
     do {\
       for(const auto& x: to_clear) seen[x] = 0;\
