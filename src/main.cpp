@@ -258,7 +258,7 @@ template<class T> void parse_file(const std::string& filename, T* reader) {
     for(uint32_t i = 0; i < reader->nVars(); i++) tmp.push_back(i);
     reader->set_sampl_vars(tmp);
   } else {
-    // Check if CNF has all vars as indep. Then its's all_indep
+    // Check if CNF has all vars as indep. Then it's all_indep
     set<uint32_t> tmp;
     for(auto const& s: reader->get_sampl_vars()) {
       if (s >= reader->nVars()) {
