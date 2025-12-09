@@ -163,7 +163,8 @@ void Counter::dump_cnf_from_solver(const vector<Lit>& assumps, const uint32_t it
 
     std::ofstream f;
     f.open(ss.str(), std::ios::out);
-    f << "p cnf " << solver->nVars()+1 << " " << cls_in_solver.size()+xors_in_solver.size()+assumps.size() << endl;
+    f << "p cnf " << solver->nVars()+1 << " "
+        << cls_in_solver.size()+xors_in_solver.size()+assumps.size() << endl;
     for(const auto& cl: cls_in_solver) f << cl << " 0" << endl;
     f << "c XORs below" << endl;
     for(const auto& x: xors_in_solver) {
@@ -504,7 +505,7 @@ int Counter::find_best_sparse_match()
 void Counter::one_measurement_count(
     int64_t& prev_measure,
     const uint32_t iter,
-    SparseData sparse_data,
+    SparseData sparse_data, // passed by value on purpose, will be modified
     HashesModels* hm)
 {
     if (conf.sampl_vars.empty()) {
@@ -689,7 +690,7 @@ template<class T> inline T Counter::find_median(const vector<T>& nums) {
 
     std::sort(tmp.begin(), tmp.end());
     size_t med_index = tmp.size() / 2;
-    if (med_index >= tmp.size()) return tmp[tmp.size() - 1];
+    assert(med_index < tmp.size());
     return tmp[med_index];
 }
 
