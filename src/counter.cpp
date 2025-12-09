@@ -628,11 +628,11 @@ void Counter::one_measurement_count(
         hash_prev = cur_hash_cnt;
     }
 }
+
 bool Counter::gen_rhs()
 {
     std::uniform_int_distribution<uint32_t> dist{0, 1};
-    bool rhs = dist(rnd_engine);
-    return rhs;
+    return dist(rnd_engine);
 }
 
 string Counter::gen_rnd_bits(
