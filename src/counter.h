@@ -174,9 +174,6 @@ private:
     uint32_t cnf_dump_no = 0;
     vector<vector<Lit>> cls_in_solver; // needed for accurate dumping
     vector<pair<vector<Lit>, bool>> xors_in_solver; // needed for accurate dumping
-
-    int argc;
-    char** argv;
 };
 
 }

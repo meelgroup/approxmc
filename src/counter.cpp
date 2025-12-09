@@ -27,7 +27,6 @@
  */
 
 #include <ctime>
-#include <cerrno>
 #include <algorithm>
 #include <sstream>
 #include <iostream>
@@ -330,7 +329,8 @@ double Counter::calc_error_bound(uint32_t t, double p)
 {
     double curr = pow(p, t);
     double sum = curr;
-    for (auto k=t-1; k>=std::ceil(double(t)/2); k--) {
+    assert(t >= 1);
+    for (int32_t k=(int32_t)t-1; k>=std::ceil(double(t)/2); k--) {
        curr *= double((k+1))/(t-k) * (1-p)/p;
        sum += curr;
     }
@@ -470,11 +470,6 @@ ApproxMC::SolCount Counter::calc_est_count()
         ; hash_it != num_hash_list.end() && cnt_it != num_count_list.end()
         ; hash_it++, cnt_it++
     ) {
-        if ((*hash_it) - min_hash > 10) {
-            cout << "Internal ERROR: Something is VERY fishy, the difference between each count must"
-                " never be this large. Please report this bug to the maintainers" << endl;
-            exit(-1);
-        }
         *cnt_it *= pow(2, (*hash_it) - min_hash);
     }
     ret_count.valid = true;

@@ -36,7 +36,6 @@
 #include <set>
 #include <gmp.h>
 
-#include "time_mem.h"
 #include "approxmc.h"
 #include "time_mem.h"
 #include <cryptominisat5/solvertypesmini.h>
