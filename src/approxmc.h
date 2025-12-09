@@ -33,6 +33,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <memory>
 #include <cryptominisat5/cryptominisat.h>
 namespace ApproxMC {
 
@@ -122,7 +123,7 @@ private:
     ////////////////////////////
     // Do not bother with this, it's private
     ////////////////////////////
-    AppMCPrivateData* data;
+    std::unique_ptr<AppMCPrivateData> data;
 };
 
 }

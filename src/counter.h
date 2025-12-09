@@ -41,6 +41,7 @@ using std::vector;
 using std::map;
 using std::pair;
 using namespace CMSat;
+using std::unique_ptr;
 
 namespace AppMCInt {
 
@@ -93,7 +94,7 @@ struct SparseData {
 
 class Counter {
 public:
-    Counter(Config& _conf, const std::unique_ptr<FieldGen>& _fg) : fg(_fg->dup()), conf(_conf) {}
+    Counter(Config& _conf, const unique_ptr<FieldGen>& _fg) : fg(_fg->dup()), conf(_conf) {}
     ApproxMC::SolCount solve();
     string gen_rnd_bits(const uint32_t size,
                         const uint32_t numhashes, SparseData& sparse_data);
@@ -101,7 +102,7 @@ public:
     bool find_one_solution();
     bool gen_rhs();
     uint32_t threshold_appmcgen;
-    SATSolver* solver = nullptr;
+    unique_ptr<SATSolver> solver = nullptr;
     ApproxMC::SolCount calc_est_count();
     const Constants constants;
     bool solver_add_clause(const vector<Lit>& cl);
@@ -109,7 +110,7 @@ public:
     bool solver_add_xor_clause(const vector<Lit>& lits, const bool rhs);
 
 private:
-    std::unique_ptr<FieldGen> fg;
+    unique_ptr<FieldGen> fg;
     Config& conf;
     ApproxMC::SolCount count();
     void add_appmc_options();
