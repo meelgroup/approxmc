@@ -40,7 +40,7 @@ using std::vector;
 
 TEST(normal_interface, start)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
     AppMC s(fg);
     s.set_sampl_vars({});
     SolCount c = s.count();
@@ -50,7 +50,7 @@ TEST(normal_interface, start)
 
 TEST(normal_interface, example1)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
     AppMC s(fg);
     s.new_vars(2);
     s.add_clause(str_to_cl("-1, 2"));
@@ -62,7 +62,7 @@ TEST(normal_interface, example1)
 
 TEST(normal_interface, example2)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
     AppMC s(fg);
     s.new_vars(10);
     vector<uint32_t> sampl;
@@ -76,7 +76,7 @@ TEST(normal_interface, example2)
 
 TEST(normal_interface, example3)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
     AppMC s(fg);
     s.new_vars(10);
     vector<uint32_t> sampl;
@@ -91,7 +91,7 @@ TEST(normal_interface, example3)
 
 TEST(normal_interface, example4)
 {
-    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpz>();
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
     AppMC s(fg);
     s.new_vars(10);
     vector<uint32_t> sampl;

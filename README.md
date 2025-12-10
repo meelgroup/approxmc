@@ -8,31 +8,36 @@ ApproxMCv6 is a state-of-the-art approximate model counter using
 approximate model counts to problems of size and complexity that were not
 possible before.
 
-This work is the culmination of work by a number of people, including but not
-limited to, Mate Soos, Jiong Yang, Stephan Gocht, Yash Pote, and Kuldeep S.
-Meel. Publications: published [in
-AAAI-19](https://www.cs.toronto.edu/~meel/Papers/aaai19-sm.pdf), [in
-CAV2020](https://www.cs.toronto.edu/~meel/Papers/cav20-sgm.pdf), and [in
-CAV2023](https://arxiv.org/pdf/2305.09247).
+This work is the culmination of work by a number of people. See publication list at the end of this README for more details.
 
 ApproxMC handles CNF formulas and performs approximate counting.
 1. If you are interested in exact model counting, visit our exact counter
    [Ganak](http://github.com/meelgroup/ganak)
-2. If you are instead interested in DNF formulas, visit our approximate DNF
+2. If you need to count a weighted CNF formula, you need to preprocess your CNF
+   using [our tool](https://github.com/meelgroup/weighted-to-unweighted) to
+   convert it to an unweighted CNF formula. Then you can use ApproxMC to count it.
+3. If you are interested in DNF formulas, visit our approximate DNF
    counter [Pepin](https://github.com/meelgroup/pepin).
 
+Notice that for some formula families, Ganak is faster than ApproxMC. It
+can be worthwhile to try both tools on your instances.
+
 ## Installation
-We recommend using a prebuilt binary from our [release
-page](https://github.com/meelgroup/approxmc/releases) which contains binaries
-for many different platforms. The second best thing to use is Nix. Simply [install
+You can try out ApproxMC [from your browser](https://www.msoos.org/approxmc/).
+
+It is strongly recommended to not build, but to use the precompiled
+binaries as in our [release](https://github.com/meelgroup/approxmc/releases).
+The second best thing to use is Nix. Simply [install
 nix](https://nixos.org/download/) and then:
 ```shell
-git clone https://github.com/meelgroup/approxmc
-cd approxmc
-nix-shell
+nix shell github:meelgroup/approxmc#approxmc
 ```
 
 Then you will have `approxmc` binary available and ready to use.
+
+If this is somehow not what you want, you can also build it. See the [GitHub
+Action](https://github.com/meelgroup/approxmc/actions/workflows/build.yml) for the
+specific set of steps.
 
 ## Providing a Projection Set
 For some applications, one is not interested in solutions over all the
@@ -164,31 +169,24 @@ int main() {
 }
 ```
 
-## ApproxMC5: Sparse-XOR based Approximate Model Counter
-Note: this is beta version release, not recommended for general use. We are
-currently working on a tight integration of sparse XORs into ApproxMC based on
-our [LICS-20](http://www.cs.toronto.edu/~meel/Papers/lics20-ma.pdf) paper. You
-can turn on the sparse XORs using the flag `--sparse 1` but beware as reported in
-LICS-20 paper, this may slow down solving in some cases. It is likely to give a
+## Sparse XOR Counting
+You can turn on the sparse XORs using the flag `--sparse 1` but beware as reported in
+[LICS-20](http://www.cs.toronto.edu/~meel/Papers/lics20-ma.pdf) paper,
+this may slow down solving in some cases. It is likely to give a
 significant speedup if the number of solutions is very large.
-
-
-## Issues, questions, bugs, etc.
-Please click on "issues" at the top and [create a new
-issue](https://github.com/meelgroup/mis/issues/new). All issues are responded
-to promptly.
 
 ## How to Cite
 If you use ApproxMC, please cite the following papers:
-[AAAI-19](https://www.cs.toronto.edu/~meel/Papers/aaai19-sm.pdf), [in
-CAV2020](https://www.cs.toronto.edu/~meel/Papers/cav20-sgm.pdf), and [in
-CAV2023](https://arxiv.org/pdf/2305.09247).
-[CAV20](https://dblp.uni-trier.de/rec/conf/cav/SoosGM20.html?view=bibtex),
-[AAAI19](https://www.cs.toronto.edu/~meel/bib/SM19.bib) and
-[IJCAI16](https://www.cs.toronto.edu/~meel/bib/CMV16.bib). If you use sparse
-XORs, please also cite the
-[LICS20](https://www.cs.toronto.edu/~meel/publications/AM20.bib) paper.
-ApproxMC builds on a series of papers on hashing-based approach: [Related
-Publications](https://www.cs.toronto.edu/~meel/publications.html)
+[CAV-23](https://arxiv.org/pdf/2305.09247)
+, [AAAI-19](https://www.cs.toronto.edu/~meel/Papers/aaai19-sm.pdf)
+, [CAV-20](https://www.cs.toronto.edu/~meel/Papers/cav20-sgm.pdf)
+, [CAV-20](https://dblp.uni-trier.de/rec/conf/cav/SoosGM20.html?view=bibtex)
+, [LICS-20](https://www.cs.toronto.edu/~meel/publications/AM20.bib)
+, [AAAI-19](https://www.cs.toronto.edu/~meel/publications/SM19.bib)
+, [IJCAI-16](https://www.cs.toronto.edu/~meel/publications/CMV16.bib)
+, [CP-13](https://www.cs.toronto.edu/~meel/publications/CMV13b.bib)
 
-The benchmarks used in our evaluation can be found [here](https://zenodo.org/records/10449477).
+Additional related publications can be found [here](https://www.cs.toronto.edu/~meel/publications.html)
+
+## Benchmarks Used
+The benchmarks used in our evaluation can be found [here](https://zenodo.org/records/10449477)

@@ -36,6 +36,7 @@
           autoPatchelfHook,
           fetchFromGitHub,
           gmp,
+          mpfr,
           zlib,
           cryptominisat,
           arjun,
@@ -58,6 +59,7 @@
           ];
           buildInputs = [
             gmp
+            mpfr
             zlib
             cryptominisat
             arjun
