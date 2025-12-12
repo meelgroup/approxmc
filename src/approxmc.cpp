@@ -275,6 +275,11 @@ DLL_PUBLIC bool AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
     return data->counter.solver_add_xor_clause(vars, rhs);
 }
 
+DLL_PUBLIC CMSat::SATSolver* AppMC::get_solver()
+{
+    return data->counter.solver.get();
+}
+
 DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampling_set() const
 {
     return data->conf.sampl_vars;
