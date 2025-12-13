@@ -36,7 +36,6 @@
 #include <set>
 #include <gmp.h>
 
-#include "time_mem.h"
 #include "approxmc.h"
 #include "time_mem.h"
 #include <cryptominisat5/solvertypesmini.h>
@@ -159,7 +158,7 @@ void parse_supported_options(int argc, char** argv) {
     try {
         program.parse_args(argc, argv);
         if (program.is_used("--help")) {
-            cout << "Probilistic Approximate Counter" << endl << endl
+            cout << "Probabilistic Approximate Counter" << endl << endl
             << "approxmc [options] inputfile" << endl;
             cout << program << endl;
             exit(0);
@@ -259,7 +258,7 @@ template<class T> void parse_file(const std::string& filename, T* reader) {
     for(uint32_t i = 0; i < reader->nVars(); i++) tmp.push_back(i);
     reader->set_sampl_vars(tmp);
   } else {
-    // Check if CNF has all vars as indep. Then its's all_indep
+    // Check if CNF has all vars as indep. Then it's all_indep
     set<uint32_t> tmp;
     for(auto const& s: reader->get_sampl_vars()) {
       if (s >= reader->nVars()) {

@@ -61,20 +61,16 @@ using namespace ApproxMC;
 
 DLL_PUBLIC AppMC::AppMC(const std::unique_ptr<CMSat::FieldGen>& _fg)
 {
-    data = new AppMCPrivateData(_fg);
-    data->counter.solver = new SATSolver();
+    data = std::make_unique<AppMCPrivateData>(_fg);
+    data->counter.solver = std::make_unique<SATSolver>();
     data->counter.solver->set_up_for_scalmc();
     data->counter.solver->set_allow_otf_gauss();
 }
 
-DLL_PUBLIC AppMC::~AppMC()
-{
-    delete data->counter.solver;
-    delete data;
-}
+DLL_PUBLIC AppMC::~AppMC() = default;
 
 // Helper function, used only in this unit
-void setup_sampling_vars(AppMCPrivateData* data)
+void setup_sampling_vars(unique_ptr<AppMCPrivateData>& data)
 {
     if (data->conf.verb) {
         cout << "c o [appmc] Sampling set size: " << data->conf.sampl_vars.size() << endl;
@@ -281,7 +277,7 @@ DLL_PUBLIC bool AppMC::add_xor_clause(const vector<uint32_t>& vars, bool rhs)
 
 DLL_PUBLIC CMSat::SATSolver* AppMC::get_solver()
 {
-    return data->counter.solver;
+    return data->counter.solver.get();
 }
 
 DLL_PUBLIC const std::vector<uint32_t>& AppMC::get_sampling_set() const
