@@ -1,6 +1,6 @@
 name: Python tarball build
 
-on: [push, pull_request]
+on: [pull_request]
 #  release:
 #    types: [created]
 
