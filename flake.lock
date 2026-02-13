@@ -12,11 +12,11 @@
         "sbva": "sbva"
       },
       "locked": {
-        "lastModified": 1770977615,
-        "narHash": "sha256-D6qouCn7o6zFToqa8vQ7u4J7o560bNW5QStaetwIvXU=",
+        "lastModified": 1770978454,
+        "narHash": "sha256-i6F/7WU365vpoga12aI92vlgIZUjfuhW55yoDVg7sJo=",
         "owner": "meelgroup",
         "repo": "arjun",
-        "rev": "712b3b100002eb567b8ad1939505aac51afe0f37",
+        "rev": "09fa89d2e028573a4b784d367a9bd982ce9341ca",
         "type": "github"
       },
       "original": {
