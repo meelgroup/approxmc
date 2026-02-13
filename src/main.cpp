@@ -318,7 +318,7 @@ int main(int argc, char** argv)
     if (do_arjun) {
         parse_file(fname, &cnf);
         const auto orig_sampl_vars = cnf.get_sampl_vars();
-        double my_time = cpu_time();
+        const double my_time = cpu_time();
         ArjunNS::Arjun arjun;
         arjun.set_verb(verb);
         arjun.set_or_gate_based(arjun_gates);
