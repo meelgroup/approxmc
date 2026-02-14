@@ -400,6 +400,7 @@ message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
 message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
 find_package(sbva CONFIG REQUIRED)
 find_package(EvalMaxSAT CONFIG REQUIRED)
+find_package(treedecomp CONFIG REQUIRED)
 
 # -----------------------------------------------------------------------------
 # Provide an export name to be used by targets that wish to export themselves.
