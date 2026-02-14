@@ -224,6 +224,22 @@ jobs:
         sudo make install
         cd ../..
 
+    - name: Checkout treedecomp
+      uses: actions/checkout@v4
+      with:
+        repository: meelgroup/treedecomp
+        ref: main
+        path: treedecomp
+    - name: Build treedecomp
+      run: |
+        cd treedecomp
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+        cmake --build . --config ${{matrix.build_type}} -v
+        sudo cmake --install . --config ${{matrix.build_type}} -v
+        cd ../..
+
     - name: Checkout arjun
       uses: actions/checkout@v4
       with:
