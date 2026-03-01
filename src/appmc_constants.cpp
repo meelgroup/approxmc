@@ -1,7 +1,7 @@
 /*
  ApproxMC
- 
- 
+
+
  Copyright (c) 2019, Mate Soos and Kuldeep S. Meel. All rights reserved
  Copyright (c) 2009-2018, Mate Soos. All rights reserved.
  Copyright (c) 2015, Supratik Chakraborty, Daniel J. Fremont,
@@ -28,14 +28,11 @@
  */
 
 #include "appmc_constants.h"
-#include <iostream>
 #include <sstream>
 #include <cassert>
 #include <string>
 
 using std::string;
-using std::cout;
-using std::endl;
 using std::vector;
 using namespace AppMCInt;
 
@@ -82,16 +79,16 @@ void Constants::readInSparseValues()
         std::getline(ss, value, ',');
         if (value == "header") {
             while(std::getline(ss, value, ',')) {
-                probval.push_back(std::stod(value.c_str()));
+                probval.push_back(std::stod(value));
             }
             continue;
         }
 
         //non-header
-        uint32_t numvars = std::stoul(value.c_str());
+        uint32_t numvars = std::stoul(value);
         vector<uint32_t> index_var_map;
         while(std::getline(ss, value, ',')) {
-            index_var_map.push_back(std::stoul(value.c_str()));
+            index_var_map.push_back(std::stoul(value));
         }
         assert(index_var_map.size() <= probval.size());
         VarMap vmap(numvars, index_var_map);

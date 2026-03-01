@@ -33,6 +33,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <memory>
 #include <cryptominisat5/cryptominisat.h>
 namespace ApproxMC {
 
@@ -49,7 +50,7 @@ class SolCount
     }
     bool valid = false;
     uint32_t hashCount = 0;
-    uint32_t cellSolCount = 0;
+    uint64_t cellSolCount = 0;
 };
 
 struct AppMCPrivateData;
@@ -101,7 +102,6 @@ public:
     void set_start_iter(uint32_t start_iter);
     void set_verb_cls(uint32_t verb_cls);
     void set_var_elim_ratio(double var_elim_ratio);
-    void set_detach_xors(uint32_t detach_xors);
     void set_reuse_models(uint32_t reuse_models);
     void set_sparse(uint32_t sparse);
     void set_simplify(uint32_t simplify);
@@ -123,7 +123,7 @@ private:
     ////////////////////////////
     // Do not bother with this, it's private
     ////////////////////////////
-    AppMCPrivateData* data;
+    std::unique_ptr<AppMCPrivateData> data;
 };
 
 }
