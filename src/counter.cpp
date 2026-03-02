@@ -747,6 +747,7 @@ void Counter::appmc7_one_measurement_count(
                 num_hash_list.push_back(0);
                 num_count_list.push_back(0);
                 prev_measure = 0;
+                assert(num_sols == 0 and hash_cnt == 0);
                 return;
             }
             if (threshold_sols.find(hash_cnt-1) != threshold_sols.end()
@@ -754,6 +755,7 @@ void Counter::appmc7_one_measurement_count(
                 num_hash_list.push_back(hash_cnt-1);
                 num_count_list.push_back(1);
                 prev_measure = hash_cnt-1;
+                assert(num_sols == 0 and threshold_sols[hash_cnt-1] == 1);
                 return;
             }
 
@@ -784,6 +786,7 @@ void Counter::appmc7_one_measurement_count(
                 num_hash_list.push_back(hash_cnt);
                 num_count_list.push_back(1);
                 prev_measure = hash_cnt;
+                assert(num_sols == 1 and threshold_sols[hash_cnt+1] == 0);
                 return;
             }
 
@@ -809,6 +812,7 @@ void Counter::appmc7_one_measurement_count(
         }
         hash_prev = cur_hash_cnt;
     }
+    assert(false and "This code should never be reached");
 }
 
 bool Counter::gen_rhs()
