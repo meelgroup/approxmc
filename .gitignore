@@ -11,3 +11,4 @@ compare
 /result
 html/*.js
 html/*.wasm
+.claude
