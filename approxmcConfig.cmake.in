@@ -4,6 +4,9 @@
 #  APPROXMC_LIBRARIES    - libraries to link against
 #  APPROXMC_EXECUTABLE   - the approxmc executable
 
+include(CMakeFindDependencyMacro)
+find_dependency(Threads)
+
 # Compute paths
 get_filename_component(APPROXMC_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 set(APPROXMC_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
