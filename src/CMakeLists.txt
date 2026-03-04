@@ -19,7 +19,7 @@
 # THE SOFTWARE.
 
 
-if (NOT WIN32)
+if(NOT WIN32)
     add_cxx_flag_if_supported("-Wno-bitfield-constant-conversion")
     #add_cxx_flag_if_supported("-Wduplicated-cond")
     #add_cxx_flag_if_supported("-Wduplicated-branches")
@@ -34,12 +34,6 @@ if (NOT WIN32)
     #add_cxx_flag_if_supported("-Wdeprecated")
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CRYPTOMINISAT5_INCLUDE_DIRS})
-include_directories(${ARJUN_INCLUDE_DIRS})
-include_directories(${GMP_INCLUDE_DIRS})
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" @ONLY)
 
 set(approxmc_lib_files
@@ -50,32 +44,62 @@ set(approxmc_lib_files
 )
 add_library(approxmc ${approxmc_lib_files})
 
+target_include_directories(approxmc
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+  PUBLIC
+    ${CRYPTOMINISAT5_INCLUDE_DIRS}
+    ${ARJUN_INCLUDE_DIRS}
+    ${GMP_INCLUDE_DIRS}
+)
+
 target_link_libraries(approxmc
-    LINK_PUBLIC ${ARJUN_LIBRARIES}
-    LINK_PUBLIC ${CRYPTOMINISAT5_LIBRARIES}
+  PUBLIC
+    Threads::Threads
+    ${ARJUN_LIBRARIES}
+    ${CRYPTOMINISAT5_LIBRARIES}
 )
 
 add_executable(approxmc-bin main.cpp ${approxmc_lib_files})
-set(approxmc_exec_link_libs ${GMP_LIBRARY})
 
-IF (ZLIB_FOUND)
-    SET(approxmc_exec_link_libs ${approxmc_exec_link_libs} ${ZLIB_LIBRARY})
-ENDIF()
+target_include_directories(approxmc-bin PRIVATE
+    ${PROJECT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CRYPTOMINISAT5_INCLUDE_DIRS}
+    ${ARJUN_INCLUDE_DIRS}
+    ${GMP_INCLUDE_DIRS}
+)
+
+target_link_libraries(approxmc-bin
+  PRIVATE
+    ${GMP_LIBRARY}
+    approxmc
+)
+
+if(ZLIB_FOUND)
+    target_include_directories(approxmc-bin PRIVATE ${ZLIB_INCLUDE_DIR})
+    target_link_libraries(approxmc-bin PRIVATE ${ZLIB_LIBRARY})
+endif()
 
 set_target_properties(approxmc PROPERTIES
-    PUBLIC_HEADER "${approxmc_public_headers}"
     VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
 )
-
-target_link_libraries(approxmc-bin ${approxmc_exec_link_libs} approxmc)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     set_target_properties(approxmc-bin PROPERTIES
         OUTPUT_NAME approxmc
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
         INSTALL_RPATH_USE_LINK_PATH TRUE
-        LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_RUNTIME_METHODS='[\"callMain\", \"ccall\", \"cwrap\", \"FS\", \"print\"]' -s FORCE_FILESYSTEM=1"
+    )
+    target_link_options(approxmc-bin PRIVATE
+        "SHELL:-s WASM=1"
+        "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS='[\"callMain\", \"ccall\", \"cwrap\", \"FS\", \"print\"]'"
+        "SHELL:-s FORCE_FILESYSTEM=1"
     )
 else()
     set_target_properties(approxmc-bin PROPERTIES
@@ -85,7 +109,11 @@ else()
     )
 endif()
 
-approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h )
+approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h)
+
+# Public headers are fully known now; the CopyPublicHeaders target below reads
+# this property, so it must be set before that target is created.
+get_target_property(approxmc_public_headers approxmc PUBLIC_HEADER)
 
 # -----------------------------------------------------------------------------
 # Copy public headers into build directory include directory.
@@ -94,7 +122,6 @@ approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h )
 # -----------------------------------------------------------------------------
 set(HEADER_DEST "${PROJECT_BINARY_DIR}/include/approxmc/")
 add_custom_target(CopyPublicHeaders ALL)
-get_target_property(approxmc_public_headers approxmc PUBLIC_HEADER)
 foreach(public_header ${approxmc_public_headers})
     get_filename_component(HEADER_NAME ${public_header} NAME)
     add_custom_command(TARGET CopyPublicHeaders PRE_BUILD
@@ -116,4 +143,4 @@ install(TARGETS approxmc-bin
     EXPORT ${APPROXMC_EXPORT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-SET(CPACK_PACKAGE_EXECUTABLES "approxmc-bin" "approxmc")
+set(CPACK_PACKAGE_EXECUTABLES "approxmc-bin" "approxmc")

@@ -20,25 +20,6 @@
 
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
-message(STATUS "LIB directory is '${CMAKE_INSTALL_LIBDIR}'")
-message(STATUS "BIN directory is '${CMAKE_INSTALL_BINDIR}'")
-
-if(POLICY CMP0022)
-    cmake_policy(SET CMP0022 NEW)
-endif()
-
-if(POLICY CMP0048)
-    cmake_policy(SET CMP0048 NEW)
-endif()
-
-if(POLICY CMP0046)
-    cmake_policy(SET CMP0046 NEW)
-endif()
-
-if(POLICY CMP0026)
-    cmake_policy(SET CMP0026 NEW)
-endif()
-
 # -----------------------------------------------------------------------------
 # Make RelWithDebInfo the default build type if otherwise not set
 # -----------------------------------------------------------------------------
@@ -61,31 +42,31 @@ message(STATUS "Doing a ${CMAKE_BUILD_TYPE} build")
 
 # Filter out definition of NDEBUG from the default build configuration flags.
 # We will add this ourselves if we want to disable assertions
-foreach (build_config ${build_types})
+foreach(build_config ${build_types})
     string(TOUPPER ${build_config} upper_case_build_config)
-    foreach (language CXX C)
+    foreach(language CXX C)
         set(VAR_TO_MODIFY "CMAKE_${language}_FLAGS_${upper_case_build_config}")
         string(REGEX REPLACE "(^| )[/-]D *NDEBUG($| )"
                              " "
                              replacement
                              "${${VAR_TO_MODIFY}}")
-        #message("Original (${VAR_TO_MODIFY}) is ${${VAR_TO_MODIFY}} replacement is ${replacement}")
         set(${VAR_TO_MODIFY} "${replacement}" CACHE STRING "Default flags for ${build_config} configuration" FORCE)
     endforeach()
 endforeach()
 
-PROJECT(approxmc)
+project(approxmc)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-enable_language( CXX )
-enable_language( C )
-include (GNUInstallDirs)
-include (GenerateExportHeader)
+include(GenerateExportHeader)
+include(GNUInstallDirs)
+
+message(STATUS "LIB directory is '${CMAKE_INSTALL_LIBDIR}'")
+message(STATUS "BIN directory is '${CMAKE_INSTALL_BINDIR}'")
 
 # contains some library search cmake scripts
-SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # generate JSON file of compile commands -- useful for code extension
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -93,30 +74,30 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 # static compilation
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
 option(STATICCOMPILE "Compile to static executable" OFF)
-if (STATICCOMPILE)
+if(STATICCOMPILE)
     set(BUILD_SHARED_LIBS OFF)
 endif()
 
-if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
     if(NOT BUILD_SHARED_LIBS)
-        MESSAGE(STATUS "Compiling statically")
-        if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        message(STATUS "Compiling statically")
+        if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
         endif()
-        SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     else()
-        MESSAGE(STATUS "Compiling for dynamic library use")
+        message(STATUS "Compiling for dynamic library use")
     endif()
 endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package (Threads REQUIRED)
+find_package(Threads REQUIRED)
 
 option(SANITIZE "Use Clang sanitizers. You MUST use clang++ as the compiler for this to work" OFF)
-if (SANITIZE)
-    MESSAGE(WARNING " --Using clang sanitizers -- you MUST use clang++ or the compile WILL fail")
-    SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -lasan -lubsan " )
-    SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lasan -lubsan ")
+if(SANITIZE)
+    message(WARNING " --Using clang sanitizers -- you MUST use clang++ or the compile WILL fail")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lasan -lubsan")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lasan -lubsan")
     add_compile_options("-fsanitize=address")
     # below warns on overflows EVEN when that's OK, because it's well-defined, disabling
     # add_compile_options("-fsanitize=integer")
@@ -148,7 +129,7 @@ macro(add_cxx_flag_if_supported flagname)
   check_cxx_compiler_flag("${flagname}" HAVE_FLAG_${flagname})
 
   if(HAVE_FLAG_${flagname})
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flagname}" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flagname}")
   endif()
 endmacro()
 
@@ -158,25 +139,24 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(ENABLE_ASSERTIONS OFF)
 endif()
 
-if (ENABLE_ASSERTIONS)
+if(ENABLE_ASSERTIONS)
     # NDEBUG was already removed.
 else()
     # Note this definition doesn't appear in the cache variables.
-    add_definitions(-DNDEBUG)
+    add_compile_definitions(NDEBUG)
     add_cxx_flag_if_supported("-fno-stack-protector")
-    add_definitions(-D_FORTIFY_SOURCE=0)
+    add_compile_definitions(_FORTIFY_SOURCE=0)
 endif()
 
 
 # Note: O3 gives slight speed increase, 1 more solved from SAT Comp'14 @ 3600s
-if (NOT MSVC)
-    add_compile_options( -g)
+if(NOT MSVC)
+    add_compile_options(-g)
 
     add_compile_options("$<$<CONFIG:RelWithDebInfo>:-O3>")
 
     add_compile_options("$<$<CONFIG:Release>:-O3>")
     add_compile_options("$<$<CONFIG:Release>:-g0>")
-    add_compile_options("$<$<CONFIG:Release>:-DNDEBUG>")
 
     add_compile_options("$<$<CONFIG:Debug>:-O0>")
 
@@ -189,27 +169,26 @@ else()
     add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:/ZI>")
 
     add_compile_options("$<$<CONFIG:RELEASE>:/Ox>")
-    add_compile_options("$<$<CONFIG:RELEASE>:/D>")
-    add_compile_options("$<$<CONFIG:RELEASE>:/NDEBUG>")
+    add_compile_options("$<$<CONFIG:RELEASE>:/DNDEBUG>")
     add_compile_options("$<$<CONFIG:RELEASE>:/ZI>")
 
     add_compile_options("$<$<CONFIG:DEBUG>:/Od>")
 
-    if (STATICCOMPILE)
+    if(STATICCOMPILE)
         # We statically link to reduce dependencies
         foreach(flag_var CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
             # /MD -- Causes the application to use the multithread-specific and DLL-specific version of the run-time library.
             #        Defines _MT and _DLL and causes the compiler to place the library name MSVCRT.lib into the .obj file.
             if(${flag_var} MATCHES "/MD")
                 string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-            endif(${flag_var} MATCHES "/MD")
+            endif()
 
             # /MDd	-- Defines _DEBUG, _MT, and _DLL and causes the application to use the debug multithread-specific and DLL-specific version of the run-time library.
             #          It also causes the compiler to place the library name MSVCRTD.lib into the .obj file.
             if(${flag_var} MATCHES "/MDd")
                 string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-            endif(${flag_var} MATCHES "/MDd")
-        endforeach(flag_var)
+            endif()
+        endforeach()
 
         # Creates a multithreaded executable (static) file using LIBCMT.lib.
         add_compile_options(/MT)
@@ -240,23 +219,21 @@ else()
     # exception handling. c = If used with s (/EHsc), catches C++ exceptions only and tells the compiler to assume that functions declared as extern "C" never throw a C++ exception.
     add_compile_options(/EHsc)
 
-
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /INCREMENTAL:NO")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /PDBCOMPRESS")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:1572864")
 
-    #what does this do?
     set(DEF_INSTALL_CMAKE_DIR CMake)
 endif()
 
 option(ENABLE_TESTING "Enable testing" OFF)
 
-if (NOT WIN32)
+if(NOT WIN32)
     add_cxx_flag_if_supported("-Wall")
     add_cxx_flag_if_supported("-Wextra")
     add_cxx_flag_if_supported("-Wunused")
     add_cxx_flag_if_supported("-Wsign-compare")
-    if (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+    if(NOT CMAKE_BUILD_TYPE STREQUAL "Release")
         add_cxx_flag_if_supported("-fno-omit-frame-pointer")
         add_cxx_flag_if_supported("-g")
     endif()
@@ -270,14 +247,13 @@ if (NOT WIN32)
     if(NOT ENABLE_TESTING AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         add_cxx_flag_if_supported("-fvisibility=hidden")
     endif()
-    add_cxx_flag_if_supported("-Wpointer-arith")
     add_cxx_flag_if_supported("-Wformat-nonliteral")
     add_cxx_flag_if_supported("-Winit-self")
     add_cxx_flag_if_supported("-Wparentheses")
     add_cxx_flag_if_supported("-Wunreachable-code")
 endif()
 
-if ((NOT WIN32) AND (NOT ENABLE_TESTING))
+if((NOT WIN32) AND (NOT ENABLE_TESTING))
     add_cxx_flag_if_supported("-fvisibility=hidden")
 endif()
 
@@ -297,64 +273,63 @@ function(SetVersionNumber PREFIX VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
         PARENT_SCOPE)
 endfunction()
 
-find_program (GIT_EXECUTABLE git)
-if (GIT_EXECUTABLE)
+find_program(GIT_EXECUTABLE git)
+if(GIT_EXECUTABLE)
   include(GetGitRevisionDescription)
   get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-  MESSAGE(STATUS "GIT hash found: ${GIT_SHA1}")
+  message(STATUS "GIT hash found: ${GIT_SHA1}")
 else()
-  set(GIT_SHA "GIT-hash-notfound")
+  set(GIT_SHA1 "GIT-hash-notfound")
 endif()
 set(APPROXMC_FULL_VERSION "4.2.0")
 
 string(REPLACE "." ";" APPROXMC_FULL_VERSION_LIST ${APPROXMC_FULL_VERSION})
 SetVersionNumber("PROJECT" ${APPROXMC_FULL_VERSION_LIST})
-MESSAGE(STATUS "PROJECT_VERSION: ${PROJECT_VERSION}")
-MESSAGE(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
-MESSAGE(STATUS "PROJECT_VERSION_MINOR: ${PROJECT_VERSION_MINOR}")
-MESSAGE(STATUS "PROJECT_VERSION_PATCH: ${PROJECT_VERSION_PATCH}")
+message(STATUS "PROJECT_VERSION: ${PROJECT_VERSION}")
+message(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
+message(STATUS "PROJECT_VERSION_MINOR: ${PROJECT_VERSION_MINOR}")
+message(STATUS "PROJECT_VERSION_PATCH: ${PROJECT_VERSION_PATCH}")
 
 # ----------
 # manpage
 # ----------
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT EMSCRIPTEN)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT EMSCRIPTEN)
     find_program(HELP2MAN_FOUND help2man)
-    if (HELP2MAN_FOUND)
-        ADD_CUSTOM_TARGET(man_approxmc
+    if(HELP2MAN_FOUND)
+        add_custom_target(man_approxmc
             ALL
             DEPENDS approxmc-bin
         )
 
-        ADD_CUSTOM_COMMAND(
+        add_custom_command(
             TARGET man_approxmc
             COMMAND help2man
             ARGS --version-string=${APPROXMC_FULL_VERSION} --help-option="-h" $<TARGET_FILE:approxmc-bin> -o ${CMAKE_CURRENT_BINARY_DIR}/approxmc.1
         )
 
-        INSTALL(
+        install(
             FILES ${CMAKE_CURRENT_BINARY_DIR}/approxmc.1
             DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
 
         message(STATUS "Manpage will be created and installed")
     else()
-        MESSAGE(STATUS "Cannot find help2man, not creating manpage")
+        message(STATUS "Cannot find help2man, not creating manpage")
     endif()
 else()
-    MESSAGE(STATUS "Not on Linux, not creating manpage")
+    message(STATUS "Not on Linux, not creating manpage")
 endif()
-
-
-#query definitions
-get_directory_property( DirDefs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS )
-set(COMPILE_DEFINES)
-foreach( d ${DirDefs} )
-    # message( STATUS "Found Define: " ${d} )
-    set(COMPILE_DEFINES "${COMPILE_DEFINES} -D${d}")
-endforeach()
-message(STATUS "All defines at startup: ${COMPILE_DEFINES}")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+
+# Collect all compile definitions set so far into a string for embedding
+# via @COMPILE_DEFINES@ in GitSHA1.cpp.in
+get_directory_property(DirDefs COMPILE_DEFINITIONS)
+set(COMPILE_DEFINES "")
+foreach(d ${DirDefs})
+    set(COMPILE_DEFINES "${COMPILE_DEFINES} -D${d}")
+endforeach()
+message(STATUS "All defines at startup: ${COMPILE_DEFINES}")
 
 macro(approxmc_add_public_header LIBTARGET HEADER)
     get_target_property(EXISTING_PUBLIC_HEADERS ${LIBTARGET} PUBLIC_HEADER)
@@ -375,16 +350,14 @@ endmacro()
 # Dependencies
 # -----------------------------------------------------------------------------
 option(NOZLIB "Don't use zlib" OFF)
-if (NOT NOZLIB AND NOT (STATICCOMPILE AND WIN32))
+if(NOT NOZLIB AND NOT (STATICCOMPILE AND WIN32))
     find_package(ZLIB)
-    IF (ZLIB_FOUND)
-        MESSAGE(STATUS "OK, Found ZLIB!")
-        include_directories(${ZLIB_INCLUDE_DIR})
-        link_directories(${ZLIB_LIB_DIR})
-        add_definitions( -DUSE_ZLIB )
-    ELSE (ZLIB_FOUND)
-        MESSAGE(STATUS "WARNING: Did not find ZLIB, gzipped file support will be disabled")
-    ENDIF (ZLIB_FOUND)
+    if(ZLIB_FOUND)
+        message(STATUS "OK, Found ZLIB!")
+        add_compile_definitions(USE_ZLIB)
+    else()
+        message(STATUS "WARNING: Did not find ZLIB, gzipped file support will be disabled")
+    endif()
 endif()
 
 find_package(GMP REQUIRED)
@@ -407,7 +380,7 @@ find_package(treedecomp CONFIG REQUIRED)
 # -----------------------------------------------------------------------------
 set(APPROXMC_EXPORT_NAME "approxmcTargets")
 
-if (ENABLE_TESTING)
+if(ENABLE_TESTING)
     add_subdirectory(tests/gtest)
 endif()
 add_subdirectory(src apx-src)
@@ -428,7 +401,7 @@ add_custom_target(uninstall
 # -----------------------------------------------------------------------------
 # Testing
 # -----------------------------------------------------------------------------
-if (ENABLE_TESTING)
+if(ENABLE_TESTING)
     enable_testing()
 
     message(STATUS "Testing is enabled")
@@ -462,10 +435,6 @@ configure_file(approxmcConfig.cmake.in
 # Export this package to the CMake user package registry
 # Now the user can just use find_package(approxmc) on their system
 export(PACKAGE approxmc)
-
-set(DEF_INSTALL_CMAKE_DIR lib/cmake/approxmc)
-set(APPROXMC_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
-    "Installation directory for approxmc CMake files")
 
 # Create approxmcConfig file
 set(EXPORT_TYPE "installed")
