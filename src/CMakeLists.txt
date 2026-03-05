@@ -51,31 +51,29 @@ target_include_directories(approxmc
     ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC
     ${CRYPTOMINISAT5_INCLUDE_DIRS}
-    ${ARJUN_INCLUDE_DIRS}
-    ${GMP_INCLUDE_DIRS}
 )
 
 target_link_libraries(approxmc
   PUBLIC
-    Threads::Threads
-    ${ARJUN_LIBRARIES}
     ${CRYPTOMINISAT5_LIBRARIES}
 )
 
 add_executable(approxmc-bin main.cpp ${approxmc_lib_files})
 
-target_include_directories(approxmc-bin PRIVATE
+target_include_directories(approxmc-bin
+  PRIVATE
     ${PROJECT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CRYPTOMINISAT5_INCLUDE_DIRS}
     ${ARJUN_INCLUDE_DIRS}
-    ${GMP_INCLUDE_DIRS}
+  PUBLIC
+    ${CRYPTOMINISAT5_INCLUDE_DIRS}
 )
 
 target_link_libraries(approxmc-bin
   PRIVATE
     ${GMP_LIBRARY}
+    ${ARJUN_LIBRARIES}
     approxmc
 )
 

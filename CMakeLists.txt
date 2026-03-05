@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # -----------------------------------------------------------------------------
 # Make RelWithDebInfo the default build type if otherwise not set
@@ -54,6 +54,8 @@ foreach(build_config ${build_types})
     endforeach()
 endforeach()
 
+set(CMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY ON)
+set(CMAKE_EXPORT_PACKAGE_REGISTRY OFF)
 project(approxmc)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 99)
@@ -89,9 +91,6 @@ if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darw
         message(STATUS "Compiling for dynamic library use")
     endif()
 endif()
-
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
 
 option(SANITIZE "Use Clang sanitizers. You MUST use clang++ as the compiler for this to work" OFF)
 if(SANITIZE)
@@ -349,6 +348,20 @@ endmacro()
 # -----------------------------------------------------------------------------
 # Dependencies
 # -----------------------------------------------------------------------------
+find_package(GMP REQUIRED)
+set(cryptominisat5_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cryptominisat/build")
+find_package(cryptominisat5 CONFIG REQUIRED)
+message(STATUS "CryptoMiniSat5 dynamic lib: ${CRYPTOMINISAT5_LIBRARIES}")
+message(STATUS "CryptoMiniSat5 static lib:  ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
+message(STATUS "CryptoMiniSat5 static lib deps: ${CRYPTOMINISAT5_STATIC_LIBRARIES_DEPS}")
+message(STATUS "CryptoMiniSat5 include dirs: ${CRYPTOMINISAT5_INCLUDE_DIRS}")
+
+set(arjun_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../arjun/build")
+find_package(arjun CONFIG REQUIRED)
+message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
+message(STATUS "Arjun dynamic lib : ${ARJUN_STATIC_LIBRARIES}")
+message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
+
 option(NOZLIB "Don't use zlib" OFF)
 if(NOT NOZLIB AND NOT (STATICCOMPILE AND WIN32))
     find_package(ZLIB)
@@ -359,21 +372,6 @@ if(NOT NOZLIB AND NOT (STATICCOMPILE AND WIN32))
         message(STATUS "WARNING: Did not find ZLIB, gzipped file support will be disabled")
     endif()
 endif()
-
-find_package(GMP REQUIRED)
-
-find_package(cryptominisat5 CONFIG REQUIRED)
-message(STATUS "CryptoMiniSat5 dynamic lib: ${CRYPTOMINISAT5_LIBRARIES}")
-message(STATUS "CryptoMiniSat5 static lib:  ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
-message(STATUS "CryptoMiniSat5 static lib deps: ${CRYPTOMINISAT5_STATIC_LIBRARIES_DEPS}")
-message(STATUS "CryptoMiniSat5 include dirs: ${CRYPTOMINISAT5_INCLUDE_DIRS}")
-
-find_package(arjun CONFIG REQUIRED)
-message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
-message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
-find_package(sbva CONFIG REQUIRED)
-find_package(EvalMaxSAT CONFIG REQUIRED)
-find_package(treedecomp CONFIG REQUIRED)
 
 # -----------------------------------------------------------------------------
 # Provide an export name to be used by targets that wish to export themselves.
