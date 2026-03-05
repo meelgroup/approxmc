@@ -703,7 +703,6 @@ void Counter::appmc7_one_measurement_count(
     //threshold_sols[hash_num]==0 tells that no solution was found.
     map<uint64_t,bool> threshold_sols;
     int64_t total_max_xors = conf.sampl_vars.size();
-    int64_t num_explored = 0;
     int64_t lower_fib = 0;
     int64_t upper_fib = total_max_xors+1;
     threshold_sols[lower_fib] = 1;
@@ -720,7 +719,7 @@ void Counter::appmc7_one_measurement_count(
     //This is implemented by using two sentinels: lower_fib and upper_fib. The correct answer
     // is always between lower_fib and upper_fib. We do exponential search until upper_fib < lower_fib*2
     // Once upper_fib < lower_fib*2; we do a binary search.
-    while (num_explored < total_max_xors) {
+    while (true) {
         uint64_t cur_hash_cnt = hash_cnt;
         const vector<Lit> assumps = set_num_hashes(hash_cnt, hm->hashes, sparse_data);
 
@@ -738,8 +737,6 @@ void Counter::appmc7_one_measurement_count(
         const uint64_t num_sols = std::min<uint64_t>(sols.solutions, 1);
         assert(num_sols <= 1);
         if (num_sols < 1) {
-            num_explored = lower_fib + total_max_xors - hash_cnt;
-
             //one less hash count had threshold solutions
             //this one has less than threshold
             //so this is the real deal!
@@ -775,7 +772,6 @@ void Counter::appmc7_one_measurement_count(
             }
         } else {
             assert(num_sols == 1);
-            num_explored = hash_cnt + total_max_xors - upper_fib;
 
             //success record for +1 hashcount exists and is 0
             //so one-above hashcount was below threshold, this is above
@@ -812,7 +808,6 @@ void Counter::appmc7_one_measurement_count(
         }
         hash_prev = cur_hash_cnt;
     }
-    assert(false and "This code should never be reached");
 }
 
 bool Counter::gen_rhs()
