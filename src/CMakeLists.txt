@@ -66,7 +66,7 @@ target_include_directories(approxmc-bin
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${ARJUN_INCLUDE_DIRS}
-  PUBLIC
+    ${GMP_INCLUDE_DIR}
     ${CRYPTOMINISAT5_INCLUDE_DIRS}
 )
 
