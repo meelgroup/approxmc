@@ -199,7 +199,7 @@ jobs:
     - name: Build ensmallen
       run: |
         tar xvf 2.22.2.tar.gz
-        cd 2.22.0
+        cd ensmallen-2.22.2
         mkdir build
         cd build
         cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
