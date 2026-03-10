@@ -198,7 +198,7 @@ jobs:
         wget https://github.com/mlpack/ensmallen/archive/refs/tags/2.22.2.zip
     - name: Build ensmallen
       run: |
-        tar xvf 2.22.2.tar.gz
+        unzip 2.22.2.zip
         cd 2.22.0
         mkdir build
         cd build
