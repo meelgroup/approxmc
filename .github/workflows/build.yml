@@ -195,10 +195,10 @@ jobs:
 
     - name: Checkout ensmallen
       run: |
-        wget https://github.com/mlpack/ensmallen/archive/refs/tags/2.22.2.zip
+        wget https://github.com/mlpack/ensmallen/archive/refs/tags/2.22.2.tar.gz
     - name: Build ensmallen
       run: |
-        unzip 2.22.2.zip
+        tar xvf 2.22.2.tar.gz
         cd 2.22.0
         mkdir build
         cd build
