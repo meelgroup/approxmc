@@ -195,16 +195,16 @@ jobs:
 
     - name: Checkout ensmallen
       run: |
-        wget https://ensmallen.org/files/ensmallen-2.22.2.tar.gz
+        wget https://github.com/mlpack/ensmallen/archive/refs/tags/2.22.2.zip
     - name: Build ensmallen
       run: |
-        tar xvf ensmallen-2.22.2.tar.gz
-        cd ensmallen-2.22.2
+        tar xvf 2.22.2.tar.gz
+        cd 2.22.0
         mkdir build
         cd build
         cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
         cmake --build . --config ${{matrix.build_type}} -v
-        sudo make install
+        sudo cmake --install . --config ${{matrix.build_type}} -v
         cd ../..
 
     - name: Checkout mlpack
