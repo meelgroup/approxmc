@@ -362,7 +362,7 @@ message(STATUS "CryptoMiniSat5 include dirs: ${CRYPTOMINISAT5_INCLUDE_DIRS}")
 set(arjun_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../arjun/build" CACHE PATH "Path to Arjun build/install directory")
 find_package(arjun CONFIG REQUIRED)
 message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
-message(STATUS "Arjun dynamic lib : ${ARJUN_STATIC_LIBRARIES}")
+message(STATUS "Arjun static lib  : ${ARJUN_STATIC_LIBRARIES}")
 message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
 
 option(NOZLIB "Don't use zlib" OFF)
