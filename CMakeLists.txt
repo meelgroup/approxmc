@@ -352,14 +352,14 @@ endmacro()
 # Dependencies
 # -----------------------------------------------------------------------------
 find_package(GMP REQUIRED)
-set(cryptominisat5_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cryptominisat/build")
+set(cryptominisat5_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cryptominisat/build" CACHE PATH "Path to CryptoMiniSat5 build/install directory")
 find_package(cryptominisat5 CONFIG REQUIRED)
 message(STATUS "CryptoMiniSat5 dynamic lib: ${CRYPTOMINISAT5_LIBRARIES}")
 message(STATUS "CryptoMiniSat5 static lib:  ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
 message(STATUS "CryptoMiniSat5 static lib deps: ${CRYPTOMINISAT5_STATIC_LIBRARIES_DEPS}")
 message(STATUS "CryptoMiniSat5 include dirs: ${CRYPTOMINISAT5_INCLUDE_DIRS}")
 
-set(arjun_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../arjun/build")
+set(arjun_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../arjun/build" CACHE PATH "Path to Arjun build/install directory")
 find_package(arjun CONFIG REQUIRED)
 message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
 message(STATUS "Arjun dynamic lib : ${ARJUN_STATIC_LIBRARIES}")
