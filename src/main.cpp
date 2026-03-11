@@ -90,7 +90,6 @@ bool do_backbone = false;
 
 
 void print_version() {
-    std::stringstream ss;
     cout << "c o CMS SHA1: " << CMSat::SATSolver::get_version_sha1() << endl;
     cout << "c o Arjun SHA1: " << ArjunNS::Arjun ::get_version_sha1() << endl;
     cout << "c o Arjun SBVA SHA1: " << ArjunNS::Arjun::get_sbva_version_sha1() << endl;
