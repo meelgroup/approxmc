@@ -193,10 +193,6 @@ void print_final_indep_set(const vector<uint32_t>& indep_set, uint32_t orig_samp
 void print_num_solutions(uint32_t cell_sol_cnt, uint32_t hash_count, const std::unique_ptr<Field>& mult_ptr) {
     const CMSat::Field* ptr = mult_ptr.get();
     const ArjunNS::FMpq* mult = dynamic_cast<const ArjunNS::FMpq*>(ptr);
-    if (!mult) {
-        cout << "ERROR: Failed to cast multiplier weight to FMpq. Incompatible type." << endl;
-        exit(-1);
-    }
     cout << "c [appmc] Number of solutions is: "
     << cell_sol_cnt << "*2**" << hash_count << "*" << mult->val << endl;
     if (cell_sol_cnt == 0 || mult->val == 0) cout << "s UNSATISFIABLE" << endl;
