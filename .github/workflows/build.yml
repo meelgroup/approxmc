@@ -1,6 +1,8 @@
 name: build
 
 on:
+  push:
+    branches: [ "master" ]
   pull_request:
     branches: [ "*" ]
 
@@ -130,7 +132,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: msoos/cryptominisat
-        ref: master
+        ref: working-on-synth
         path: cryptominisat
         submodules: 'true'
     - name: Build CMS
@@ -223,11 +225,27 @@ jobs:
         sudo make install
         cd ../..
 
+    - name: Checkout treedecomp
+      uses: actions/checkout@v4
+      with:
+        repository: meelgroup/treedecomp
+        ref: main
+        path: treedecomp
+    - name: Build treedecomp
+      run: |
+        cd treedecomp
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+        cmake --build . --config ${{matrix.build_type}} -v
+        sudo cmake --install . --config ${{matrix.build_type}} -v
+        cd ../..
+
     - name: Checkout arjun
       uses: actions/checkout@v4
       with:
         repository: meelgroup/arjun
-        ref: master
+        ref: aig-shared-ptr-better-fix
         path: arjun
     - name: Build arjun
       run: |
@@ -290,7 +308,7 @@ jobs:
           project/build/include/*
 
     - name: Upload Artifact - Mac arm
-      if: matrix.os == 'macos-14' && matrix.staticcompile == 'ON'
+      if: matrix.os == 'macos-15' && matrix.staticcompile == 'ON'
       uses: actions/upload-artifact@v4
       with:
         name: approxmc-mac-arm64

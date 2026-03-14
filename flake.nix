@@ -3,15 +3,23 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     arjun = {
-      url = "github:meelgroup/arjun/master";
+      url = "github:meelgroup/arjun/aig-shared-ptr-better-fix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     cryptominisat = {
-      url = "github:msoos/cryptominisat/master";
+      url = "github:msoos/cryptominisat/working-on-synth";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     sbva = {
       url = "github:meelgroup/sbva/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    evalmaxsat = {
+      url = "github:meelgroup/EvalMaxSAT/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    treedecomp = {
+      url = "github:meelgroup/treedecomp/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -22,6 +30,8 @@
       arjun,
       cryptominisat,
       sbva,
+      evalmaxsat,
+      treedecomp,
     }:
     let
       inherit (nixpkgs) lib;
@@ -41,6 +51,8 @@
           cryptominisat,
           arjun,
           sbva,
+          evalmaxsat,
+          treedecomp,
         }:
         stdenv.mkDerivation {
           name = "approxmc";
@@ -64,9 +76,10 @@
             cryptominisat
             arjun
             sbva
+            evalmaxsat
+            treedecomp
           ];
         };
-
     in
     {
       packages = forAllSystems (
@@ -76,6 +89,8 @@
             arjun = arjun.packages.${system}.arjun;
             cryptominisat = cryptominisat.packages.${system}.cryptominisat;
             sbva = sbva.packages.${system}.sbva;
+            evalmaxsat = evalmaxsat.packages.${system}.evalmaxsat;
+            treedecomp = treedecomp.packages.${system}.treedecomp;
           };
         in
         {

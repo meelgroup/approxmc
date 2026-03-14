@@ -1,8 +1,4 @@
-# Config file for the @EXPORT_TYPE@ cryptominisat Package
-# It defines the following variables
-#  APPROXMC_INCLUDE_DIRS - include directories for cryptominisat5
-#  APPROXMC_LIBRARIES    - libraries to link against
-#  APPROXMC_EXECUTABLE   - the cryptominisat executable
+# Config file for the @EXPORT_TYPE@ approxmc package
 
 # Compute paths
 get_filename_component(APPROXMC_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
@@ -13,8 +9,6 @@ include("${APPROXMC_CMAKE_DIR}/@APPROXMC_TARGETS_FILENAME@")
 
 # These are IMPORTED targets created by @APPROXMC_TARGETS_FILENAME@
 set(APPROXMC_LIBRARIES approxmc)
-set(APPROXMC_STATIC_LIBRARIES approxmc)
-set(APPROXMC_STATIC_LIBRARIES_DEPS @APPROXMC_STATIC_DEPS@)
 set(APPROXMC_VERSION_MAJOR @PROJECT_VERSION_MAJOR@)
 set(APPROXMC_VERSION_MINOR @PROJECT_VERSION_MINOR@)
 set(APPROXMC_EXECUTABLE approxmc)
