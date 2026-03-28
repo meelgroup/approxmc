@@ -42,6 +42,7 @@ typedef struct {
     PyObject_HEAD
     ApproxMC::AppMC* appmc = NULL;
     ArjunNS::Arjun* arjun = NULL;
+    std::unique_ptr<CMSat::FieldGen> fg;
     std::vector<CMSat::Lit> tmp_cl_lits;
     bool count_called = false;
 
@@ -94,7 +95,8 @@ static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
         return;
     }
 
-    self->appmc = new ApproxMC::AppMC;
+    self->fg = std::make_unique<ArjunNS::FGenMpq>();
+    self->appmc = new ApproxMC::AppMC(self->fg);
     self->appmc->set_verbosity(self->verbosity);
     self->appmc->set_seed(self->seed);
     self->appmc->set_epsilon(self->epsilon);
@@ -473,6 +475,8 @@ static void Counter_dealloc(Counter* self)
 {
     delete self->appmc;
     delete self->arjun;
+    self->fg.reset();
+    self->tmp_cl_lits.~vector();
     Py_TYPE(self)->tp_free ((PyObject*) self);
 }
 
@@ -480,6 +484,7 @@ static int Counter_init(Counter *self, PyObject *args, PyObject *kwds)
 {
     if (self->appmc != NULL) delete self->appmc;
     if (self->arjun != NULL) delete self->arjun;
+    self->fg.reset();
 
     setup_counter(self, args, kwds);
 
