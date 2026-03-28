@@ -421,7 +421,7 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
             return NULL;
         }
         for(const auto& l: sampling_lits) {
-            if (l.var() > self->arjun->nVars()) {
+            if (l.var() >= self->arjun->nVars()) {
                 PyErr_SetString(PyExc_ValueError,
                         "ERROR: Sampling vars contain variables that are not in the original clauses!");
                 return NULL;
