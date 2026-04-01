@@ -1,8 +1,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![build](https://github.com/meelgroup/approxmc/workflows/build/badge.svg)
 
-# ApproxMC6: Approximate Model Counter
-ApproxMCv6 is a state-of-the-art approximate model counter using
+# ApproxMC7: Approximate Model Counter
+ApproxMCv7 is a state-of-the-art approximate model counter using
 [Arjun](https://github.com/meelgroup/arjun) and
 [CryptoMiniSat](https://github.com/msoos/cryptominisat) to give probabilistic
 approximate model counts to problems of size and complexity that were not
@@ -177,7 +177,8 @@ significant speedup if the number of solutions is very large.
 
 ## How to Cite
 If you use ApproxMC, please cite the following papers:
-[CAV-23](https://arxiv.org/pdf/2305.09247)
+[AAAI-25](https://ojs.aaai.org/index.php/AAAI/article/view/33231)
+, [CAV-23](https://arxiv.org/pdf/2305.09247)
 , [AAAI-19](https://www.cs.toronto.edu/~meel/Papers/aaai19-sm.pdf)
 , [CAV-20](https://www.cs.toronto.edu/~meel/Papers/cav20-sgm.pdf)
 , [CAV-20](https://dblp.uni-trier.de/rec/conf/cav/SoosGM20.html?view=bibtex)

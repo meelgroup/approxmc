@@ -157,6 +157,7 @@ jobs:
         ln -s ../scripts/*.sh .
         cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
         cmake --build . --config ${{matrix.build_type}} -v
+        sudo make install
         cd ../..
 
     - name: Checkout cereal
@@ -196,16 +197,16 @@ jobs:
 
     - name: Checkout ensmallen
       run: |
-        wget https://ensmallen.org/files/ensmallen-2.22.2.tar.gz
+        wget https://github.com/mlpack/ensmallen/archive/refs/tags/2.22.2.tar.gz
     - name: Build ensmallen
       run: |
-        tar xvf ensmallen-2.22.2.tar.gz
+        tar xvf 2.22.2.tar.gz
         cd ensmallen-2.22.2
         mkdir build
         cd build
         cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
         cmake --build . --config ${{matrix.build_type}} -v
-        sudo make install
+        sudo cmake --install . --config ${{matrix.build_type}} -v
         cd ../..
 
     - name: Checkout mlpack
