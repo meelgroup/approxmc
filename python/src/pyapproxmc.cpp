@@ -42,6 +42,7 @@ typedef struct {
     PyObject_HEAD
     ApproxMC::AppMC* appmc = NULL;
     ArjunNS::Arjun* arjun = NULL;
+    std::unique_ptr<CMSat::FieldGen> fg;
     std::vector<CMSat::Lit> tmp_cl_lits;
     bool count_called = false;
 
@@ -94,7 +95,8 @@ static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
         return;
     }
 
-    self->appmc = new ApproxMC::AppMC;
+    self->fg = std::make_unique<ArjunNS::FGenMpq>();
+    self->appmc = new ApproxMC::AppMC(self->fg);
     self->appmc->set_verbosity(self->verbosity);
     self->appmc->set_seed(self->seed);
     self->appmc->set_epsilon(self->epsilon);
@@ -324,9 +326,13 @@ static PyObject* add_clauses(Counter *self, PyObject *args, PyObject *kwds)
 
     PyObject *clause;
     while ((clause = PyIter_Next(iterator)) != NULL) {
-        _add_clause(self, clause);
+        int ret = _add_clause(self, clause);
         /* release reference when done */
         Py_DECREF(clause);
+        if (!ret) {
+            Py_DECREF(iterator);
+            return NULL;
+        }
     }
 
     /* release reference when done */
@@ -421,7 +427,7 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
             return NULL;
         }
         for(const auto& l: sampling_lits) {
-            if (l.var() > self->arjun->nVars()) {
+            if (l.var() >= self->arjun->nVars()) {
                 PyErr_SetString(PyExc_ValueError,
                         "ERROR: Sampling vars contain variables that are not in the original clauses!");
                 return NULL;
@@ -469,6 +475,8 @@ static void Counter_dealloc(Counter* self)
 {
     delete self->appmc;
     delete self->arjun;
+    self->fg.reset();
+    self->tmp_cl_lits.~vector();
     Py_TYPE(self)->tp_free ((PyObject*) self);
 }
 
@@ -476,6 +484,7 @@ static int Counter_init(Counter *self, PyObject *args, PyObject *kwds)
 {
     if (self->appmc != NULL) delete self->appmc;
     if (self->arjun != NULL) delete self->arjun;
+    self->fg.reset();
 
     setup_counter(self, args, kwds);
 

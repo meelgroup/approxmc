@@ -37,7 +37,7 @@ def _parse_toml(pyproject_path):
 def gen_modules(version):
     define_macros_val : list[tuple[str, str | None]] | None
     if platform == "win32" or platform == "cygwin":
-        extra_compile_args_val = ['/std:c++17', "/DAPPMC_FULL_VERSION=\""+version+"\""]
+        extra_compile_args_val = ['/std:c++20', "/DAPPMC_FULL_VERSION=\""+version+"\""]
         define_macros_val = []
 
     else:

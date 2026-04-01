@@ -1,11 +1,7 @@
-# Config file for the approxmc package.
-@PACKAGE_INIT@
-
-set_and_check(APPROXMC_INCLUDE_DIRS "@PACKAGE_APPROXMC_INSTALL_INCLUDEDIR@")
+# Config file for the Build-tree approxmc package (not relocatable).
+set(APPROXMC_INCLUDE_DIRS "@CMAKE_CURRENT_BINARY_DIR@/include")
 include("${CMAKE_CURRENT_LIST_DIR}/approxmcTargets.cmake")
 set(APPROXMC_LIBRARIES approxmc)
 set(APPROXMC_VERSION_MAJOR @PROJECT_VERSION_MAJOR@)
 set(APPROXMC_VERSION_MINOR @PROJECT_VERSION_MINOR@)
 set(APPROXMC_EXECUTABLE approxmc)
-
-check_required_components(approxmc)

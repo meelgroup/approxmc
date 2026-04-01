@@ -90,7 +90,6 @@ bool do_backbone = false;
 
 
 void print_version() {
-    std::stringstream ss;
     cout << "c o CMS SHA1: " << CMSat::SATSolver::get_version_sha1() << endl;
     cout << "c o Arjun SHA1: " << ArjunNS::Arjun ::get_version_sha1() << endl;
     cout << "c o Arjun SBVA SHA1: " << ArjunNS::Arjun::get_sbva_version_sha1() << endl;
@@ -317,8 +316,8 @@ int main(int argc, char** argv)
     const string fname(files[0]);
     if (do_arjun) {
         parse_file(fname, &cnf);
-        const auto orig_sampl_vars = cnf.sampl_vars;
-        double my_time = cpu_time();
+        const auto orig_sampl_vars = cnf.get_sampl_vars();
+        const double my_time = cpu_time();
         ArjunNS::Arjun arjun;
         arjun.set_verb(verb);
         arjun.set_or_gate_based(arjun_gates);
@@ -330,11 +329,11 @@ int main(int argc, char** argv)
         arjun.standalone_minimize_indep(cnf, etof_conf.all_indep);
         if (with_e) arjun.standalone_elim_to_file(cnf, etof_conf, simp_conf);
         appmc->new_vars(cnf.nVars());
-        appmc->set_sampl_vars(cnf.sampl_vars);
-        for(const auto& c: cnf.clauses) appmc->add_clause(c);
-        for(const auto& c: cnf.red_clauses) appmc->add_red_clause(c);
-        appmc->set_multiplier_weight(cnf.multiplier_weight);
-        print_final_indep_set(cnf.sampl_vars, orig_sampl_vars.size());
+        appmc->set_sampl_vars(cnf.get_sampl_vars());
+        for(const auto& c: cnf.get_clauses()) appmc->add_clause(c);
+        for(const auto& c: cnf.get_red_clauses()) appmc->add_red_clause(c);
+        appmc->set_multiplier_weight(cnf.get_multiplier_weight());
+        print_final_indep_set(cnf.get_sampl_vars(), orig_sampl_vars.size());
         cout << "c o [arjun] Arjun finished. T: " << (cpu_time() - my_time) << endl;
     } else {
         parse_file(fname, appmc);

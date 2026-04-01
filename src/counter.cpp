@@ -41,11 +41,6 @@
 #include "counter.h"
 #include "appmc_constants.h"
 #include "time_mem.h"
-#ifdef CMS_LOCAL_BUILD
-#include "arjun.h"
-#else
-#include <arjun/arjun.h>
-#endif
 
 using std::cout;
 using std::endl;

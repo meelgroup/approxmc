@@ -1,6 +1,8 @@
 name: build
 
 on:
+  push:
+    branches: [ "master" ]
   pull_request:
     branches: [ "*" ]
 
@@ -73,6 +75,12 @@ jobs:
       if: contains(matrix.os, 'ubuntu')
       run: sudo apt-get update && sudo apt-get install -yq help2man libgmp-dev libmpfr-dev
 
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.staticcompile }}
+        max-size: 1G
+
     - name: Checkout Cadical
       uses: actions/checkout@v4
       with:
@@ -111,7 +119,7 @@ jobs:
         cd breakid
         mkdir build
         cd build
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
         cd ../..
 
     - name: Copy cadiback and cadical libs
@@ -137,7 +145,7 @@ jobs:
       run: |
         cd cryptominisat
         mkdir build &&cd build
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
         cmake --build . --config ${{matrix.build_type}}
         cd ../..
 
@@ -153,7 +161,7 @@ jobs:
         mkdir build
         cd build
         ln -s ../scripts/*.sh .
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} ..
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=OFF -DSTATICCOMPILE=${{ matrix.staticcompile }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
         cmake --build . --config ${{matrix.build_type}} -v
         sudo make install
         cd ../..
@@ -176,7 +184,7 @@ jobs:
         cd cereal-1.3.2
         mkdir build
         cd build
-        cmake -DJUST_INSTALL_CEREAL=ON ..
+        cmake -DJUST_INSTALL_CEREAL=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
         make -j6
         sudo make install
         cd ..
@@ -202,7 +210,7 @@ jobs:
         cd ensmallen-2.22.2
         mkdir build
         cd build
-        cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
+        cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
         cmake --build . --config ${{matrix.build_type}} -v
         sudo cmake --install . --config ${{matrix.build_type}} -v
         cd ../..
@@ -218,9 +226,25 @@ jobs:
         cd mlpack
         mkdir build
         cd build
-        cmake -DBUILD_SHARED_LIBS=ON -DBUILD_CLI_EXECUTABLES=OFF ..
+        cmake -DBUILD_SHARED_LIBS=ON -DBUILD_CLI_EXECUTABLES=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
         cmake --build . --config ${{matrix.build_type}} -v
         sudo make install
+        cd ../..
+
+    - name: Checkout treedecomp
+      uses: actions/checkout@v4
+      with:
+        repository: meelgroup/treedecomp
+        ref: main
+        path: treedecomp
+    - name: Build treedecomp
+      run: |
+        cd treedecomp
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DSTATICCOMPILE=${{ matrix.staticcompile }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
+        cmake --build . --config ${{matrix.build_type}} -v
+        sudo cmake --install . --config ${{matrix.build_type}} -v
         cd ../..
 
     - name: Checkout arjun
@@ -238,6 +262,8 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
         -DSTATICCOMPILE=${{ matrix.staticcompile }} \
         -DENABLE_TESTING=OFF \
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
         -S ..
         cmake --build . --config ${{matrix.build_type}} -v
         cd ../..
@@ -253,6 +279,8 @@ jobs:
         cmake \
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
         -DSTATICCOMPILE=${{ matrix.staticcompile }} \
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
         -S ..
         cmake --build . --config ${{matrix.build_type}} -v
 
@@ -290,7 +318,7 @@ jobs:
           project/build/include/*
 
     - name: Upload Artifact - Mac arm
-      if: matrix.os == 'macos-14' && matrix.staticcompile == 'ON'
+      if: matrix.os == 'macos-15' && matrix.staticcompile == 'ON'
       uses: actions/upload-artifact@v4
       with:
         name: approxmc-mac-arm64
