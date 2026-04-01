@@ -426,26 +426,37 @@ export(
     FILE "${CMAKE_CURRENT_BINARY_DIR}/${APPROXMC_TARGETS_FILENAME}"
 )
 
-# Create approxmcConfig file
-set(EXPORT_TYPE "Build-tree")
-set(CONF_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/include")
-configure_file(approxmcConfig.cmake.in
-    "${CMAKE_CURRENT_BINARY_DIR}/${APPROXMC_CONFIG_FILENAME}" @ONLY
+# Build-tree config (absolute paths, for use without installation)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/approxmcConfig-buildtree.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${APPROXMC_CONFIG_FILENAME}"
+    @ONLY
 )
 
 # Export this package to the CMake user package registry
 # Now the user can just use find_package(approxmc) on their system
 export(PACKAGE approxmc)
 
-# Create approxmcConfig file
-set(EXPORT_TYPE "installed")
-set(CONF_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-configure_file(approxmcConfig.cmake.in
-   "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${APPROXMC_CONFIG_FILENAME}" @ONLY
+# Install-tree config and version files (relocatable via CMakePackageConfigHelpers)
+set(APPROXMC_INSTALL_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+set(APPROXMC_VERSION_FILENAME "approxmcConfigVersion.cmake")
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(approxmcConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${APPROXMC_CONFIG_FILENAME}"
+    INSTALL_DESTINATION "${APPROXMC_INSTALL_CMAKE_DIR}"
+    PATH_VARS APPROXMC_INSTALL_INCLUDEDIR
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${APPROXMC_VERSION_FILENAME}"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
 )
 
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${APPROXMC_CONFIG_FILENAME}"
+    "${CMAKE_CURRENT_BINARY_DIR}/${APPROXMC_VERSION_FILENAME}"
     DESTINATION "${APPROXMC_INSTALL_CMAKE_DIR}"
 )
 
