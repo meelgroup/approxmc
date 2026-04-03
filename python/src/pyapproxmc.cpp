@@ -310,7 +310,7 @@ static PyObject* add_clauses(Counter *self, PyObject *args, PyObject *kwds)
         PyBuffer_Release(&view);
 
         if (ret == 0 || PyErr_Occurred()) {
-            return 0;
+            return NULL;
         }
         Py_INCREF(Py_None);
         return Py_None;
@@ -380,11 +380,6 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
             return NULL;
         }
         for(const auto& l: sampling_lits) {
-            if (l.var() >= self->cnf->nVars()) {
-                PyErr_SetString(PyExc_ValueError,
-                        "ERROR: Sampling vars contain variables that are not in the original clauses!");
-                return NULL;
-            }
             sampling_vars.push_back(l.var());
         }
     }
@@ -420,9 +415,31 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
         PyErr_SetString(PyExc_SystemError, "failed to create a tuple");
         return NULL;
     }
-    PyTuple_SET_ITEM(result, 0, PyLong_FromLong((long)sol_count.cellSolCount));
-    PyTuple_SET_ITEM(result, 1, PyLong_FromLong((long)sol_count.hashCount));
+    PyTuple_SET_ITEM(result, 0, PyLong_FromUnsignedLongLong((unsigned long long)sol_count.cellSolCount));
+    PyTuple_SET_ITEM(result, 1, PyLong_FromUnsignedLong((unsigned long)sol_count.hashCount));
     return result;
+}
+
+/* Counter_new — properly construct C++ members that live inside
+ * Python-managed memory.  PyType_GenericNew (tp_alloc) only zero-fills;
+ * it does not call C++ constructors, which is UB for non-trivial types like
+ * std::unique_ptr and std::vector.  We use placement-new here so that
+ * Counter_dealloc can later call the matching explicit destructors. */
+static PyObject* Counter_new(PyTypeObject *type, PyObject * /*args*/, PyObject * /*kwds*/)
+{
+    Counter *self = (Counter *) type->tp_alloc(type, 0);
+    if (self != NULL) {
+        self->appmc = NULL;
+        self->cnf = NULL;
+        new (&self->fg) std::unique_ptr<CMSat::FieldGen>();
+        new (&self->tmp_cl_lits) std::vector<CMSat::Lit>();
+        self->count_called = false;
+        self->verbosity = 0;
+        self->seed = 1;
+        self->epsilon = 0.8;
+        self->delta = 0.2;
+    }
+    return (PyObject *) self;
 }
 
 /********** Python Bindings **********/
@@ -437,9 +454,10 @@ static void Counter_dealloc(Counter* self)
 {
     delete self->appmc;
     delete self->cnf;
-    self->fg.reset();
-    self->tmp_cl_lits.~vector();
-    Py_TYPE(self)->tp_free ((PyObject*) self);
+    // Explicitly destroy C++ members that were placement-new'd in Counter_new.
+    self->fg.~unique_ptr<CMSat::FieldGen>();
+    self->tmp_cl_lits.~vector<CMSat::Lit>();
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 static int Counter_init(Counter *self, PyObject *args, PyObject *kwds)
@@ -447,6 +465,7 @@ static int Counter_init(Counter *self, PyObject *args, PyObject *kwds)
     if (self->appmc != NULL) delete self->appmc;
     if (self->cnf != NULL) delete self->cnf;
     self->fg.reset();
+    self->count_called = false;
 
     setup_counter(self, args, kwds);
 
@@ -508,7 +527,7 @@ PyMODINIT_FUNC PyInit_pyapproxmc(void)
 {
     PyObject* m;
 
-    pyapproxmc_CounterType.tp_new = PyType_GenericNew;
+    pyapproxmc_CounterType.tp_new = Counter_new;
     if (PyType_Ready(&pyapproxmc_CounterType) < 0) {
         // Return NULL on Python3
         return NULL;

@@ -8,6 +8,10 @@ import pytest
 import pyapproxmc
 from pyapproxmc import Counter
 
+# Seed-pinned tests below are intentionally locked to specific seeds; they
+# serve as regression guards.  If the counting algorithm changes the expected
+# values must be updated deliberately.
+
 
 # ---------------------------------------------------------------------------
 # Module-level attributes
@@ -85,7 +89,7 @@ def test_add_clause_non_iterable():
 
 
 # ---------------------------------------------------------------------------
-# count() called twice must raise
+# count() called twice must raise; re-init must reset that flag
 # ---------------------------------------------------------------------------
 
 def test_count_twice_raises():
@@ -96,8 +100,19 @@ def test_count_twice_raises():
         c.count()
 
 
+def test_reinit_resets_count_called():
+    c = Counter(seed=1)
+    c.add_clause([1, 2])
+    c.count()
+    # Re-initialise via __init__ — count_called must be cleared
+    Counter.__init__(c, seed=1)
+    c.add_clause([1, 2])
+    result = c.count()
+    assert result is not None
+
+
 # ---------------------------------------------------------------------------
-# UNSAT formula
+# UNSAT formula / trivially SAT / empty projection
 # ---------------------------------------------------------------------------
 
 def test_unsat():
@@ -106,6 +121,23 @@ def test_unsat():
     c.add_clause([-1])
     cell_count, _ = c.count()
     assert cell_count == 0
+
+
+def test_empty_formula():
+    # No clauses added: trivially satisfiable over an empty variable set.
+    c = Counter(seed=1)
+    cell_count, hash_count = c.count()
+    assert cell_count == 1
+    assert hash_count == 0
+
+
+def test_empty_projection():
+    # Projecting onto zero variables: exactly one assignment (the empty one).
+    c = Counter(seed=1)
+    c.add_clause([1, 2])
+    cell_count, hash_count = c.count([])
+    assert cell_count == 1
+    assert hash_count == 0
 
 
 # ---------------------------------------------------------------------------
@@ -180,6 +212,29 @@ def test_add_clauses_array_last_not_terminated():
     c = Counter(seed=1)
     with pytest.raises(ValueError, match="zero"):
         c.add_clauses(array('i', [1, 2, 3]))  # missing trailing 0
+
+
+def test_add_clauses_array_long():
+    # 'l' (signed long) format path in _add_clauses_from_buffer
+    counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
+    counter.add_clauses(array('l', list(range(1, 100)) + [0]))
+    significand, exponent = counter.count()
+    assert significand * 2**exponent == 512 * 2**90
+
+
+def test_add_clauses_array_longlong():
+    # 'q' (signed long long) format path in _add_clauses_from_buffer
+    counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
+    counter.add_clauses(array('q', list(range(1, 100)) + [0]))
+    significand, exponent = counter.count()
+    assert significand * 2**exponent == 512 * 2**90
+
+
+def test_add_clauses_array_unsupported_format():
+    c = Counter(seed=1)
+    with pytest.raises(ValueError, match="format"):
+        c.add_clauses(array('f', [1.0, 0.0]))
+
 
 
 # ---------------------------------------------------------------------------
