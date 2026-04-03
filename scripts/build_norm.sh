@@ -14,6 +14,13 @@ rm -rf CM*
 rm -rf cmake*
 rm -rf deps
 rm -rf _deps
-cmake -DENABLE_TESTING=ON ..
+cmake -DENABLE_TESTING=ON \
+    -Dcadical_DIR=../cadical/build \
+    -Dcadiback_DIR=../cadiback \
+    -Dcryptominisat5_DIR=../cryptominisat/build \
+    -Dsbva_DIR=../sbva/build \
+    -Dtreedecomp_DIR=../treedecomp/build \
+    -Darjun_DIR=../arjun/build \
+    ..
 make -j$(nproc)
 make test

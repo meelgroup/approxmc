@@ -18,12 +18,12 @@ cmake -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF \
     -DGMP_LIBRARY=/usr/local/lib/libgmp.a \
     -DGMPXX_LIBRARY=/usr/local/lib/libgmpxx.a \
-    -Dcadical_DIR=../../cadical/build \
-    -Dcadiback_DIR=../../cadiback \
-    -Dcryptominisat5_DIR=../../cryptominisat/build \
-    -Dsbva_DIR=../../sbva/build \
-    -Dtreedecomp_DIR=../../treedecomp/build \
-    -Darjun_DIR=../../arjun/build \
+    -Dcadical_DIR=../cadical/build \
+    -Dcadiback_DIR=../cadiback \
+    -Dcryptominisat5_DIR=../cryptominisat/build \
+    -Dsbva_DIR=../sbva/build \
+    -Dtreedecomp_DIR=../treedecomp/build \
+    -Darjun_DIR=../arjun/build \
     ..
 make -j$(nproc)
 strip approxmc
