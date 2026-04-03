@@ -39,6 +39,33 @@ If this is somehow not what you want, you can also build it. See the [GitHub
 Action](https://github.com/meelgroup/approxmc/actions/workflows/build.yml) for the
 specific set of steps.
 
+### Building statically
+
+To build a static binary, you first need to build GMP with static library support:
+
+```shell
+wget https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
+tar xf gmp-6.3.0.tar.xz
+cd gmp-6.3.0
+./configure --enable-static --enable-cxx --enable-shared --with-pic
+make -j8
+sudo make install
+cd ..
+```
+
+Then point CMake to the installed GMP static libraries (note: use `/usr/local/lib/`,
+not a custom build directory, as those may be compiled for the wrong architecture):
+
+```shell
+mkdir build && cd build
+cmake -DBUILD_SHARED_LIBS=OFF \
+    -DGMP_LIBRARY=/usr/local/lib/libgmp.a \
+    -DGMPXX_LIBRARY=/usr/local/lib/libgmpxx.a \
+    -DGMP_INCLUDE_DIR=/usr/local/include \
+    ..
+make -j8
+```
+
 ## Providing a Projection Set
 For some applications, one is not interested in solutions over all the
 variables and instead interested in counting the number of unique solutions to
