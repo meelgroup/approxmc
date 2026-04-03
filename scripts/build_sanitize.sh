@@ -1,8 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
-rm -rf lib* Test* tests* include tests scalmc* CM* cmake*
+rm -rf .cmake
+rm -rf lib*
+rm -rf Test*
+rm -rf tests*
+rm -rf include
+rm -rf tests
+rm -rf approxmc*
+rm -rf apx-src
+rm -rf CM*
+rm -rf cmake*
+rm -rf deps
+rm -rf _deps
 CXX=clang++ cmake -DENABLE_TESTING=ON -DSANITIZE=ON ..
 make -j$(nproc)
 make test
