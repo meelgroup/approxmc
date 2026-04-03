@@ -33,7 +33,7 @@ jobs:
         wget https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
         tar xf gmp-6.3.0.tar.xz
         cd gmp-6.3.0
-        ./configure --enable-static -enable-cxx --enable-shared --with-pic
+        ./configure --enable-static --enable-cxx --enable-shared --with-pic
         make -j8
         sudo make install
         cd ..
@@ -66,7 +66,7 @@ jobs:
         wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz
         tar xf mpfr-4.2.1.tar.xz
         cd mpfr-4.2.1
-        ./configure --enable-static -enable-cxx --enable-shared
+        ./configure --enable-static --enable-cxx --enable-shared
         make -j8
         sudo make install
         cd ..
