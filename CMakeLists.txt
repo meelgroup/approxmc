@@ -598,13 +598,14 @@ if(NOT arjun_DIR)
                 -DCMAKE_THREAD_LIBS_INIT=${CMAKE_THREAD_LIBS_INIT}
                 -DCMAKE_HAVE_LIBC_PTHREAD=${CMAKE_HAVE_LIBC_PTHREAD}
                 -DThreads_FOUND=TRUE
+                -DARJUN_BUILD_BINARIES=OFF
             RESULT_VARIABLE _arjun_cfg_ret
         )
         if(NOT _arjun_cfg_ret EQUAL 0)
             message(FATAL_ERROR "Arjun cmake configure failed (exit ${_arjun_cfg_ret})")
         endif()
         execute_process(
-            COMMAND ${CMAKE_COMMAND} --build "${_arjun_build}" -j8 --target arjun
+            COMMAND ${CMAKE_COMMAND} --build "${_arjun_build}" -j8
             RESULT_VARIABLE _arjun_build_ret
         )
         if(NOT _arjun_build_ret EQUAL 0)
