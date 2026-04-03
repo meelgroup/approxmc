@@ -22,7 +22,7 @@ ctest        # run tests
 
 Key CMake options:
 - `-DENABLE_TESTING=ON` — enables Google Test suite
-- `-DSTATICCOMPILE=ON` — static linking
+- `-DBUILD_SHARED_LIBS=OFF` — static linking (default is ON for shared)
 - `-DNOZLIB=ON` — disable zlib/gzip support
 - `-DSANITIZE=ON` — enable address/UB sanitizers
 

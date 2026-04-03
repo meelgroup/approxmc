@@ -75,10 +75,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 # static compilation
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
-option(STATICCOMPILE "Compile to static executable" OFF)
-if(STATICCOMPILE)
-    set(BUILD_SHARED_LIBS OFF)
-endif()
 
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
     if(NOT BUILD_SHARED_LIBS)
@@ -176,7 +172,7 @@ else()
 
     add_compile_options("$<$<CONFIG:DEBUG>:/Od>")
 
-    if(STATICCOMPILE)
+    if(NOT BUILD_SHARED_LIBS)
         # We statically link to reduce dependencies
         foreach(flag_var CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
             # /MD -- Causes the application to use the multithread-specific and DLL-specific version of the run-time library.
@@ -659,7 +655,7 @@ if(USE_EVALMAXSAT)
 endif()
 
 option(NOZLIB "Don't use zlib" OFF)
-if(NOT NOZLIB AND NOT (STATICCOMPILE AND WIN32))
+if(NOT NOZLIB AND NOT (NOT BUILD_SHARED_LIBS AND WIN32))
     find_package(ZLIB)
     if(ZLIB_FOUND)
         message(STATUS "OK, Found ZLIB!")
