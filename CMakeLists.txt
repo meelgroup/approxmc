@@ -279,7 +279,12 @@ if(GIT_EXECUTABLE)
 else()
   set(GIT_SHA1 "GIT-hash-notfound")
 endif()
-set(APPROXMC_FULL_VERSION "4.2.0")
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml" PYPROJECT_TOML)
+string(REGEX MATCH "version = \"([0-9]+\\.[0-9]+\\.[0-9]+)\"" _ "${PYPROJECT_TOML}")
+set(APPROXMC_FULL_VERSION "${CMAKE_MATCH_1}")
+if(NOT APPROXMC_FULL_VERSION)
+    message(FATAL_ERROR "Could not parse version from pyproject.toml")
+endif()
 
 string(REPLACE "." ";" APPROXMC_FULL_VERSION_LIST ${APPROXMC_FULL_VERSION})
 SetVersionNumber("PROJECT" ${APPROXMC_FULL_VERSION_LIST})
@@ -674,6 +679,46 @@ if(ENABLE_TESTING)
     add_subdirectory(tests/gtest)
 endif()
 add_subdirectory(src apx-src)
+
+# =============================================================================
+# Python extension module (pyapproxmc)
+# Activated by scikit-build-core via -DBUILD_PYTHON_EXTENSION=ON.
+# Requires CMake >= 3.18 (python_add_library).
+# =============================================================================
+option(BUILD_PYTHON_EXTENSION "Build the pyapproxmc Python extension module" OFF)
+if(BUILD_PYTHON_EXTENSION)
+    find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
+
+    # GitSHA1 symbols are already provided by the approxmc static library.
+    python_add_library(pyapproxmc MODULE WITH_SOABI
+        python/src/pyapproxmc.cpp
+    )
+
+    target_compile_definitions(pyapproxmc PRIVATE
+        APPMC_FULL_VERSION="${APPROXMC_FULL_VERSION}"
+    )
+
+    target_include_directories(pyapproxmc PRIVATE
+        ${PROJECT_SOURCE_DIR}/src
+        ${CRYPTOMINISAT5_INCLUDE_DIRS}
+        ${ARJUN_INCLUDE_DIRS}
+        ${GMP_INCLUDE_DIR}
+    )
+
+    # Use -lgmpxx/-lgmp as plain linker flags so ld resolves them to the
+    # shared library (.so/.dylib).  The static GMP .a is typically not
+    # compiled with -fPIC and therefore cannot be linked into a .so.
+    target_link_libraries(pyapproxmc PRIVATE
+        approxmc
+        ${ARJUN_STATIC_LIBRARIES}
+        -lgmpxx
+        -lgmp
+    )
+    target_compile_features(pyapproxmc PRIVATE cxx_std_20)
+
+    # Only install the extension into the wheel (not the library/headers/binary).
+    install(TARGETS pyapproxmc DESTINATION . COMPONENT python)
+endif()
 
 # -----------------------------------------------------------------------------
 # Add uninstall target for makefiles

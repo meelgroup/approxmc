@@ -102,6 +102,12 @@ Install using pip:
 pip install pyapproxmc
 ```
 
+Or build from source (requires GMP: `apt-get install libgmp-dev` / `brew install gmp`):
+```bash
+git clone --recurse-submodules https://github.com/meelgroup/approxmc
+cd approxmc && pip install .
+```
+
 Then you can use it as:
 ```python
 import pyapproxmc
@@ -130,6 +136,8 @@ print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 
 This now prints `Approximate count is: 7*2**6`, which corresponds to the
 approximate count of models, projected over variables 1..10.
+
+See [python/README.md](python/README.md) for the full Python API documentation.
 
 ### Library usage
 The system can be used as a library:

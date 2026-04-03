@@ -1,61 +1,103 @@
-# pyapproxmc: bindings to the ApproxMC model counter
-This directory provides Python bindings to ApproxMC on the C++ level,
-i.e. when importing pyapproxmc, the ApproxMC counter becomes part of the
-Python process itself.
+# pyapproxmc: Python bindings to ApproxMC
+
+Python bindings to [ApproxMC](https://github.com/meelgroup/approxmc), an
+approximate model counter with PAC (Probably Approximately Correct) guarantees.
+ApproxMC counts the number of satisfying assignments of CNF formulas.
 
 ## Installing
-```plain
+
+```bash
 pip install pyapproxmc
 ```
 
-## Compiling
-If you don't want to use the pip package, you can compile it:
-```plain
-apt-get install python-dev
-cd python
-git clone https://github.com/msoos/cryptominisat
-git clone https://github.com/meelgroup/arjun
-cd ..
-python -m build
+## Building from source
+
+```bash
+# Install build tools
+pip install scikit-build-core build
+
+# Clone the repository
+git clone --recurse-submodules https://github.com/meelgroup/approxmc
+cd approxmc
+
+# Build and install into the current environment
+pip install .
 ```
 
-You will then find the files under "dist/".
+The build system uses scikit-build-core and CMake. All C++ dependencies
+(CryptoMiniSat, Arjun, and their sub-dependencies) are fetched and built
+automatically by CMake during the `pip install` step. The only system library
+required is [GMP](https://gmplib.org/):
+
+- **Linux**: `sudo apt-get install libgmp-dev`  (or `dnf install gmp-devel`)
+- **macOS**: `brew install gmp`
 
 ## Usage
-```
+
+```python
 import pyapproxmc
+
 c = pyapproxmc.Counter()
-c.add_clause([1,2,3])
-c.add_clause([3,20])
+c.add_clause([1, 2, 3])
+c.add_clause([3, 20])
 count = c.count()
 print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 ```
 
-The above will print that `Approximate count is: 88*2**13`. Since the largest
-variable in the clauses was 20, the system contained 2**20 (i.e. 1048576)
-potential models. However, some of these models were prohibited by the two
-clauses, and so only approximately 88*2**13 (i.e. 720896) models remained.
+The above prints `Approximate count is: 11*2**16`. Since the largest variable
+in the clauses is 20, the formula has at most 2\*\*20 models; the two clauses
+restrict this to approximately 11\*2\*\*16 ≈ 720896 models.
 
-If you want to count over a projection set, you need to call
-`count(projection_set)`, for example:
+### Counting over a projection set
+
+Pass a projection set (sampling set) to `count()` to count models projected
+onto a subset of variables:
+
 ```python
 import pyapproxmc
+
 c = pyapproxmc.Counter()
-c.add_clause([1,2,3])
-c.add_clause([3,20])
-count = c.count(range(1,10))
+c.add_clause([1, 2, 3])
+c.add_clause([3, 20])
+count = c.count(range(1, 10))
 print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 ```
 
-This now prints `Approximate count is: 56*2**3`, which corresponds to the
-approximate count of models, projected over variables 1..10.
+This prints `Approximate count is: 7*2**6`, the approximate count projected
+over variables 1–9.
 
-## Counter Object
-You can give the following arguments to `Counter`:
-* `seed` -- sets the random seed
-* `verbosity` -- sets the verbosity of the system (default = 0)
-* `epsilon` -- Tolerance parameter, i.e. sets how approximate the returned
-  count is. Default = 0.8
-* `delta` -- Confidence parameter, i.e. sets how probabilistically correct the
-  returned count is. Default = 0.20
+### Adding clauses from arrays
 
+For performance-critical code, clauses can be added from Python arrays:
+
+```python
+import pyapproxmc
+from array import array
+
+c = pyapproxmc.Counter()
+c.add_clause(array('i', [1, 2, 3]))
+c.add_clause(array('i', [3, 20]))
+count = c.count()
+```
+
+## Counter constructor parameters
+
+| Parameter   | Default | Description |
+|-------------|---------|-------------|
+| `seed`      | 1       | Random seed for reproducibility |
+| `verbosity` | 0       | Output verbosity (0 = silent) |
+| `epsilon`   | 0.8     | Tolerance: how approximate the count is |
+| `delta`     | 0.2     | Confidence: probability the count is within tolerance |
+
+Example:
+
+```python
+c = pyapproxmc.Counter(seed=42, epsilon=0.5, delta=0.1)
+```
+
+## Version
+
+```python
+import pyapproxmc
+print(pyapproxmc.__version__)
+```

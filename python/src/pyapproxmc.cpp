@@ -27,13 +27,23 @@
  */
 
 #include <Python.h>
-#include <cryptominisat/cryptominisat.h>
+#include <cryptominisat5/cryptominisat.h>
 #include "../../src/approxmc.h"
-#include "../arjun/src/arjun.h"
+#include <arjun/arjun.h>
 
 #include <limits>
 #include <vector>
 #include <set>
+
+/* On Linux/macOS with -fvisibility=hidden, PyMODINIT_FUNC in older Python
+ * headers (e.g. 3.8) does not carry __attribute__((visibility("default"))),
+ * so the init symbol would be invisible to dlsym.  Declare it exported
+ * explicitly, mirroring what __declspec(dllexport) does on Windows. */
+#if defined(__GNUC__) || defined(__clang__)
+#  define AMC_PY_EXPORT __attribute__((visibility("default")))
+#else
+#  define AMC_PY_EXPORT
+#endif
 
 #define MODULE_NAME "pyapproxmc"
 #define MODULE_DOC "ApproxMC approximate model counter."
@@ -41,7 +51,7 @@
 typedef struct {
     PyObject_HEAD
     ApproxMC::AppMC* appmc = NULL;
-    ArjunNS::Arjun* arjun = NULL;
+    ArjunNS::SimplifiedCNF* cnf = NULL;
     std::unique_ptr<CMSat::FieldGen> fg;
     std::vector<CMSat::Lit> tmp_cl_lits;
     bool count_called = false;
@@ -102,9 +112,7 @@ static void setup_counter(Counter *self, PyObject *args, PyObject *kwds)
     self->appmc->set_epsilon(self->epsilon);
     self->appmc->set_delta(self->delta);
 
-    self->arjun = new ArjunNS::Arjun;
-    self->arjun->set_seed(self->seed);
-    self->arjun->set_verbosity(self->verbosity);
+    self->cnf = new ArjunNS::SimplifiedCNF(self->fg);
 
     return;
 }
@@ -158,9 +166,9 @@ static int parse_clause(Counter *self, PyObject *clause, std::vector<CMSat::Lit>
         lits.push_back(CMSat::Lit(var, sign));
     }
 
-    if (!lits.empty() && max_var >= (long int)self->arjun->nVars()) {
+    if (!lits.empty() && max_var >= (long int)self->cnf->nVars()) {
         if (allow_more_vars)
-            self->arjun->new_vars(max_var-(long int)self->arjun->nVars()+1);
+            self->cnf->new_vars(max_var-(long int)self->cnf->nVars()+1);
         else {
             PyErr_SetString(PyExc_ValueError,
                     "ERROR: Sampling vars contain variables that are not in the original clauses!");
@@ -179,7 +187,7 @@ static int _add_clause(Counter *self, PyObject *clause)
     if (!parse_clause(self, clause, self->tmp_cl_lits)) {
         return 0;
     }
-    self->arjun->add_clause(self->tmp_cl_lits);
+    self->cnf->add_clause(self->tmp_cl_lits);
 
     return 1;
 }
@@ -243,10 +251,10 @@ static int _add_clauses_from_array(Counter *self, const size_t array_length, con
             lits.push_back(CMSat::Lit(var, sign));
         }
         if (!lits.empty()) {
-            if (max_var >= (long int)self->arjun->nVars()) {
-                self->arjun->new_vars(max_var-(long int)self->arjun->nVars()+1);
+            if (max_var >= (long int)self->cnf->nVars()) {
+                self->cnf->new_vars(max_var-(long int)self->cnf->nVars()+1);
             }
-            self->arjun->add_clause(lits);
+            self->cnf->add_clause(lits);
         }
     }
     return 1;
@@ -346,51 +354,6 @@ static PyObject* add_clauses(Counter *self, PyObject *args, PyObject *kwds)
 }
 
 
-static void get_cnf_from_arjun(Counter* self)
-{
-    const uint32_t orig_num_vars = self->arjun->get_orig_num_vars();
-    self->appmc->new_vars(orig_num_vars);
-    self->arjun->start_getting_constraints(false, false);
-    std::vector<CMSat::Lit> clause;
-    bool is_xor, rhs;
-
-    bool ret = true;
-    while (ret) {
-        ret = self->arjun->get_next_constraint(clause, is_xor, rhs);
-        assert(!is_xor); assert(rhs);
-        if (!ret) break;
-        bool ok = true;
-        for(auto l: clause) {
-            if (l.var() >= orig_num_vars) {
-                ok = false;
-                break;
-            }
-        }
-
-        if (ok) self->appmc->add_clause(clause);
-    }
-    self->arjun->end_getting_constraints();
-}
-
-static void transfer_unit_clauses_from_arjun(Counter* self)
-{
-    std::vector<CMSat::Lit> cl(1);
-    auto units = self->arjun->get_zero_assigned_lits();
-    for(const auto& unit: units) {
-        if (unit.var() < self->appmc->nVars()) {
-            cl[0] = unit;
-            self->appmc->add_clause(cl);
-        }
-    }
-}
-
-static uint32_t set_up_sampling_set(Counter* self, const std::vector<uint32_t>& sampling_vars)
-{
-    uint32_t orig_sampling_set_size;
-    orig_sampling_set_size = self->arjun->set_sampl_vars(sampling_vars);
-    return orig_sampling_set_size;
-}
-
 /* count function */
 
 PyDoc_STRVAR(count_doc,
@@ -417,17 +380,17 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    // Get sampling vars from user
+    // Set sampling vars on the CNF
     std::vector<uint32_t> sampling_vars;
     if (py_sampling_vars == NULL) {
-        for(uint32_t i = 0; i < self->arjun->nVars(); i++) sampling_vars.push_back(i);
+        for(uint32_t i = 0; i < self->cnf->nVars(); i++) sampling_vars.push_back(i);
     } else {
         std::vector<CMSat::Lit> sampling_lits;
         if (parse_clause(self, py_sampling_vars, sampling_lits, false) == 0 ) {
             return NULL;
         }
         for(const auto& l: sampling_lits) {
-            if (l.var() >= self->arjun->nVars()) {
+            if (l.var() >= self->cnf->nVars()) {
                 PyErr_SetString(PyExc_ValueError,
                         "ERROR: Sampling vars contain variables that are not in the original clauses!");
                 return NULL;
@@ -435,15 +398,24 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
             sampling_vars.push_back(l.var());
         }
     }
-    set_up_sampling_set(self, sampling_vars);
-    sampling_vars = self->arjun->run_backwards();
+    self->cnf->set_sampl_vars(sampling_vars);
 
-    // Now do ApproxMC
-    get_cnf_from_arjun(self);
-    transfer_unit_clauses_from_arjun(self);
+    // Run Arjun to minimize the independent support
+    ArjunNS::Arjun arjun;
+    arjun.set_verb(self->verbosity);
+    arjun.set_seed(self->seed);
+    arjun.standalone_minimize_indep(*self->cnf, false);
+
+    // Transfer simplified CNF to appmc
+    const auto& final_sampl_vars = self->cnf->get_sampl_vars();
+    self->appmc->new_vars(self->cnf->nVars());
+    for(const auto& c: self->cnf->get_clauses()) self->appmc->add_clause(c);
+    for(const auto& c: self->cnf->get_red_clauses()) self->appmc->add_red_clause(c);
+
+    // Count
     ApproxMC::SolCount sol_count;
-    if (!sampling_vars.empty()) {
-        self->appmc->set_sampl_vars(sampling_vars);
+    if (!final_sampl_vars.empty()) {
+        self->appmc->set_sampl_vars(final_sampl_vars);
         sol_count = self->appmc->count();
     } else {
         bool ret = self->appmc->find_one_solution();
@@ -459,7 +431,7 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
     PyTuple_SET_ITEM(result, 0, PyLong_FromLong((long)sol_count.cellSolCount));
-    PyTuple_SET_ITEM(result, 1, PyLong_FromLong((long)sol_count.hashCount+self->arjun->get_empty_sampl_vars().size()));
+    PyTuple_SET_ITEM(result, 1, PyLong_FromLong((long)sol_count.hashCount));
     return result;
 }
 
@@ -474,7 +446,7 @@ static PyMethodDef Counter_methods[] = {
 static void Counter_dealloc(Counter* self)
 {
     delete self->appmc;
-    delete self->arjun;
+    delete self->cnf;
     self->fg.reset();
     self->tmp_cl_lits.~vector();
     Py_TYPE(self)->tp_free ((PyObject*) self);
@@ -483,7 +455,7 @@ static void Counter_dealloc(Counter* self)
 static int Counter_init(Counter *self, PyObject *args, PyObject *kwds)
 {
     if (self->appmc != NULL) delete self->appmc;
-    if (self->arjun != NULL) delete self->arjun;
+    if (self->cnf != NULL) delete self->cnf;
     self->fg.reset();
 
     setup_counter(self, args, kwds);
@@ -533,14 +505,13 @@ static PyTypeObject pyapproxmc_CounterType =
     (initproc)Counter_init,         /* tp_init */
 };
 
-PyMODINIT_FUNC PyInit_pyapproxmc(void)
+AMC_PY_EXPORT PyMODINIT_FUNC PyInit_pyapproxmc(void)
 {
     PyObject* m;
 
     pyapproxmc_CounterType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&pyapproxmc_CounterType) < 0) {
-        // Return NULL on Python3 and on Python2 with MODULE_INIT_FUNC macro
-        // In pure Python2: return nothing.
+        // Return NULL on Python3
         return NULL;
     }
 
@@ -563,9 +534,6 @@ PyMODINIT_FUNC PyInit_pyapproxmc(void)
     }
 
     // Add the version string
-    // they're using.
-#if defined(_MSC_VER)
-#else
     if (PyModule_AddStringConstant(m, "__version__", APPMC_FULL_VERSION) == -1) {
         Py_DECREF(m);
         return NULL;
@@ -574,7 +542,6 @@ PyMODINIT_FUNC PyInit_pyapproxmc(void)
         Py_DECREF(m);
         return NULL;
     }
-#endif
 
     // Add the Counter type
     Py_INCREF(&pyapproxmc_CounterType);

@@ -12,3 +12,4 @@ compare
 html/*.js
 html/*.wasm
 .claude
+/python/tests/__pycache__

@@ -5,22 +5,132 @@ from pathlib import Path
 
 import pytest
 
+import pyapproxmc
 from pyapproxmc import Counter
 
 
+# ---------------------------------------------------------------------------
+# Module-level attributes
+# ---------------------------------------------------------------------------
+
+def test_version_string():
+    assert isinstance(pyapproxmc.__version__, str)
+    assert isinstance(pyapproxmc.VERSION, str)
+    assert pyapproxmc.__version__ == pyapproxmc.VERSION
+    parts = pyapproxmc.__version__.split(".")
+    assert len(parts) == 3, f"Expected 3 version parts, got: {pyapproxmc.__version__}"
+    assert all(p.isdigit() for p in parts), f"Non-numeric version part: {pyapproxmc.__version__}"
+
+
+# ---------------------------------------------------------------------------
+# Constructor validation
+# ---------------------------------------------------------------------------
+
+def test_invalid_epsilon_zero():
+    with pytest.raises(ValueError, match="epsilon"):
+        Counter(epsilon=0)
+
+
+def test_invalid_epsilon_negative():
+    with pytest.raises(ValueError, match="epsilon"):
+        Counter(epsilon=-1.0)
+
+
+def test_invalid_delta_negative():
+    with pytest.raises(ValueError, match="delta"):
+        Counter(delta=-0.1)
+
+
+def test_invalid_delta_one():
+    with pytest.raises(ValueError, match="delta"):
+        Counter(delta=1.0)
+
+
+def test_invalid_delta_greater_than_one():
+    with pytest.raises(ValueError, match="delta"):
+        Counter(delta=2.0)
+
+
+def test_invalid_verbosity():
+    with pytest.raises(ValueError, match="verbosity"):
+        Counter(verbosity=-1)
+
+
+# ---------------------------------------------------------------------------
+# add_clause input validation
+# ---------------------------------------------------------------------------
+
+def test_add_clause_zero_literal():
+    c = Counter(seed=1)
+    with pytest.raises(ValueError, match="non-zero"):
+        c.add_clause([0])
+
+
+def test_add_clause_zero_literal_in_middle():
+    c = Counter(seed=1)
+    with pytest.raises(ValueError, match="non-zero"):
+        c.add_clause([1, 0, 2])
+
+
+def test_add_clause_wrong_type():
+    c = Counter(seed=1)
+    with pytest.raises(TypeError):
+        c.add_clause(["a"])
+
+
+def test_add_clause_non_iterable():
+    c = Counter(seed=1)
+    with pytest.raises(TypeError):
+        c.add_clause(42)
+
+
+# ---------------------------------------------------------------------------
+# count() called twice must raise
+# ---------------------------------------------------------------------------
+
+def test_count_twice_raises():
+    c = Counter(seed=1)
+    c.add_clause([1, 2])
+    c.count()
+    with pytest.raises(ValueError, match="once"):
+        c.count()
+
+
+# ---------------------------------------------------------------------------
+# UNSAT formula
+# ---------------------------------------------------------------------------
+
+def test_unsat():
+    c = Counter(seed=1)
+    c.add_clause([1])
+    c.add_clause([-1])
+    cell_count, _ = c.count()
+    assert cell_count == 0
+
+
+# ---------------------------------------------------------------------------
+# Functional correctness (deterministic with fixed seed)
+# ---------------------------------------------------------------------------
+
 def test_minimal():
     counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
-    counter.add_clause(list(range(1,100)))
+    counter.add_clause(list(range(1, 100)))
 
     significand, exponent = counter.count()
-    print(f'count: {significand} * 2**{exponent}')
     assert significand * 2**exponent == 512 * 2**90
 
 
 def test_sampling_set():
     counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
-    counter.add_clause(range(1,100))
-    assert counter.count(list(range(1,50))) == (64, 43)
+    counter.add_clause(range(1, 100))
+    assert counter.count(list(range(1, 50))) == (64, 43)
+
+
+def test_projection_keyword_argument():
+    # count() must also accept 'projection' as a keyword argument
+    counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
+    counter.add_clause(range(1, 100))
+    assert counter.count(projection=list(range(1, 50))) == (64, 43)
 
 
 def test_real_example():
@@ -28,45 +138,73 @@ def test_real_example():
 
     cnf_file = Path(__file__).parent / "test_1.cnf"
     with open(cnf_file) as test_cnf:
-        # Pop sampling set and metadata lines
+        # Skip sampling set and header lines
         lines = test_cnf.readlines()[2:]
 
-        # Add clauses to counter
         for line in lines:
             literals = [int(i) for i in line.split()[:-1]]
             counter.add_clause(literals)
 
-    assert counter.count(list(range(1,21))) == (64,14)
+    assert counter.count(list(range(1, 21))) == (64, 14)
 
 
-def test_add_clauses_minimal():
+# ---------------------------------------------------------------------------
+# add_clauses — array (buffer) path
+# ---------------------------------------------------------------------------
+
+def test_add_clauses_array_minimal():
     counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
-    clauses = array('i', list(range(1,100)) + [0])
+    clauses = array('i', list(range(1, 100)) + [0])
     counter.add_clauses(clauses)
 
     significand, exponent = counter.count()
-    print(f'count: {significand} * 2**{exponent}')
     assert significand * 2**exponent == 512 * 2**90
 
 
-def test_add_clauses_real_example():
+def test_add_clauses_array_real_example():
     counter = Counter(seed=120, epsilon=0.8, delta=0.2)
-    clauses = []
+    flat = []
 
     cnf_file = Path(__file__).parent / "test_1.cnf"
-    with open((cnf_file)) as test_cnf:
-        # Pop sampling set and metadata lines
+    with open(cnf_file) as test_cnf:
         lines = test_cnf.readlines()[2:]
-
-        # Add clauses to counter
         for line in lines:
-            clause = [int(i) for i in line.split()]
-            clauses += clause
+            flat += [int(i) for i in line.split()]
 
-    counter.add_clauses(array('i', clauses))
-    significand, exponent = counter.count(list(range(1,21)))
-    print(f'count: {significand} * 2**{exponent}')
+    counter.add_clauses(array('i', flat))
+    significand, exponent = counter.count(list(range(1, 21)))
     assert significand * 2**exponent == 64 * 2**14
+
+
+def test_add_clauses_array_last_not_terminated():
+    c = Counter(seed=1)
+    with pytest.raises(ValueError, match="zero"):
+        c.add_clauses(array('i', [1, 2, 3]))  # missing trailing 0
+
+
+# ---------------------------------------------------------------------------
+# add_clauses — iterable-of-iterables (list of lists) path
+# ---------------------------------------------------------------------------
+
+def test_add_clauses_list_of_lists():
+    # Same formula as test_minimal but via add_clauses([[...]])
+    counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
+    counter.add_clauses([list(range(1, 100))])
+    significand, exponent = counter.count()
+    assert significand * 2**exponent == 512 * 2**90
+
+
+def test_add_clauses_list_of_lists_multiple():
+    counter = Counter(seed=2157, epsilon=0.8, delta=0.2)
+    counter.add_clauses([list(range(1, 50)), list(range(50, 100))])
+    cell_count, _ = counter.count()
+    assert cell_count > 0  # just check it runs without error
+
+
+def test_add_clauses_list_wrong_type():
+    c = Counter(seed=1)
+    with pytest.raises(TypeError):
+        c.add_clauses([["a", "b"]])
 
 
 if __name__ == '__main__':
