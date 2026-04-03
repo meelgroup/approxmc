@@ -76,6 +76,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 # static compilation
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
     if(NOT BUILD_SHARED_LIBS)
         message(STATUS "Compiling statically")
@@ -87,9 +90,6 @@ if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darw
         message(STATUS "Compiling for dynamic library use")
     endif()
 endif()
-
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
 
 option(SANITIZE "Use Clang sanitizers. You MUST use clang++ as the compiler for this to work" OFF)
 if(SANITIZE)
