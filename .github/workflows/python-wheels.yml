@@ -18,7 +18,7 @@ jobs:
       matrix:
         # Each runner builds for its native architecture.
         # Linux aarch64 uses a native ARM GitHub-hosted runner.
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-14, macos-13]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-14]
 
     steps:
       - uses: actions/checkout@v4
