@@ -604,7 +604,7 @@ if(NOT arjun_DIR)
             message(FATAL_ERROR "Arjun cmake configure failed (exit ${_arjun_cfg_ret})")
         endif()
         execute_process(
-            COMMAND ${CMAKE_COMMAND} --build "${_arjun_build}" -j8
+            COMMAND ${CMAKE_COMMAND} --build "${_arjun_build}" -j8 --target arjun
             RESULT_VARIABLE _arjun_build_ret
         )
         if(NOT _arjun_build_ret EQUAL 0)
