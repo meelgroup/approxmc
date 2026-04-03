@@ -595,10 +595,6 @@ if(NOT arjun_DIR)
                 -DGMP_LIBRARY=${GMP_LIBRARY}
                 -DGMPXX_LIBRARY=${GMPXX_LIBRARY}
                 -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
-                -DCMAKE_THREAD_LIBS_INIT=${CMAKE_THREAD_LIBS_INIT}
-                -DCMAKE_HAVE_LIBC_PTHREAD=${CMAKE_HAVE_LIBC_PTHREAD}
-                -DThreads_FOUND=TRUE
-                -DARJUN_BUILD_BINARIES=OFF
             RESULT_VARIABLE _arjun_cfg_ret
         )
         if(NOT _arjun_cfg_ret EQUAL 0)
