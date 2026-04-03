@@ -69,6 +69,10 @@
             cmake
             autoPatchelfHook
           ];
+          cmakeFlags = [
+            "-Dcryptominisat5_DIR=${cryptominisat}/lib/cmake/cryptominisat5"
+            "-Darjun_DIR=${arjun}/lib/cmake/arjun"
+          ];
           buildInputs = [
             gmp
             mpfr

@@ -361,89 +361,86 @@ if(POLICY CMP0169)
     cmake_policy(SET CMP0169 OLD)
 endif()
 
-# ---- CaDiCaL (non-cmake, needs bash configure+make) ----
+# ---- CryptoMiniSat5 and its deps (cadical, cadiback) ----
+# cadical and cadiback are only needed when auto-building CryptoMiniSat5.
+# cadiback's configure looks for ../cadical, so both must be siblings under deps/.
 set(cadical_DIR "" CACHE PATH "Directory where CaDiCaL is built (contains libcadical.a). Auto-fetched if empty.")
-if(NOT cadical_DIR)
-    set(_cadical_src "${CMAKE_BINARY_DIR}/deps/cadical")
-    set(_cadical_lib "${_cadical_src}/build/libcadical.a")
-    FetchContent_Declare(cadical_src
-        GIT_REPOSITORY https://github.com/meelgroup/cadical
-        GIT_TAG        master
-        SOURCE_DIR     "${_cadical_src}"
-        GIT_SHALLOW    TRUE
-    )
-    FetchContent_GetProperties(cadical_src)
-    if(NOT cadical_src_POPULATED)
-        message(STATUS "CaDiCaL: fetching from meelgroup/cadical master")
-        FetchContent_Populate(cadical_src)
-    endif()
-    if(NOT EXISTS "${_cadical_lib}")
-        message(STATUS "CaDiCaL: building in ${_cadical_src}")
-        execute_process(
-            COMMAND bash -c "CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=-fPIC ./configure --no-contracts --no-tracing --fp"
-            WORKING_DIRECTORY "${_cadical_src}"
-            RESULT_VARIABLE _cadical_cfg_ret
-        )
-        if(NOT _cadical_cfg_ret EQUAL 0)
-            message(FATAL_ERROR "CaDiCaL configure failed (exit ${_cadical_cfg_ret})")
-        endif()
-        execute_process(
-            COMMAND make -j8
-            WORKING_DIRECTORY "${_cadical_src}"
-            RESULT_VARIABLE _cadical_make_ret
-        )
-        if(NOT _cadical_make_ret EQUAL 0)
-            message(FATAL_ERROR "CaDiCaL build failed (exit ${_cadical_make_ret})")
-        endif()
-    endif()
-    set(cadical_DIR "${_cadical_src}/build" CACHE PATH "Directory where CaDiCaL is built" FORCE)
-    set(cadical_SRC_DIR "${_cadical_src}/src" CACHE PATH "CaDiCaL source dir (for cadical.hpp)" FORCE)
-    message(STATUS "CaDiCaL: using auto-built ${cadical_DIR}")
-endif()
-
-# ---- CaDiBaCk (non-cmake, needs bash configure+make; must sit next to cadical source) ----
-# cadiback's configure script looks for ../cadical, so it must be cloned as a sibling of cadical.
 set(cadiback_DIR "" CACHE PATH "Directory where CaDiBaCk is built (contains libcadiback.a). Auto-fetched if empty.")
-if(NOT cadiback_DIR)
-    set(_cadiback_src "${CMAKE_BINARY_DIR}/deps/cadiback")
-    set(_cadiback_lib "${_cadiback_src}/libcadiback.a")
-    FetchContent_Declare(cadiback_src
-        GIT_REPOSITORY https://github.com/meelgroup/cadiback
-        GIT_TAG        main
-        SOURCE_DIR     "${_cadiback_src}"
-        GIT_SHALLOW    TRUE
-    )
-    FetchContent_GetProperties(cadiback_src)
-    if(NOT cadiback_src_POPULATED)
-        message(STATUS "CaDiBaCk: fetching from meelgroup/cadiback main")
-        FetchContent_Populate(cadiback_src)
-    endif()
-    if(NOT EXISTS "${_cadiback_lib}")
-        message(STATUS "CaDiBaCk: building in ${_cadiback_src}")
-        execute_process(
-            COMMAND bash -c "CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=-fPIC ./configure --release"
-            WORKING_DIRECTORY "${_cadiback_src}"
-            RESULT_VARIABLE _cadiback_cfg_ret
-        )
-        if(NOT _cadiback_cfg_ret EQUAL 0)
-            message(FATAL_ERROR "CaDiBaCk configure failed (exit ${_cadiback_cfg_ret})")
-        endif()
-        execute_process(
-            COMMAND make -j8 libcadiback.a
-            WORKING_DIRECTORY "${_cadiback_src}"
-            RESULT_VARIABLE _cadiback_make_ret
-        )
-        if(NOT _cadiback_make_ret EQUAL 0)
-            message(FATAL_ERROR "CaDiBaCk build failed (exit ${_cadiback_make_ret})")
-        endif()
-    endif()
-    set(cadiback_DIR "${_cadiback_src}" CACHE PATH "Directory where CaDiBaCk is built" FORCE)
-    message(STATUS "CaDiBaCk: using auto-built ${cadiback_DIR}")
-endif()
-
-# ---- CryptoMiniSat5 (cmake-based) ----
 set(cryptominisat5_DIR "" CACHE PATH "Directory where CryptoMiniSat5 is built. Auto-fetched if empty.")
 if(NOT cryptominisat5_DIR)
+    if(NOT cadical_DIR)
+        set(_cadical_src "${CMAKE_BINARY_DIR}/deps/cadical")
+        set(_cadical_lib "${_cadical_src}/build/libcadical.a")
+        FetchContent_Declare(cadical_src
+            GIT_REPOSITORY https://github.com/meelgroup/cadical
+            GIT_TAG        master
+            SOURCE_DIR     "${_cadical_src}"
+            GIT_SHALLOW    TRUE
+        )
+        FetchContent_GetProperties(cadical_src)
+        if(NOT cadical_src_POPULATED)
+            message(STATUS "CaDiCaL: fetching from meelgroup/cadical master")
+            FetchContent_Populate(cadical_src)
+        endif()
+        if(NOT EXISTS "${_cadical_lib}")
+            message(STATUS "CaDiCaL: building in ${_cadical_src}")
+            execute_process(
+                COMMAND bash -c "CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=-fPIC ./configure --no-contracts --no-tracing --fp"
+                WORKING_DIRECTORY "${_cadical_src}"
+                RESULT_VARIABLE _cadical_cfg_ret
+            )
+            if(NOT _cadical_cfg_ret EQUAL 0)
+                message(FATAL_ERROR "CaDiCaL configure failed (exit ${_cadical_cfg_ret})")
+            endif()
+            execute_process(
+                COMMAND make -j8
+                WORKING_DIRECTORY "${_cadical_src}"
+                RESULT_VARIABLE _cadical_make_ret
+            )
+            if(NOT _cadical_make_ret EQUAL 0)
+                message(FATAL_ERROR "CaDiCaL build failed (exit ${_cadical_make_ret})")
+            endif()
+        endif()
+        set(cadical_DIR "${_cadical_src}/build" CACHE PATH "Directory where CaDiCaL is built" FORCE)
+        set(cadical_SRC_DIR "${_cadical_src}/src" CACHE PATH "CaDiCaL source dir (for cadical.hpp)" FORCE)
+        message(STATUS "CaDiCaL: using auto-built ${cadical_DIR}")
+    endif()
+    if(NOT cadiback_DIR)
+        set(_cadiback_src "${CMAKE_BINARY_DIR}/deps/cadiback")
+        set(_cadiback_lib "${_cadiback_src}/libcadiback.a")
+        FetchContent_Declare(cadiback_src
+            GIT_REPOSITORY https://github.com/meelgroup/cadiback
+            GIT_TAG        main
+            SOURCE_DIR     "${_cadiback_src}"
+            GIT_SHALLOW    TRUE
+        )
+        FetchContent_GetProperties(cadiback_src)
+        if(NOT cadiback_src_POPULATED)
+            message(STATUS "CaDiBaCk: fetching from meelgroup/cadiback main")
+            FetchContent_Populate(cadiback_src)
+        endif()
+        if(NOT EXISTS "${_cadiback_lib}")
+            message(STATUS "CaDiBaCk: building in ${_cadiback_src}")
+            execute_process(
+                COMMAND bash -c "CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=-fPIC ./configure --release"
+                WORKING_DIRECTORY "${_cadiback_src}"
+                RESULT_VARIABLE _cadiback_cfg_ret
+            )
+            if(NOT _cadiback_cfg_ret EQUAL 0)
+                message(FATAL_ERROR "CaDiBaCk configure failed (exit ${_cadiback_cfg_ret})")
+            endif()
+            execute_process(
+                COMMAND make -j8 libcadiback.a
+                WORKING_DIRECTORY "${_cadiback_src}"
+                RESULT_VARIABLE _cadiback_make_ret
+            )
+            if(NOT _cadiback_make_ret EQUAL 0)
+                message(FATAL_ERROR "CaDiBaCk build failed (exit ${_cadiback_make_ret})")
+            endif()
+        endif()
+        set(cadiback_DIR "${_cadiback_src}" CACHE PATH "Directory where CaDiBaCk is built" FORCE)
+        message(STATUS "CaDiBaCk: using auto-built ${cadiback_DIR}")
+    endif()
     set(_cms_src "${CMAKE_BINARY_DIR}/deps/cryptominisat")
     set(_cms_build "${_cms_src}/build")
     FetchContent_Declare(cryptominisat5_src
@@ -490,89 +487,86 @@ message(STATUS "CryptoMiniSat5 static lib:  ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
 message(STATUS "CryptoMiniSat5 static lib deps: ${CRYPTOMINISAT5_STATIC_LIBRARIES_DEPS}")
 message(STATUS "CryptoMiniSat5 include dirs: ${CRYPTOMINISAT5_INCLUDE_DIRS}")
 
-# ---- SBVA (cmake-based) ----
+# ---- Arjun and its deps (sbva, treedecomp) ----
+# sbva and treedecomp are only needed when auto-building Arjun.
 set(sbva_DIR "" CACHE PATH "Directory where sbva is built. Auto-fetched if empty.")
-if(NOT sbva_DIR)
-    set(_sbva_src "${CMAKE_BINARY_DIR}/deps/sbva")
-    set(_sbva_build "${_sbva_src}/build")
-    FetchContent_Declare(sbva_src
-        GIT_REPOSITORY https://github.com/meelgroup/SBVA.git
-        GIT_TAG        master
-        SOURCE_DIR     "${_sbva_src}"
-        GIT_SHALLOW    TRUE
-    )
-    FetchContent_GetProperties(sbva_src)
-    if(NOT sbva_src_POPULATED)
-        message(STATUS "SBVA: fetching from meelgroup/SBVA master")
-        FetchContent_Populate(sbva_src)
-    endif()
-    if(NOT EXISTS "${_sbva_build}/sbvaConfig.cmake")
-        message(STATUS "SBVA: configuring and building in ${_sbva_build}")
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -S "${_sbva_src}" -B "${_sbva_build}"
-                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-            RESULT_VARIABLE _sbva_cfg_ret
-        )
-        if(NOT _sbva_cfg_ret EQUAL 0)
-            message(FATAL_ERROR "SBVA cmake configure failed (exit ${_sbva_cfg_ret})")
-        endif()
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} --build "${_sbva_build}" -j8
-            RESULT_VARIABLE _sbva_build_ret
-        )
-        if(NOT _sbva_build_ret EQUAL 0)
-            message(FATAL_ERROR "SBVA build failed (exit ${_sbva_build_ret})")
-        endif()
-    endif()
-    set(sbva_DIR "${_sbva_build}" CACHE PATH "Directory where sbva is built" FORCE)
-    message(STATUS "SBVA: using auto-built ${sbva_DIR}")
-endif()
-
-# ---- treedecomp (cmake-based) ----
 set(treedecomp_DIR "" CACHE PATH "Directory where treedecomp is built. Auto-fetched if empty.")
-if(NOT treedecomp_DIR)
-    set(_tdec_src "${CMAKE_BINARY_DIR}/deps/treedecomp")
-    set(_tdec_build "${_tdec_src}/build")
-    FetchContent_Declare(treedecomp_src
-        GIT_REPOSITORY https://github.com/meelgroup/treedecomp.git
-        GIT_TAG        main
-        SOURCE_DIR     "${_tdec_src}"
-        GIT_SHALLOW    TRUE
-    )
-    FetchContent_GetProperties(treedecomp_src)
-    if(NOT treedecomp_src_POPULATED)
-        message(STATUS "treedecomp: fetching from meelgroup/treedecomp main")
-        FetchContent_Populate(treedecomp_src)
-    endif()
-    if(NOT EXISTS "${_tdec_build}/treedecompConfig.cmake")
-        message(STATUS "treedecomp: configuring and building in ${_tdec_build}")
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -S "${_tdec_src}" -B "${_tdec_build}"
-                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-            RESULT_VARIABLE _tdec_cfg_ret
-        )
-        if(NOT _tdec_cfg_ret EQUAL 0)
-            message(FATAL_ERROR "treedecomp cmake configure failed (exit ${_tdec_cfg_ret})")
-        endif()
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} --build "${_tdec_build}" -j8
-            RESULT_VARIABLE _tdec_build_ret
-        )
-        if(NOT _tdec_build_ret EQUAL 0)
-            message(FATAL_ERROR "treedecomp build failed (exit ${_tdec_build_ret})")
-        endif()
-    endif()
-    set(treedecomp_DIR "${_tdec_build}" CACHE PATH "Directory where treedecomp is built" FORCE)
-    message(STATUS "treedecomp: using auto-built ${treedecomp_DIR}")
-endif()
-
-# ---- Arjun (cmake-based) ----
 set(arjun_DIR "" CACHE PATH "Directory where Arjun is built. Auto-fetched if empty.")
 if(NOT arjun_DIR)
+    if(NOT sbva_DIR)
+        set(_sbva_src "${CMAKE_BINARY_DIR}/deps/sbva")
+        set(_sbva_build "${_sbva_src}/build")
+        FetchContent_Declare(sbva_src
+            GIT_REPOSITORY https://github.com/meelgroup/SBVA.git
+            GIT_TAG        master
+            SOURCE_DIR     "${_sbva_src}"
+            GIT_SHALLOW    TRUE
+        )
+        FetchContent_GetProperties(sbva_src)
+        if(NOT sbva_src_POPULATED)
+            message(STATUS "SBVA: fetching from meelgroup/SBVA master")
+            FetchContent_Populate(sbva_src)
+        endif()
+        if(NOT EXISTS "${_sbva_build}/sbvaConfig.cmake")
+            message(STATUS "SBVA: configuring and building in ${_sbva_build}")
+            execute_process(
+                COMMAND ${CMAKE_COMMAND} -S "${_sbva_src}" -B "${_sbva_build}"
+                    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+                    -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
+                RESULT_VARIABLE _sbva_cfg_ret
+            )
+            if(NOT _sbva_cfg_ret EQUAL 0)
+                message(FATAL_ERROR "SBVA cmake configure failed (exit ${_sbva_cfg_ret})")
+            endif()
+            execute_process(
+                COMMAND ${CMAKE_COMMAND} --build "${_sbva_build}" -j8
+                RESULT_VARIABLE _sbva_build_ret
+            )
+            if(NOT _sbva_build_ret EQUAL 0)
+                message(FATAL_ERROR "SBVA build failed (exit ${_sbva_build_ret})")
+            endif()
+        endif()
+        set(sbva_DIR "${_sbva_build}" CACHE PATH "Directory where sbva is built" FORCE)
+        message(STATUS "SBVA: using auto-built ${sbva_DIR}")
+    endif()
+    if(NOT treedecomp_DIR)
+        set(_tdec_src "${CMAKE_BINARY_DIR}/deps/treedecomp")
+        set(_tdec_build "${_tdec_src}/build")
+        FetchContent_Declare(treedecomp_src
+            GIT_REPOSITORY https://github.com/meelgroup/treedecomp.git
+            GIT_TAG        main
+            SOURCE_DIR     "${_tdec_src}"
+            GIT_SHALLOW    TRUE
+        )
+        FetchContent_GetProperties(treedecomp_src)
+        if(NOT treedecomp_src_POPULATED)
+            message(STATUS "treedecomp: fetching from meelgroup/treedecomp main")
+            FetchContent_Populate(treedecomp_src)
+        endif()
+        if(NOT EXISTS "${_tdec_build}/treedecompConfig.cmake")
+            message(STATUS "treedecomp: configuring and building in ${_tdec_build}")
+            execute_process(
+                COMMAND ${CMAKE_COMMAND} -S "${_tdec_src}" -B "${_tdec_build}"
+                    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+                    -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
+                RESULT_VARIABLE _tdec_cfg_ret
+            )
+            if(NOT _tdec_cfg_ret EQUAL 0)
+                message(FATAL_ERROR "treedecomp cmake configure failed (exit ${_tdec_cfg_ret})")
+            endif()
+            execute_process(
+                COMMAND ${CMAKE_COMMAND} --build "${_tdec_build}" -j8
+                RESULT_VARIABLE _tdec_build_ret
+            )
+            if(NOT _tdec_build_ret EQUAL 0)
+                message(FATAL_ERROR "treedecomp build failed (exit ${_tdec_build_ret})")
+            endif()
+        endif()
+        set(treedecomp_DIR "${_tdec_build}" CACHE PATH "Directory where treedecomp is built" FORCE)
+        message(STATUS "treedecomp: using auto-built ${treedecomp_DIR}")
+    endif()
     set(_arjun_src "${CMAKE_BINARY_DIR}/deps/arjun")
     set(_arjun_build "${_arjun_src}/build")
     FetchContent_Declare(arjun_src
