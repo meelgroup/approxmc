@@ -50,7 +50,8 @@ target_include_directories(approxmc
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC
-    ${CRYPTOMINISAT5_INCLUDE_DIRS}
+    $<BUILD_INTERFACE:${CRYPTOMINISAT5_INCLUDE_DIRS}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(approxmc
