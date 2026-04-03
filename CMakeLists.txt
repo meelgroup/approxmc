@@ -594,6 +594,7 @@ if(NOT arjun_DIR)
                 -Dtreedecomp_DIR=${treedecomp_DIR}
                 -DGMP_LIBRARY=${GMP_LIBRARY}
                 -DGMPXX_LIBRARY=${GMPXX_LIBRARY}
+                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
             RESULT_VARIABLE _arjun_cfg_ret
         )
         if(NOT _arjun_cfg_ret EQUAL 0)
