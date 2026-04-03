@@ -63,6 +63,7 @@
               ./cmake
               ./src
               ./approxmcConfig.cmake.in
+              ./pyproject.toml
             ];
           };
           nativeBuildInputs = [
