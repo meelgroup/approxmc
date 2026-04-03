@@ -35,16 +35,6 @@
 #include <vector>
 #include <set>
 
-/* On Linux/macOS with -fvisibility=hidden, PyMODINIT_FUNC in older Python
- * headers (e.g. 3.8) does not carry __attribute__((visibility("default"))),
- * so the init symbol would be invisible to dlsym.  Declare it exported
- * explicitly, mirroring what __declspec(dllexport) does on Windows. */
-#if defined(__GNUC__) || defined(__clang__)
-#  define AMC_PY_EXPORT __attribute__((visibility("default")))
-#else
-#  define AMC_PY_EXPORT
-#endif
-
 #define MODULE_NAME "pyapproxmc"
 #define MODULE_DOC "ApproxMC approximate model counter."
 
@@ -505,7 +495,16 @@ static PyTypeObject pyapproxmc_CounterType =
     (initproc)Counter_init,         /* tp_init */
 };
 
-AMC_PY_EXPORT PyMODINIT_FUNC PyInit_pyapproxmc(void)
+/* Force PyInit_pyapproxmc to be exported even when built with
+ * -fvisibility=hidden.  Older Python headers (e.g. 3.8) do not include
+ * __attribute__((visibility("default"))) in PyMODINIT_FUNC, so without this
+ * the symbol is hidden and dlsym() cannot find it.  The pragma is the only
+ * unambiguous way to override the default visibility for both the forward
+ * declaration and the definition that follow. */
+#if defined(__GNUC__) || defined(__clang__)
+# pragma GCC visibility push(default)
+#endif
+PyMODINIT_FUNC PyInit_pyapproxmc(void)
 {
     PyObject* m;
 
@@ -552,3 +551,6 @@ AMC_PY_EXPORT PyMODINIT_FUNC PyInit_pyapproxmc(void)
 
     return m;
 }
+#if defined(__GNUC__) || defined(__clang__)
+# pragma GCC visibility pop
+#endif
