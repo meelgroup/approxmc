@@ -14,13 +14,15 @@ rm -rf CM*
 rm -rf cmake*
 rm -rf deps
 rm -rf _deps
+SOLVERS_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+echo "solvers dir: $SOLVERS_DIR"
 CXX=clang++ cmake -DENABLE_TESTING=ON -DSANITIZE=ON \
-    -Dcadical_DIR=../../cadical/build \
-    -Dcadiback_DIR=../../cadiback/build \
-    -Dcryptominisat5_DIR=../../cryptominisat/build \
-    -Dsbva_DIR=../../sbva/build \
-    -Dtreedecomp_DIR=../../treedecomp/build \
-    -Darjun_DIR=../../arjun/build \
+    -Dcadical_DIR="${SOLVERS_DIR}/cadical/build" \
+    -Dcadiback_DIR="${SOLVERS_DIR}/cadiback/build" \
+    -Dcryptominisat5_DIR="${SOLVERS_DIR}/cryptominisat/build" \
+    -Dsbva_DIR="${SOLVERS_DIR}/sbva/build" \
+    -Dtreedecomp_DIR="${SOLVERS_DIR}/treedecomp/build" \
+    -Darjun_DIR="${SOLVERS_DIR}/arjun/build" \
     ..
 make -j$(nproc)
 make test
