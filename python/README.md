@@ -20,7 +20,8 @@ pip install scikit-build-core build
 git clone --recurse-submodules https://github.com/meelgroup/approxmc
 cd approxmc
 
-# Build and install into the current environment
+# Build and install into a virtual environment
+python -m venv .venv && source .venv/bin/activate
 pip install .
 ```
 
@@ -43,6 +44,9 @@ c.add_clause([3, 20])
 count = c.count()
 print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 ```
+
+`count()` may only be called **once** per `Counter` instance; create a new
+`Counter` if you need to count a different formula.
 
 The above prints `Approximate count is: 11*2**16`. Since the largest variable
 in the clauses is 20, the formula has at most 2\*\*20 models; the two clauses
@@ -68,17 +72,22 @@ over variables 1–9.
 
 ### Adding clauses from arrays
 
-For performance-critical code, clauses can be added from Python arrays:
+For performance-critical code, multiple clauses can be added in one call via
+`add_clauses()` with a flat, zero-terminated `array.array`. This uses the
+buffer protocol and avoids per-element Python overhead:
 
 ```python
 import pyapproxmc
 from array import array
 
 c = pyapproxmc.Counter()
-c.add_clause(array('i', [1, 2, 3]))
-c.add_clause(array('i', [3, 20]))
+# Clauses [1,2,3] and [3,20], each terminated by 0
+c.add_clauses(array('i', [1, 2, 3, 0, 3, 20, 0]))
 count = c.count()
 ```
+
+Note: `add_clause()` (singular) also accepts any iterable including arrays,
+but iterates element by element and does not use the buffer protocol.
 
 ## Counter constructor parameters
 

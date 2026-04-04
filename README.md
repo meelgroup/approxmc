@@ -132,7 +132,9 @@ pip install pyapproxmc
 Or build from source (requires GMP: `apt-get install libgmp-dev` / `brew install gmp`):
 ```bash
 git clone --recurse-submodules https://github.com/meelgroup/approxmc
-cd approxmc && pip install .
+cd approxmc
+python -m venv .venv && source .venv/bin/activate
+pip install .
 ```
 
 Then you can use it as:
@@ -150,6 +152,8 @@ variable in the clauses was 20, the system contained 2\*\*20 (i.e. 1048576)
 potential models. However, some of these models were prohibited by the two
 clauses, and so only approximately 11*2\*\*16 (i.e. 720896) models remained.
 
+Note: `count()` may only be called once per `Counter` instance.
+
 If you want to count over a projection set, you need to call
 `count(projection_set)`, for example:
 ```python
@@ -162,7 +166,7 @@ print("Approximate count is: %d*2**%d" % (count[0], count[1]))
 ```
 
 This now prints `Approximate count is: 7*2**6`, which corresponds to the
-approximate count of models, projected over variables 1..10.
+approximate count of models, projected over variables 1..9.
 
 See [python/README.md](python/README.md) for the full Python API documentation.
 
