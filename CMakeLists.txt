@@ -358,10 +358,6 @@ endmacro()
 # -----------------------------------------------------------------------------
 # Dependencies
 # -----------------------------------------------------------------------------
-# When building statically, prefer .a over .so for all find_library/find_package calls
-if(NOT BUILD_SHARED_LIBS)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so" ".dylib")
-endif()
 find_package(PkgConfig REQUIRED)
 if(APPLE)
     execute_process(COMMAND brew --prefix OUTPUT_VARIABLE _homebrew_prefix OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
@@ -369,6 +365,11 @@ if(APPLE)
         set(ENV{PKG_CONFIG_PATH} "${_homebrew_prefix}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
     endif()
 endif()
+
+# GMP and MPFR are system libraries.  Find them before any CMAKE_FIND_LIBRARY_SUFFIXES
+# override so pkg-config resolves them to shared libraries.  libgmpxx in particular
+# accesses libgmp global variables via direct (non-GOT) relocations that the linker
+# rejects when the static archive is embedded into a shared module (.so).
 pkg_check_modules(GMP REQUIRED IMPORTED_TARGET gmp)
 find_library(GMPXX_LIBRARY NAMES gmpxx HINTS ${GMP_LIBRARY_DIRS})
 if(GMPXX_LIBRARY)
@@ -376,6 +377,12 @@ if(GMPXX_LIBRARY)
     set_property(TARGET PkgConfig::GMP PROPERTY INTERFACE_LINK_LIBRARIES "${GMPXX_LIBRARY}" ${_gmp_iface_libs})
 endif()
 pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
+
+# When building statically, prefer .a over .so for subsequent find_library calls.
+# GMP and MPFR above are intentionally found first so they always resolve to shared libs.
+if(NOT BUILD_SHARED_LIBS)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so" ".dylib")
+endif()
 
 include(FetchContent)
 # FetchContent_Populate with declared details is deprecated in CMake 3.30+ (CMP0169).
