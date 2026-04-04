@@ -395,6 +395,41 @@ pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
 if(BUILD_PYTHON_EXTENSION AND UNIX AND NOT APPLE)
     set(CMAKE_FIND_LIBRARY_SUFFIXES "${_saved_find_suffixes}")
 endif()
+# pkg_check_modules resolves libraries via pkg-config, which ignores
+# CMAKE_FIND_LIBRARY_SUFFIXES and may return .so paths even when we need
+# .a for a fully static binary.  Override GMP and MPFR targets here.
+if(STATIC_BINARY)
+    # MPFR: its interface is just the mpfr library itself.
+    find_library(_MPFR_STATIC_LIB NAMES libmpfr.a
+        HINTS /usr/local/lib ${MPFR_LIBRARY_DIRS} NO_DEFAULT_PATH)
+    if(NOT _MPFR_STATIC_LIB)
+        find_library(_MPFR_STATIC_LIB NAMES libmpfr.a HINTS ${MPFR_LIBRARY_DIRS})
+    endif()
+    if(_MPFR_STATIC_LIB)
+        set_property(TARGET PkgConfig::MPFR PROPERTY INTERFACE_LINK_LIBRARIES "${_MPFR_STATIC_LIB}")
+        message(STATUS "Static MPFR: ${_MPFR_STATIC_LIB}")
+    else()
+        message(WARNING "Static libmpfr.a not found; static link may fail")
+    endif()
+    # GMP: its interface is [gmpxx, gmp].  Find static gmp and rebuild the list,
+    # keeping the already-resolved gmpxx path (which find_library got right via suffix order).
+    find_library(_GMP_STATIC_LIB NAMES libgmp.a
+        HINTS /usr/local/lib ${GMP_LIBRARY_DIRS} NO_DEFAULT_PATH)
+    if(NOT _GMP_STATIC_LIB)
+        find_library(_GMP_STATIC_LIB NAMES libgmp.a HINTS ${GMP_LIBRARY_DIRS})
+    endif()
+    if(_GMP_STATIC_LIB)
+        if(GMPXX_LIBRARY)
+            set_property(TARGET PkgConfig::GMP PROPERTY INTERFACE_LINK_LIBRARIES
+                "${GMPXX_LIBRARY}" "${_GMP_STATIC_LIB}")
+        else()
+            set_property(TARGET PkgConfig::GMP PROPERTY INTERFACE_LINK_LIBRARIES "${_GMP_STATIC_LIB}")
+        endif()
+        message(STATUS "Static GMP: ${_GMP_STATIC_LIB}")
+    else()
+        message(WARNING "Static libgmp.a not found; static link may fail")
+    endif()
+endif()
 
 include(FetchContent)
 # FetchContent_Populate with declared details is deprecated in CMake 3.30+ (CMP0169).
@@ -403,6 +438,21 @@ if(POLICY CMP0169)
     cmake_policy(SET CMP0169 OLD)
 endif()
 
+
+# ---- cadical / cadiback (transitive deps of arjun/cryptominisat) ----
+# These are not used directly by approxmc, but arjun's exported target lists
+# them in its INTERFACE_LINK_LIBRARIES.  Import them here so CMake resolves
+# them to actual library paths rather than bare -l flags.
+set(cadical_DIR "" CACHE PATH "cadical build dir containing cadicalConfig.cmake")
+if(cadical_DIR AND NOT TARGET cadical)
+    find_package(cadical CONFIG REQUIRED HINTS "${cadical_DIR}")
+    message(STATUS "cadical: using pre-built at ${cadical_DIR}")
+endif()
+set(cadiback_DIR "" CACHE PATH "cadiback build dir containing cadibackConfig.cmake")
+if(cadiback_DIR AND NOT TARGET cadiback)
+    find_package(cadiback CONFIG REQUIRED HINTS "${cadiback_DIR}")
+    message(STATUS "cadiback: using pre-built at ${cadiback_DIR}")
+endif()
 
 # ---- CryptoMiniSat5 ----
 set(cryptominisat5_DIR "" CACHE PATH "cryptominisat5 install/build prefix (contains lib/cmake/cryptominisat5/). Auto-resolved if empty.")
