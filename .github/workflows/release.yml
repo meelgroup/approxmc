@@ -75,6 +75,8 @@ jobs:
       run: |
         ./project/build/approxmc --version
         echo $?
+        ./project/build/approxmc --help
+        echo $?
 
     - name: Package artifacts
       run: |
@@ -90,9 +92,11 @@ jobs:
           ARCH="mac-x86_64"
         fi
         ARCHIVE="approxmc-${TAG}-${ARCH}.tar.gz"
-        tar czf "${ARCHIVE}" \
-          -C project/build \
-          approxmc
+        mkdir -p dist
+        cp project/build/approxmc dist/
+        cp -r project/build/lib dist/ 2>/dev/null || true
+        cp -r project/build/include dist/ 2>/dev/null || true
+        tar czf "${ARCHIVE}" -C dist .
         echo "ARCHIVE=${ARCHIVE}" >> $GITHUB_ENV
 
     - name: Upload release asset
