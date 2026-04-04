@@ -110,6 +110,17 @@ endif()
 
 approxmc_add_public_header(approxmc ${CMAKE_CURRENT_SOURCE_DIR}/approxmc.h)
 
+# Ensure headers from sub-builds are copied before we compile against them.
+foreach(_dep_copy_target
+        CopyPublicHeaders_cryptominisat5
+        CopyPublicHeaders_arjun
+        CopyPublicHeaders)
+    if(TARGET ${_dep_copy_target})
+        add_dependencies(approxmc ${_dep_copy_target})
+        add_dependencies(approxmc-bin ${_dep_copy_target})
+    endif()
+endforeach()
+
 # Public headers are fully known now; the CopyPublicHeaders target below reads
 # this property, so it must be set before that target is created.
 get_target_property(approxmc_public_headers approxmc PUBLIC_HEADER)
@@ -120,10 +131,10 @@ get_target_property(approxmc_public_headers approxmc PUBLIC_HEADER)
 # this.
 # -----------------------------------------------------------------------------
 set(HEADER_DEST "${PROJECT_BINARY_DIR}/include/approxmc/")
-add_custom_target(CopyPublicHeaders ALL)
+add_custom_target(CopyPublicHeaders_approxmc ALL)
 foreach(public_header ${approxmc_public_headers})
     get_filename_component(HEADER_NAME ${public_header} NAME)
-    add_custom_command(TARGET CopyPublicHeaders PRE_BUILD
+    add_custom_command(TARGET CopyPublicHeaders_approxmc PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${HEADER_DEST}"
         COMMAND ${CMAKE_COMMAND} -E echo "Copying ${HEADER_NAME} to ${HEADER_DEST}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${public_header} "${HEADER_DEST}/"

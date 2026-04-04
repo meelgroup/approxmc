@@ -386,173 +386,44 @@ endif()
 
 
 # ---- CryptoMiniSat5 ----
-set(cryptominisat5_DIR "" CACHE PATH "Directory where CryptoMiniSat5 is built. Auto-fetched if empty.")
-if(NOT cryptominisat5_DIR)
-    set(_cms_src "${CMAKE_BINARY_DIR}/deps/cryptominisat")
-    set(_cms_build "${_cms_src}/build")
-    FetchContent_Declare(cryptominisat5_src
-        GIT_REPOSITORY https://github.com/msoos/cryptominisat
-        GIT_TAG        master
-        SOURCE_DIR     "${_cms_src}"
-        GIT_SHALLOW    TRUE
-    )
-    FetchContent_GetProperties(cryptominisat5_src)
-    if(NOT cryptominisat5_src_POPULATED)
-        message(STATUS "CryptoMiniSat5: fetching from msoos/cryptominisat master")
-        FetchContent_Populate(cryptominisat5_src)
-    endif()
-    if(NOT EXISTS "${_cms_build}/cryptominisat5Config.cmake")
-        message(STATUS "CryptoMiniSat5: configuring and building in ${_cms_build}")
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -S "${_cms_src}" -B "${_cms_build}"
-                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-            RESULT_VARIABLE _cms_cfg_ret
-        )
-        if(NOT _cms_cfg_ret EQUAL 0)
-            message(FATAL_ERROR "CryptoMiniSat5 cmake configure failed (exit ${_cms_cfg_ret})")
-        endif()
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} --build "${_cms_build}" -j8
-            RESULT_VARIABLE _cms_build_ret
-        )
-        if(NOT _cms_build_ret EQUAL 0)
-            message(FATAL_ERROR "CryptoMiniSat5 build failed (exit ${_cms_build_ret})")
-        endif()
-    endif()
-    set(cryptominisat5_DIR "${_cms_build}" CACHE PATH "Directory where CryptoMiniSat5 is built" FORCE)
-    message(STATUS "CryptoMiniSat5: using auto-built ${cryptominisat5_DIR}")
-endif()
-find_package(cryptominisat5 CONFIG REQUIRED)
-message(STATUS "CryptoMiniSat5 dynamic lib: ${CRYPTOMINISAT5_LIBRARIES}")
-message(STATUS "CryptoMiniSat5 static lib:  ${CRYPTOMINISAT5_STATIC_LIBRARIES}")
-message(STATUS "CryptoMiniSat5 static lib deps: ${CRYPTOMINISAT5_STATIC_LIBRARIES_DEPS}")
-message(STATUS "CryptoMiniSat5 include dirs: ${CRYPTOMINISAT5_INCLUDE_DIRS}")
-
-# ---- Arjun and its deps (sbva, treedecomp) ----
-# sbva and treedecomp are only needed when auto-building Arjun.
-set(sbva_DIR "" CACHE PATH "Directory where sbva is built. Auto-fetched if empty.")
-set(treedecomp_DIR "" CACHE PATH "Directory where treedecomp is built. Auto-fetched if empty.")
-set(arjun_DIR "" CACHE PATH "Directory where Arjun is built. Auto-fetched if empty.")
-if(NOT arjun_DIR)
-    if(NOT sbva_DIR)
-        set(_sbva_src "${CMAKE_BINARY_DIR}/deps/sbva")
-        set(_sbva_build "${_sbva_src}/build")
-        FetchContent_Declare(sbva_src
-            GIT_REPOSITORY https://github.com/meelgroup/SBVA.git
+set(cryptominisat5_DIR "" CACHE PATH "cryptominisat5 install/build prefix (contains lib/cmake/cryptominisat5/). Auto-resolved if empty.")
+if(NOT TARGET cryptominisat5)
+    if(cryptominisat5_DIR)
+        find_package(cryptominisat5 CONFIG REQUIRED HINTS "${cryptominisat5_DIR}")
+        message(STATUS "CryptoMiniSat5: using pre-built at ${cryptominisat5_DIR}")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../cryptominisat/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../cryptominisat"
+                         "${CMAKE_CURRENT_BINARY_DIR}/cryptominisat-build")
+        message(STATUS "CryptoMiniSat5: using sibling repo")
+    else()
+        FetchContent_Declare(cryptominisat5
+            GIT_REPOSITORY https://github.com/msoos/cryptominisat
             GIT_TAG        master
-            SOURCE_DIR     "${_sbva_src}"
-            GIT_SHALLOW    TRUE
-        )
-        FetchContent_GetProperties(sbva_src)
-        if(NOT sbva_src_POPULATED)
-            message(STATUS "SBVA: fetching from meelgroup/SBVA master")
-            FetchContent_Populate(sbva_src)
-        endif()
-        if(NOT EXISTS "${_sbva_build}/sbvaConfig.cmake")
-            message(STATUS "SBVA: configuring and building in ${_sbva_build}")
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -S "${_sbva_src}" -B "${_sbva_build}"
-                    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                    -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-                RESULT_VARIABLE _sbva_cfg_ret
-            )
-            if(NOT _sbva_cfg_ret EQUAL 0)
-                message(FATAL_ERROR "SBVA cmake configure failed (exit ${_sbva_cfg_ret})")
-            endif()
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} --build "${_sbva_build}" -j8
-                RESULT_VARIABLE _sbva_build_ret
-            )
-            if(NOT _sbva_build_ret EQUAL 0)
-                message(FATAL_ERROR "SBVA build failed (exit ${_sbva_build_ret})")
-            endif()
-        endif()
-        set(sbva_DIR "${_sbva_build}" CACHE PATH "Directory where sbva is built" FORCE)
-        message(STATUS "SBVA: using auto-built ${sbva_DIR}")
+            GIT_SHALLOW    TRUE)
+        FetchContent_MakeAvailable(cryptominisat5)
+        message(STATUS "CryptoMiniSat5: fetched from GitHub")
     endif()
-    if(NOT treedecomp_DIR)
-        set(_tdec_src "${CMAKE_BINARY_DIR}/deps/treedecomp")
-        set(_tdec_build "${_tdec_src}/build")
-        FetchContent_Declare(treedecomp_src
-            GIT_REPOSITORY https://github.com/meelgroup/treedecomp.git
-            GIT_TAG        main
-            SOURCE_DIR     "${_tdec_src}"
-            GIT_SHALLOW    TRUE
-        )
-        FetchContent_GetProperties(treedecomp_src)
-        if(NOT treedecomp_src_POPULATED)
-            message(STATUS "treedecomp: fetching from meelgroup/treedecomp main")
-            FetchContent_Populate(treedecomp_src)
-        endif()
-        if(NOT EXISTS "${_tdec_build}/treedecompConfig.cmake")
-            message(STATUS "treedecomp: configuring and building in ${_tdec_build}")
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -S "${_tdec_src}" -B "${_tdec_build}"
-                    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                    -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-                RESULT_VARIABLE _tdec_cfg_ret
-            )
-            if(NOT _tdec_cfg_ret EQUAL 0)
-                message(FATAL_ERROR "treedecomp cmake configure failed (exit ${_tdec_cfg_ret})")
-            endif()
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} --build "${_tdec_build}" -j8
-                RESULT_VARIABLE _tdec_build_ret
-            )
-            if(NOT _tdec_build_ret EQUAL 0)
-                message(FATAL_ERROR "treedecomp build failed (exit ${_tdec_build_ret})")
-            endif()
-        endif()
-        set(treedecomp_DIR "${_tdec_build}" CACHE PATH "Directory where treedecomp is built" FORCE)
-        message(STATUS "treedecomp: using auto-built ${treedecomp_DIR}")
-    endif()
-    set(_arjun_src "${CMAKE_BINARY_DIR}/deps/arjun")
-    set(_arjun_build "${_arjun_src}/build")
-    FetchContent_Declare(arjun_src
-        GIT_REPOSITORY https://github.com/meelgroup/arjun.git
-        GIT_TAG        master
-        SOURCE_DIR     "${_arjun_src}"
-        GIT_SHALLOW    TRUE
-    )
-    FetchContent_GetProperties(arjun_src)
-    if(NOT arjun_src_POPULATED)
-        message(STATUS "Arjun: fetching from meelgroup/arjun master")
-        FetchContent_Populate(arjun_src)
-    endif()
-    if(NOT EXISTS "${_arjun_build}/arjunConfig.cmake")
-        message(STATUS "Arjun: configuring and building in ${_arjun_build}")
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -S "${_arjun_src}" -B "${_arjun_build}"
-                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-                -Dcryptominisat5_DIR=${cryptominisat5_DIR}
-                -Dsbva_DIR=${sbva_DIR}
-                -Dtreedecomp_DIR=${treedecomp_DIR}
-            RESULT_VARIABLE _arjun_cfg_ret
-        )
-        if(NOT _arjun_cfg_ret EQUAL 0)
-            message(FATAL_ERROR "Arjun cmake configure failed (exit ${_arjun_cfg_ret})")
-        endif()
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} --build "${_arjun_build}" -j8
-            RESULT_VARIABLE _arjun_build_ret
-        )
-        if(NOT _arjun_build_ret EQUAL 0)
-            message(FATAL_ERROR "Arjun build failed (exit ${_arjun_build_ret})")
-        endif()
-    endif()
-    set(arjun_DIR "${_arjun_build}" CACHE PATH "Directory where Arjun is built" FORCE)
-    message(STATUS "Arjun: using auto-built ${arjun_DIR}")
 endif()
-find_package(arjun CONFIG REQUIRED)
-message(STATUS "Arjun dynamic lib : ${ARJUN_LIBRARIES}")
-message(STATUS "Arjun static lib  : ${ARJUN_STATIC_LIBRARIES}")
-message(STATUS "Arjun include dirs: ${ARJUN_INCLUDE_DIRS}")
+
+# ---- Arjun ----
+set(arjun_DIR "" CACHE PATH "arjun install/build prefix (contains lib/cmake/arjun/). Auto-resolved if empty.")
+if(NOT TARGET arjun)
+    if(arjun_DIR)
+        find_package(arjun CONFIG REQUIRED HINTS "${arjun_DIR}")
+        message(STATUS "Arjun: using pre-built at ${arjun_DIR}")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../arjun/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../arjun"
+                         "${CMAKE_CURRENT_BINARY_DIR}/arjun-build")
+        message(STATUS "Arjun: using sibling repo")
+    else()
+        FetchContent_Declare(arjun
+            GIT_REPOSITORY https://github.com/meelgroup/arjun.git
+            GIT_TAG        master
+            GIT_SHALLOW    TRUE)
+        FetchContent_MakeAvailable(arjun)
+        message(STATUS "Arjun: fetched from GitHub")
+    endif()
+endif()
 
 # ---- EvalMaxSAT (cmake-based, optional) ----
 option(USE_EVALMAXSAT "Build with EvalMaxSAT support" OFF)
@@ -664,7 +535,7 @@ configure_file(
     IMMEDIATE @ONLY
 )
 
-add_custom_target(uninstall
+add_custom_target(uninstall_approxmc
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
 )
 
