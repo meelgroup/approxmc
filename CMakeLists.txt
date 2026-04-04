@@ -365,6 +365,7 @@ endmacro()
 # Dependencies
 # -----------------------------------------------------------------------------
 find_package(GMP REQUIRED)
+find_package(MPFR REQUIRED)
 
 include(FetchContent)
 # FetchContent_Populate with declared details is deprecated in CMake 3.30+ (CMP0169).
@@ -386,6 +387,17 @@ if(CMAKE_OSX_ARCHITECTURES)
 endif()
 if(CMAKE_OSX_DEPLOYMENT_TARGET)
     list(APPEND _osx_cmake_args "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+endif()
+if(APPLE)
+    execute_process(
+        COMMAND brew --prefix
+        OUTPUT_VARIABLE _homebrew_prefix
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if(_homebrew_prefix)
+        list(APPEND _osx_cmake_args "-DCMAKE_PREFIX_PATH=${_homebrew_prefix}")
+    endif()
 endif()
 
 # ---- CryptoMiniSat5 and its deps (cadical, cadiback) ----
@@ -624,6 +636,8 @@ if(NOT arjun_DIR)
                 -DGMP_LIBRARY=${GMP_LIBRARY}
                 -DGMPXX_LIBRARY=${GMPXX_LIBRARY}
                 -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
+                -DMPFR_LIBRARY=${MPFR_LIBRARY}
+                -DMPFR_INCLUDE_DIR=${MPFR_INCLUDE_DIR}
                 ${_osx_cmake_args}
             RESULT_VARIABLE _arjun_cfg_ret
         )
@@ -735,9 +749,10 @@ if(BUILD_PYTHON_EXTENSION)
         ${CRYPTOMINISAT5_INCLUDE_DIRS}
         ${ARJUN_INCLUDE_DIRS}
         ${GMP_INCLUDE_DIR}
+        ${MPFR_INCLUDE_DIR}
     )
 
-    # Use -lgmpxx/-lgmp as plain linker flags so ld resolves them to the
+    # Use -lgmpxx/-lgmp/-lmpfr as plain linker flags so ld resolves them to the
     # shared library (.so/.dylib).  The static GMP .a is typically not
     # compiled with -fPIC and therefore cannot be linked into a .so.
     target_link_libraries(pyapproxmc PRIVATE
@@ -745,6 +760,7 @@ if(BUILD_PYTHON_EXTENSION)
         ${ARJUN_STATIC_LIBRARIES}
         -lgmpxx
         -lgmp
+        -lmpfr
     )
     target_compile_features(pyapproxmc PRIVATE cxx_std_20)
 
