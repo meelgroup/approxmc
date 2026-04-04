@@ -67,15 +67,13 @@ target_include_directories(approxmc-bin
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${ARJUN_INCLUDE_DIRS}
-    ${GMP_INCLUDE_DIR}
-    ${MPFR_INCLUDE_DIR}
     ${CRYPTOMINISAT5_INCLUDE_DIRS}
 )
 
 target_link_libraries(approxmc-bin
   PRIVATE
-    ${GMP_LIBRARY}
-    ${MPFR_LIBRARY}
+    PkgConfig::GMP
+    PkgConfig::MPFR
     ${ARJUN_LIBRARIES}
     approxmc
 )

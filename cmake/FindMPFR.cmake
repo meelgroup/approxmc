@@ -22,6 +22,15 @@ find_path(
           /usr/include
 )
 
+set(_mpfr_old_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+if(NOT BUILD_SHARED_LIBS)
+    # Prefer static MPFR, but fall back to shared — mpfr-devel on RHEL/AlmaLinux
+    # only ships libmpfr.so (no libmpfr.a).
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so" ".dylib")
+else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".dylib" ".a")
+endif()
+
 find_library(
     MPFR_LIBRARY
     NAMES mpfr
@@ -35,6 +44,7 @@ find_library(
           /usr/lib64
 )
 
+set(CMAKE_FIND_LIBRARY_SUFFIXES "${_mpfr_old_suffixes}")
 set(MPFR_INCLUDE_DIRS ${MPFR_INCLUDE_DIR})
 set(MPFR_LIBRARIES ${MPFR_LIBRARY})
 
