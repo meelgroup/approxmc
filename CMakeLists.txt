@@ -358,6 +358,10 @@ endmacro()
 # -----------------------------------------------------------------------------
 # Dependencies
 # -----------------------------------------------------------------------------
+# When building statically, prefer .a over .so for all find_library/find_package calls
+if(NOT BUILD_SHARED_LIBS)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+endif()
 find_package(PkgConfig REQUIRED)
 if(APPLE)
     execute_process(COMMAND brew --prefix OUTPUT_VARIABLE _homebrew_prefix OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
