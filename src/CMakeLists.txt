@@ -50,6 +50,7 @@ target_include_directories(approxmc
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -137,6 +138,9 @@ foreach(public_header ${approxmc_public_headers})
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${public_header} "${HEADER_DEST}/"
     )
 endforeach()
+
+add_dependencies(approxmc CopyPublicHeaders_approxmc)
+add_dependencies(approxmc-bin CopyPublicHeaders_approxmc)
 
 install(TARGETS approxmc
     EXPORT ${APPROXMC_EXPORT_NAME}
