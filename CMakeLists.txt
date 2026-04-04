@@ -358,7 +358,9 @@ endmacro()
 # -----------------------------------------------------------------------------
 # Dependencies
 # -----------------------------------------------------------------------------
-# When building statically, prefer .a over .so for all find_library/find_package calls
+# When building statically, prefer .a over .so for all find_library/find_package calls.
+# In-tree deps (cryptominisat, arjun, …) are built directly and unaffected by this;
+# it mainly controls how system libs are resolved.
 if(NOT BUILD_SHARED_LIBS)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so" ".dylib")
 endif()
@@ -369,6 +371,12 @@ if(APPLE)
         set(ENV{PKG_CONFIG_PATH} "${_homebrew_prefix}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
     endif()
 endif()
+# GMP and MPFR are external pre-built system libraries that may not have been
+# compiled with -fPIC.  Linking their static .a into a shared object (.so) then
+# fails at link time.  Always prefer the shared versions for these two libs by
+# temporarily restoring the default suffix order around their discovery.
+set(_saved_find_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+unset(CMAKE_FIND_LIBRARY_SUFFIXES)   # restores platform default (.so first on Linux)
 pkg_check_modules(GMP REQUIRED IMPORTED_TARGET gmp)
 find_library(GMPXX_LIBRARY NAMES gmpxx HINTS ${GMP_LIBRARY_DIRS})
 if(GMPXX_LIBRARY)
@@ -376,6 +384,7 @@ if(GMPXX_LIBRARY)
     set_property(TARGET PkgConfig::GMP PROPERTY INTERFACE_LINK_LIBRARIES "${GMPXX_LIBRARY}" ${_gmp_iface_libs})
 endif()
 pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
+set(CMAKE_FIND_LIBRARY_SUFFIXES "${_saved_find_suffixes}")
 
 include(FetchContent)
 # FetchContent_Populate with declared details is deprecated in CMake 3.30+ (CMP0169).
