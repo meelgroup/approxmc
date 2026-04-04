@@ -364,8 +364,19 @@ endmacro()
 # -----------------------------------------------------------------------------
 # Dependencies
 # -----------------------------------------------------------------------------
-find_package(GMP REQUIRED)
-find_package(MPFR REQUIRED)
+find_package(PkgConfig REQUIRED)
+if(APPLE)
+    execute_process(COMMAND brew --prefix OUTPUT_VARIABLE _homebrew_prefix OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+    if(_homebrew_prefix)
+        set(ENV{PKG_CONFIG_PATH} "${_homebrew_prefix}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+    endif()
+endif()
+pkg_check_modules(GMP REQUIRED IMPORTED_TARGET gmp)
+find_library(GMPXX_LIBRARY NAMES gmpxx HINTS ${GMP_LIBRARY_DIRS})
+if(GMPXX_LIBRARY)
+    set_property(TARGET PkgConfig::GMP APPEND PROPERTY INTERFACE_LINK_LIBRARIES "${GMPXX_LIBRARY}")
+endif()
+pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
 
 include(FetchContent)
 # FetchContent_Populate with declared details is deprecated in CMake 3.30+ (CMP0169).
@@ -502,8 +513,6 @@ if(NOT cryptominisat5_DIR)
                 -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
                 -Dcadical_DIR=${cadical_DIR}
                 -Dcadiback_DIR=${cadiback_DIR}
-                -DGMP_LIBRARY=${GMP_LIBRARY}
-                -DGMPXX_LIBRARY=${GMPXX_LIBRARY}
                 ${_osx_cmake_args}
             RESULT_VARIABLE _cms_cfg_ret
         )
@@ -633,11 +642,6 @@ if(NOT arjun_DIR)
                 -Dcryptominisat5_DIR=${cryptominisat5_DIR}
                 -Dsbva_DIR=${sbva_DIR}
                 -Dtreedecomp_DIR=${treedecomp_DIR}
-                -DGMP_LIBRARY=${GMP_LIBRARY}
-                -DGMPXX_LIBRARY=${GMPXX_LIBRARY}
-                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
-                -DMPFR_LIBRARY=${MPFR_LIBRARY}
-                -DMPFR_INCLUDE_DIR=${MPFR_INCLUDE_DIR}
                 ${_osx_cmake_args}
             RESULT_VARIABLE _arjun_cfg_ret
         )
@@ -748,19 +752,13 @@ if(BUILD_PYTHON_EXTENSION)
         ${PROJECT_SOURCE_DIR}/src
         ${CRYPTOMINISAT5_INCLUDE_DIRS}
         ${ARJUN_INCLUDE_DIRS}
-        ${GMP_INCLUDE_DIR}
-        ${MPFR_INCLUDE_DIR}
     )
 
-    # Use -lgmpxx/-lgmp/-lmpfr as plain linker flags so ld resolves them to the
-    # shared library (.so/.dylib).  The static GMP .a is typically not
-    # compiled with -fPIC and therefore cannot be linked into a .so.
     target_link_libraries(pyapproxmc PRIVATE
         approxmc
         ${ARJUN_STATIC_LIBRARIES}
-        -lgmpxx
-        -lgmp
-        -lmpfr
+        PkgConfig::GMP
+        PkgConfig::MPFR
     )
     target_compile_features(pyapproxmc PRIVATE cxx_std_20)
 
