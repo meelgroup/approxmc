@@ -90,12 +90,6 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
-    if(NOT BUILD_SHARED_LIBS)
-        message(STATUS "Compiling with static libraries")
-        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    else()
-        message(STATUS "Compiling for dynamic library use")
-    endif()
     if(STATIC_BINARY AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         message(STATUS "Linking approxmc binary statically")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
@@ -374,7 +368,8 @@ endif()
 pkg_check_modules(GMP REQUIRED IMPORTED_TARGET gmp)
 find_library(GMPXX_LIBRARY NAMES gmpxx HINTS ${GMP_LIBRARY_DIRS})
 if(GMPXX_LIBRARY)
-    set_property(TARGET PkgConfig::GMP APPEND PROPERTY INTERFACE_LINK_LIBRARIES "${GMPXX_LIBRARY}")
+    get_property(_gmp_iface_libs TARGET PkgConfig::GMP PROPERTY INTERFACE_LINK_LIBRARIES)
+    set_property(TARGET PkgConfig::GMP PROPERTY INTERFACE_LINK_LIBRARIES "${GMPXX_LIBRARY}" ${_gmp_iface_libs})
 endif()
 pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
 
@@ -385,31 +380,6 @@ if(POLICY CMP0169)
     cmake_policy(SET CMP0169 OLD)
 endif()
 
-# Collect macOS-specific flags to forward to child CMake builds so that
-# cross-compilation (e.g. universal2, x86_64 under Rosetta) works correctly.
-# CMAKE_OSX_ARCHITECTURES is set by scikit-build-core when building Python wheels.
-set(_osx_cmake_args "")
-set(_osx_arch_cxxflags "")
-if(CMAKE_OSX_ARCHITECTURES)
-    list(APPEND _osx_cmake_args "-DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}")
-    foreach(_arch ${CMAKE_OSX_ARCHITECTURES})
-        string(APPEND _osx_arch_cxxflags " -arch ${_arch}")
-    endforeach()
-endif()
-if(CMAKE_OSX_DEPLOYMENT_TARGET)
-    list(APPEND _osx_cmake_args "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
-endif()
-if(APPLE)
-    execute_process(
-        COMMAND brew --prefix
-        OUTPUT_VARIABLE _homebrew_prefix
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET
-    )
-    if(_homebrew_prefix)
-        list(APPEND _osx_cmake_args "-DCMAKE_PREFIX_PATH=${_homebrew_prefix}")
-    endif()
-endif()
 
 # ---- CryptoMiniSat5 and its deps (cadical, cadiback) ----
 # cadical and cadiback are only needed when auto-building CryptoMiniSat5.
@@ -435,7 +405,7 @@ if(NOT cryptominisat5_DIR)
         if(NOT EXISTS "${_cadical_lib}")
             message(STATUS "CaDiCaL: building in ${_cadical_src}")
             execute_process(
-                COMMAND bash -c "CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=\"-fPIC${_osx_arch_cxxflags}\" ./configure --no-contracts --no-tracing --fp"
+                COMMAND bash -c "CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=\"-fPIC\" ./configure --no-contracts --no-tracing --fp"
                 WORKING_DIRECTORY "${_cadical_src}"
                 RESULT_VARIABLE _cadical_cfg_ret
             )
@@ -472,7 +442,7 @@ if(NOT cryptominisat5_DIR)
         if(NOT EXISTS "${_cadiback_lib}")
             message(STATUS "CaDiBaCk: building in ${_cadiback_src}")
             execute_process(
-                COMMAND bash -c "CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=\"-fPIC${_osx_arch_cxxflags}\" ./configure --release"
+                COMMAND bash -c "CXX=${CMAKE_CXX_COMPILER} CXXFLAGS=\"-fPIC\" ./configure --release"
                 WORKING_DIRECTORY "${_cadiback_src}"
                 RESULT_VARIABLE _cadiback_cfg_ret
             )
@@ -513,7 +483,6 @@ if(NOT cryptominisat5_DIR)
                 -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
                 -Dcadical_DIR=${cadical_DIR}
                 -Dcadiback_DIR=${cadiback_DIR}
-                ${_osx_cmake_args}
             RESULT_VARIABLE _cms_cfg_ret
         )
         if(NOT _cms_cfg_ret EQUAL 0)
@@ -563,7 +532,6 @@ if(NOT arjun_DIR)
                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
                     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-                    ${_osx_cmake_args}
                 RESULT_VARIABLE _sbva_cfg_ret
             )
             if(NOT _sbva_cfg_ret EQUAL 0)
@@ -601,7 +569,6 @@ if(NOT arjun_DIR)
                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
                     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-                    ${_osx_cmake_args}
                 RESULT_VARIABLE _tdec_cfg_ret
             )
             if(NOT _tdec_cfg_ret EQUAL 0)
@@ -642,7 +609,6 @@ if(NOT arjun_DIR)
                 -Dcryptominisat5_DIR=${cryptominisat5_DIR}
                 -Dsbva_DIR=${sbva_DIR}
                 -Dtreedecomp_DIR=${treedecomp_DIR}
-                ${_osx_cmake_args}
             RESULT_VARIABLE _arjun_cfg_ret
         )
         if(NOT _arjun_cfg_ret EQUAL 0)
@@ -689,7 +655,6 @@ if(USE_EVALMAXSAT)
                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
                     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-                    ${_osx_cmake_args}
                 RESULT_VARIABLE _evalmaxsat_cfg_ret
             )
             if(NOT _evalmaxsat_cfg_ret EQUAL 0)

@@ -48,7 +48,7 @@ foreach(F ${MY_TESTS})
         ${F}.cpp
     )
     target_link_libraries(${F}
-        ${GMP_LIBRARY}
+        PkgConfig::GMP
         ${GTEST_BOTH_LIBRARIES}
         approxmc
         ${CRYPTOMINISAT5_LIBRARIES}
