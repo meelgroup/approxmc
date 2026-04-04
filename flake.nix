@@ -44,6 +44,7 @@
           stdenv,
           cmake,
           autoPatchelfHook,
+          pkg-config,
           fetchFromGitHub,
           gmp,
           mpfr,
@@ -69,6 +70,7 @@
           nativeBuildInputs = [
             cmake
             autoPatchelfHook
+            pkg-config
           ];
           cmakeFlags = [
             "-Dcryptominisat5_DIR=${cryptominisat}/lib/cmake/cryptominisat5"

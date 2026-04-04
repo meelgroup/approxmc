@@ -360,7 +360,7 @@ endmacro()
 # -----------------------------------------------------------------------------
 # When building statically, prefer .a over .so for all find_library/find_package calls
 if(NOT BUILD_SHARED_LIBS)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so" ".dylib")
 endif()
 find_package(PkgConfig REQUIRED)
 if(APPLE)
