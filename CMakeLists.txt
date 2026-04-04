@@ -73,6 +73,9 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # generate JSON file of compile commands -- useful for code extension
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+# Python extension — defined early so the GMP/MPFR discovery below can use it.
+option(BUILD_PYTHON_EXTENSION "Build the pyapproxmc Python extension module" OFF)
+
 # static compilation
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
 # STATIC_BINARY controls whether the approxmc executable is linked fully
@@ -371,12 +374,14 @@ if(APPLE)
         set(ENV{PKG_CONFIG_PATH} "${_homebrew_prefix}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
     endif()
 endif()
-# GMP and MPFR are external pre-built system libraries that may not have been
-# compiled with -fPIC.  Linking their static .a into a shared object (.so) then
-# fails at link time.  Always prefer the shared versions for these two libs by
-# temporarily restoring the default suffix order around their discovery.
-set(_saved_find_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
-unset(CMAKE_FIND_LIBRARY_SUFFIXES)   # restores platform default (.so first on Linux)
+# GMP and MPFR are external pre-built system libraries.  When building the Python
+# extension (.so), their static .a may lack -fPIC and cannot be linked into a shared
+# object.  Restore the platform-default suffix order (.so first) only in that case so
+# the shared versions are found.  For a fully-static binary build we still need .a.
+if(BUILD_PYTHON_EXTENSION)
+    set(_saved_find_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+    unset(CMAKE_FIND_LIBRARY_SUFFIXES)
+endif()
 pkg_check_modules(GMP REQUIRED IMPORTED_TARGET gmp)
 find_library(GMPXX_LIBRARY NAMES gmpxx HINTS ${GMP_LIBRARY_DIRS})
 if(GMPXX_LIBRARY)
@@ -384,7 +389,9 @@ if(GMPXX_LIBRARY)
     set_property(TARGET PkgConfig::GMP PROPERTY INTERFACE_LINK_LIBRARIES "${GMPXX_LIBRARY}" ${_gmp_iface_libs})
 endif()
 pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
-set(CMAKE_FIND_LIBRARY_SUFFIXES "${_saved_find_suffixes}")
+if(BUILD_PYTHON_EXTENSION)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES "${_saved_find_suffixes}")
+endif()
 
 include(FetchContent)
 # FetchContent_Populate with declared details is deprecated in CMake 3.30+ (CMP0169).
@@ -503,8 +510,8 @@ add_subdirectory(src apx-src)
 # Python extension module (pyapproxmc)
 # Activated by scikit-build-core via -DBUILD_PYTHON_EXTENSION=ON.
 # Requires CMake >= 3.18 (python_add_library).
+# (option defined early, near top of file, so GMP/MPFR discovery can use it)
 # =============================================================================
-option(BUILD_PYTHON_EXTENSION "Build the pyapproxmc Python extension module" OFF)
 if(BUILD_PYTHON_EXTENSION)
     find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 

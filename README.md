@@ -41,7 +41,11 @@ specific set of steps.
 
 ### Building statically
 
-To build a static binary, you first need to build GMP with static library support:
+To build a static binary, you first need to build GMP with position-independent code
+enabled. GMP's hand-optimised assembly is normally compiled without `-fPIC` (fine for
+a native static binary), but `-fPIC` is required whenever the static `.a` is linked
+into a shared object — for example, the Python extension (`.so`). Passing `--with-pic`
+to GMP's `configure` makes both uses work:
 
 ```shell
 wget https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
@@ -133,8 +137,8 @@ Or build from source (requires GMP: `apt-get install libgmp-dev` / `brew install
 ```bash
 git clone --recurse-submodules https://github.com/meelgroup/approxmc
 cd approxmc
-python -m venv .venv && source .venv/bin/activate
-pip install .
+python -m venv venv
+venv/bin/pip install .
 ```
 
 Then you can use it as:
