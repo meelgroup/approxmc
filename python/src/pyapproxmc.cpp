@@ -52,14 +52,14 @@ typedef struct {
     double delta;
 } Counter;
 
-static const char counter_create_docstring[] = \
-"Counter(verbosity=0, seed=1, epsilon=0.8, delta=0.2)\n\
-Create Counter object.\n\
-\n\
-:param verbosity: Verbosity level: 0: nothing printed; 15: very verbose.\n\
-:param seed: Random seed\n\
-:param epsilon: epsilon parameter as per PAC guarantees\n\
-:param delta: delta parameter as per PAC guarantees";
+PyDoc_STRVAR(counter_create_docstring,
+"Counter(verbosity=0, seed=1, epsilon=0.8, delta=0.2)\n"
+"Create Counter object.\n"
+"\n"
+":param verbosity: Verbosity level: 0: nothing printed; 15: very verbose.\n"
+":param seed: Random seed\n"
+":param epsilon: epsilon parameter as per PAC guarantees\n"
+":param delta: delta parameter as per PAC guarantees");
 
 /********** Internal Functions **********/
 
@@ -203,9 +203,7 @@ static PyObject* add_clause(Counter *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    Py_INCREF(Py_None);
-    return Py_None;
-
+    Py_RETURN_NONE;
 }
 
 template <typename T>
@@ -312,8 +310,7 @@ static PyObject* add_clauses(Counter *self, PyObject *args, PyObject *kwds)
         if (ret == 0 || PyErr_Occurred()) {
             return NULL;
         }
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     PyObject *iterator = PyObject_GetIter(clauses);
@@ -339,8 +336,7 @@ static PyObject* add_clauses(Counter *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -481,7 +477,7 @@ static PyTypeObject pyapproxmc_CounterType =
     sizeof(Counter),                /*tp_basicsize*/
     0,                              /*tp_itemsize*/
     (destructor)Counter_dealloc,    /*tp_dealloc*/
-    0,                              /*tp_print*/
+    0,                              /*tp_vectorcall_offset*/
     0,                              /*tp_getattr*/
     0,                              /*tp_setattr*/
     0,                              /*tp_compare*/
@@ -561,9 +557,12 @@ PyMODINIT_FUNC PyInit_pyapproxmc(void)
         return NULL;
     }
 
-    // Add the Counter type
+    // Add the Counter type.
+    // PyModule_AddObject steals the reference on success but NOT on failure,
+    // so we must decref the type ourselves on the error path.
     Py_INCREF(&pyapproxmc_CounterType);
-    if (PyModule_AddObject(m, "Counter", (PyObject *)&pyapproxmc_CounterType)) {
+    if (PyModule_AddObject(m, "Counter", (PyObject *)&pyapproxmc_CounterType) < 0) {
+        Py_DECREF(&pyapproxmc_CounterType);
         Py_DECREF(m);
         return NULL;
     }
