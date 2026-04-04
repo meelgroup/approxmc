@@ -510,13 +510,11 @@ if(BUILD_PYTHON_EXTENSION)
 
     target_include_directories(pyapproxmc PRIVATE
         ${PROJECT_SOURCE_DIR}/src
-        ${CRYPTOMINISAT5_INCLUDE_DIRS}
-        ${ARJUN_INCLUDE_DIRS}
     )
 
     target_link_libraries(pyapproxmc PRIVATE
         approxmc
-        ${ARJUN_STATIC_LIBRARIES}
+        arjun
         PkgConfig::GMP
         PkgConfig::MPFR
     )
