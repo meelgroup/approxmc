@@ -83,11 +83,7 @@ option(BUILD_SHARED_LIBS "Build the shared library" ON)
 # behaviour), but can be set to OFF independently — e.g. when building the
 # Python wheel: BUILD_SHARED_LIBS=OFF gives static dep .a files embedded in
 # the .so, but we don't need (or want) a static approxmc binary.
-if(NOT BUILD_SHARED_LIBS)
-    option(STATIC_BINARY "Link the approxmc binary fully statically" ON)
-else()
-    option(STATIC_BINARY "Link the approxmc binary fully statically" OFF)
-endif()
+option(STATIC_BINARY "Link the approxmc binary fully statically" OFF)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
