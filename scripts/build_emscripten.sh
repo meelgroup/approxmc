@@ -13,6 +13,7 @@ rm -rf apx-src
 rm -rf deps
 rm -rf _deps
 emcmake cmake -DCMAKE_INSTALL_PREFIX=$EMINSTALL \
+    -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF \
     -Dcadical_DIR="${SOLVERS_DIR}/cadical/build" \
     -Dcadiback_DIR="${SOLVERS_DIR}/cadiback/build" \
