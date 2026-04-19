@@ -85,6 +85,13 @@ set_target_properties(approxmc PROPERTIES
     VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
 )
+# On MinGW both DLL and EXE import libs share the libapproxmc.dll.a name,
+# so the approxmc library and approxmc-bin executable (OUTPUT_NAME=approxmc)
+# collide on the import lib. Rename the library's output on Windows to
+# avoid the clash.
+if(WIN32)
+    set_target_properties(approxmc PROPERTIES OUTPUT_NAME approxmcwin)
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     set_target_properties(approxmc-bin PROPERTIES
