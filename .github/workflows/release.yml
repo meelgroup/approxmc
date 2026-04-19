@@ -13,10 +13,27 @@ jobs:
       fail-fast: true
 
       matrix:
-        os: [ubuntu-latest, macos-15, ubuntu-24.04-arm, macos-15-intel]
+        os: [ubuntu-latest, macos-15, ubuntu-24.04-arm, macos-15-intel, windows-latest]
         build_type: [Release]
 
     steps:
+    - name: Set up MSYS2
+      if: contains(matrix.os, 'windows')
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-ninja
+          mingw-w64-x86_64-gmp
+          mingw-w64-x86_64-mpfr
+          mingw-w64-x86_64-zlib
+          mingw-w64-x86_64-pkgconf
+          make
+          zip
+
     - name: Install dependencies for Linux
       if: contains(matrix.os, 'ubuntu')
       run: sudo apt-get update && sudo apt-get install -yq help2man libgmp-dev libmpfr-dev
@@ -60,7 +77,8 @@ jobs:
         path: project
         submodules: 'true'
 
-    - name: Build project
+    - name: Build project (non-Windows)
+      if: "!contains(matrix.os, 'windows')"
       run: |
         cd project
         mkdir -p build && cd build
@@ -71,14 +89,42 @@ jobs:
         -S ..
         cmake --build . --config ${{ matrix.build_type }} -v
 
-    - name: run it to check it executes
+    - name: Build project (Windows)
+      if: contains(matrix.os, 'windows')
+      shell: msys2 {0}
+      run: |
+        cd project
+        mkdir -p build && cd build
+        cmake \
+        -DENABLE_TESTING=OFF \
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+        -DBUILD_SHARED_LIBS=OFF \
+        -G Ninja \
+        -S ..
+        cmake --build . --config ${{ matrix.build_type }} -v
+
+    - name: run it to check it executes (non-Windows)
+      if: "!contains(matrix.os, 'windows')"
       run: |
         ./project/build/approxmc --version
         echo $?
         ./project/build/approxmc --help
         echo $?
 
-    - name: Package artifacts
+    - name: run it to check it executes (Windows)
+      if: contains(matrix.os, 'windows')
+      shell: msys2 {0}
+      run: |
+        EXE=./project/build/approxmc.exe
+        echo "Running: $EXE --version"
+        $EXE --version
+        echo $?
+        echo "Running: $EXE --help"
+        $EXE --help
+        echo $?
+
+    - name: Package artifacts (non-Windows)
+      if: "!contains(matrix.os, 'windows')"
       run: |
         TAG="${{ github.ref_name }}"
         TAG="${TAG#release/}"
@@ -97,6 +143,21 @@ jobs:
         cp -r project/build/lib dist/ 2>/dev/null || true
         cp -r project/build/include dist/ 2>/dev/null || true
         tar czf "${ARCHIVE}" -C dist .
+        echo "ARCHIVE=${ARCHIVE}" >> $GITHUB_ENV
+
+    - name: Package artifacts (Windows)
+      if: contains(matrix.os, 'windows')
+      shell: msys2 {0}
+      run: |
+        TAG="${{ github.ref_name }}"
+        TAG="${TAG#release/}"
+        ARCH="windows-x86_64"
+        ARCHIVE="approxmc-${TAG}-${ARCH}.zip"
+        mkdir -p dist
+        cp project/build/approxmc.exe dist/
+        cp -r project/build/lib dist/ 2>/dev/null || true
+        cp -r project/build/include dist/ 2>/dev/null || true
+        (cd dist && zip -r "../${ARCHIVE}" .)
         echo "ARCHIVE=${ARCHIVE}" >> $GITHUB_ENV
 
     - name: Upload release asset
