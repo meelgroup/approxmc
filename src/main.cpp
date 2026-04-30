@@ -29,6 +29,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <charconv>
+#include <stdexcept>
 #if defined(__GNUC__) && defined(__linux__)
 #include <cfenv>
 #endif
@@ -77,14 +79,30 @@ int with_e = 0;
 bool do_arjun = true;
 bool do_backbone = false;
 
+static int fc_int(const std::string& s) {
+    int val = 0;
+    auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), val);
+    if (ec != std::errc{}) throw std::invalid_argument("not an integer: " + s);
+    if (ptr != s.data() + s.size()) throw std::invalid_argument("trailing characters in integer: " + s);
+    return val;
+}
+static double fc_double(const std::string& s) {
+    size_t pos = 0;
+    double val;
+    try { val = std::stod(s, &pos); }
+    catch (const std::exception&) { throw std::invalid_argument("not a double: " + s); }
+    if (pos != s.size()) throw std::invalid_argument("trailing characters in double: " + s);
+    return val;
+}
+
 #define myopt(name, var, fun, hhelp) \
     program.add_argument(name) \
-        .action([&](const auto& a) {var = std::fun(a.c_str());}) \
+        .action([&](const auto& a) {var = fun(a);}) \
         .default_value(var) \
         .help(hhelp)
 #define myopt2(name1, name2, var, fun, hhelp) \
     program.add_argument(name1, name2) \
-        .action([&](const auto& a) {var = std::fun(a.c_str());}) \
+        .action([&](const auto& a) {var = fun(a);}) \
         .default_value(var) \
         .help(hhelp)
 
@@ -108,14 +126,14 @@ void add_appmc_options()
     sparse = tmp.get_sparse();
     seed = tmp.get_seed();
 
-    myopt2("-v", "--verb", verb, atoi, "Verbosity");
-    myopt2("-s", "--seed", seed, atoi, "Seed");
-    myopt2("-e", "--epsilon", epsilon, stod,
+    myopt2("-v", "--verb", verb, fc_int, "Verbosity");
+    myopt2("-s", "--seed", seed, fc_int, "Seed");
+    myopt2("-e", "--epsilon", epsilon, fc_double,
             "Tolerance parameter, i.e. how close is the count from the correct count? "
             "Count output is within bounds of (exact_count/(1+e)) < count < (exact_count*(1+e)). "
             "So e=0.8 means we'll output at most 180%% of exact count and at least 55%% of exact count. "
             "Lower value means more precise.");
-    myopt2("-d", "--delta", delta, stod, "Confidence parameter, i.e. how sure are we of the result? "
+    myopt2("-d", "--delta", delta, fc_double, "Confidence parameter, i.e. how sure are we of the result? "
             "(1-d) = probability the count is within range as per epsilon parameter. "
             "So d=0.2 means we are 80%% sure the count is within range as specified by epsilon. "
             "The lower, the higher confidence we have in the count.");
@@ -125,29 +143,29 @@ void add_appmc_options()
         .help("Print version and exit");
 
     /* arjun_options.add_options() */
-    myopt("--arjun", do_arjun, atoi, "Use arjun to minimize sampling set");
+    myopt("--arjun", do_arjun, fc_int, "Use arjun to minimize sampling set");
 
     /* improvement_options.add_options() */
-    myopt("--sparse", sparse, atoi,
+    myopt("--sparse", sparse, fc_int,
             "0 = (default) Do not use sparse method. 1 = Generate sparse XORs when possible.");
-    myopt("--reusemodels", reuse_models, atoi, "Reuse models while counting solutions");
-    myopt("--forcesolextension", force_sol_extension, atoi,
+    myopt("--reusemodels", reuse_models, fc_int, "Reuse models while counting solutions");
+    myopt("--forcesolextension", force_sol_extension, fc_int,
             "Use trick of not extending solutions in the SAT solver to full solution");
-    myopt("--withe", with_e, atoi, "Eliminate variables and simplify CNF as well");
-    myopt("--eiter1", simp_conf.iter1, atoi, "Num iters of E on 1st round");
-    myopt("--eiter2", simp_conf.iter2, atoi, "Num iters of E on 1st round");
-    myopt("--evivif", simp_conf.oracle_vivify, atoi, "E vivif");
-    myopt("--esparsif", simp_conf.oracle_sparsify, atoi, "E sparsify");
-    myopt("--egetreds", simp_conf.oracle_vivify_get_learnts, atoi, "Get redundant from E");
+    myopt("--withe", with_e, fc_int, "Eliminate variables and simplify CNF as well");
+    myopt("--eiter1", simp_conf.iter1, fc_int, "Num iters of E on 1st round");
+    myopt("--eiter2", simp_conf.iter2, fc_int, "Num iters of E on 1st round");
+    myopt("--evivif", simp_conf.oracle_vivify, fc_int, "E vivif");
+    myopt("--esparsif", simp_conf.oracle_sparsify, fc_int, "E sparsify");
+    myopt("--egetreds", simp_conf.oracle_vivify_get_learnts, fc_int, "Get redundant from E");
 
     /* misc_options.add_options() */
-    myopt("--verbcls", verb_cls, atoi, "Print banning clause + xor clauses. Highly verbose.");
-    myopt("--simplify", simplify, atoi, "Simplify aggressiveness");
-    myopt("--velimratio", var_elim_ratio, stod, "Variable elimination ratio for each simplify run");
-    myopt("--dumpintercnf", dump_intermediary_cnf, atoi,
+    myopt("--verbcls", verb_cls, fc_int, "Print banning clause + xor clauses. Highly verbose.");
+    myopt("--simplify", simplify, fc_int, "Simplify aggressiveness");
+    myopt("--velimratio", var_elim_ratio, fc_double, "Variable elimination ratio for each simplify run");
+    myopt("--dumpintercnf", dump_intermediary_cnf, fc_int,
             "Dump intermediary CNFs during solving into files cnf_dump-X.cnf. If set to 1 only UNSAT is dumped, if set to 2, all are dumped");
-    myopt("--debug", debug, atoi, "Turn on more heavy internal debugging");
-    myopt("--backbone", do_backbone, atoi, "Run backbone analysis");
+    myopt("--debug", debug, fc_int, "Turn on more heavy internal debugging");
+    myopt("--backbone", do_backbone, fc_int, "Run backbone analysis");
 
     program.add_argument("inputfile").remaining().help("input CNF");
 }
