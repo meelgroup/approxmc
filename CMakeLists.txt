@@ -280,9 +280,16 @@ function(SetVersionNumber PREFIX VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 endfunction()
 
 find_program(GIT_EXECUTABLE git)
-if(GIT_EXECUTABLE)
-  include(GetGitRevisionDescription)
-  get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+if(GIT_EXECUTABLE AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE GIT_SHA1
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE GIT_SHA1_RESULT)
+  if(NOT GIT_SHA1_RESULT EQUAL 0)
+    set(GIT_SHA1 "GIT-hash-notfound")
+  endif()
   message(STATUS "GIT hash found: ${GIT_SHA1}")
 else()
   set(GIT_SHA1 "GIT-hash-notfound")
