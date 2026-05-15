@@ -96,6 +96,13 @@ if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darw
     if(STATIC_BINARY AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         message(STATUS "Linking approxmc binary statically")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+
+        # gcc's spec uses linker-script wrappers (libgcc_s_asneeded.so,
+        # libatomic_asneeded.so) that have no static counterpart. CMake captures
+        # them in CMAKE_<LANG>_IMPLICIT_LINK_LIBRARIES and propagates them to
+        # consumers — under -static the linker then fails to find libgcc_s_asneeded.a.
+        list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES   gcc_s_asneeded atomic_asneeded)
+        list(REMOVE_ITEM CMAKE_CXX_IMPLICIT_LINK_LIBRARIES gcc_s          atomic_asneeded)
     endif()
 endif()
 
