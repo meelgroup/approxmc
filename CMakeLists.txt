@@ -94,8 +94,19 @@ find_package(Threads REQUIRED)
 
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
     if(STATIC_BINARY AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        message(STATUS "Linking approxmc binary statically")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+        message(STATUS "Linking approxmc binary fully statically")
+        set(CMAKE_EXE_LINKER_FLAGS
+            "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
+
+        # CMake probes the compiler without -static, so its captured
+        # CMAKE_<LANG>_IMPLICIT_LINK_LIBRARIES name the *shared* libgcc/libatomic
+        # variants (gcc_s, gcc_s_asneeded, atomic_asneeded) whose .a counterparts
+        # don't exist. Under -static -static-libgcc -static-libstdc++ the gcc/clang
+        # driver links libgcc.a + libgcc_eh.a + libstdc++.a itself, so we don't
+        # need CMake to re-inject anything. Clear both lists outright rather than
+        # playing whack-a-mole with distro-specific names.
+        set(CMAKE_C_IMPLICIT_LINK_LIBRARIES   "")
+        set(CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "")
     endif()
 endif()
 
@@ -280,9 +291,16 @@ function(SetVersionNumber PREFIX VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 endfunction()
 
 find_program(GIT_EXECUTABLE git)
-if(GIT_EXECUTABLE)
-  include(GetGitRevisionDescription)
-  get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+if(GIT_EXECUTABLE AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE GIT_SHA1
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE GIT_SHA1_RESULT)
+  if(NOT GIT_SHA1_RESULT EQUAL 0)
+    set(GIT_SHA1 "GIT-hash-notfound")
+  endif()
   message(STATUS "GIT hash found: ${GIT_SHA1}")
 else()
   set(GIT_SHA1 "GIT-hash-notfound")
