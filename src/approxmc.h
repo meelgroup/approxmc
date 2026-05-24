@@ -37,11 +37,7 @@
 #include <cryptominisat5/cryptominisat.h>
 namespace ApproxMC {
 
-#ifdef _WIN32
-class __declspec(dllexport) SolCount
-#else
 class SolCount
-#endif
 {
     public:
     void clear() {
@@ -54,11 +50,7 @@ class SolCount
 };
 
 struct AppMCPrivateData;
-#ifdef _WIN32
-class __declspec(dllexport) AppMC
-#else
 class AppMC
-#endif
 {
 public:
     AppMC(const std::unique_ptr<CMSat::FieldGen>& _fg);

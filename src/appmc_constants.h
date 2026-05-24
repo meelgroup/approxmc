@@ -35,6 +35,14 @@
 using std::vector;
 using std::string;
 
+#if defined _WIN32
+    #define DLL_PUBLIC __declspec(dllexport)
+    #define DLL_LOCAL
+#else
+    #define DLL_PUBLIC __attribute__ ((visibility ("default")))
+    #define DLL_LOCAL  __attribute__ ((visibility ("hidden")))
+#endif
+
 #define verb_print(a, b) do { if (conf.verb >= a) cout << "c o " << b << endl; } while (0)
 #define clear_toclear_seen() \
     do {\
