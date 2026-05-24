@@ -39,13 +39,6 @@ using std::cout;
 using std::endl;
 using namespace AppMCInt;
 
-#if defined _WIN32
-    #define DLL_PUBLIC __declspec(dllexport)
-#else
-    #define DLL_PUBLIC __attribute__ ((visibility ("default")))
-    #define DLL_LOCAL  __attribute__ ((visibility ("hidden")))
-#endif
-
 namespace ApproxMC {
     struct AppMCPrivateData {
         AppMCPrivateData(const std::unique_ptr<CMSat::FieldGen>& fg):
