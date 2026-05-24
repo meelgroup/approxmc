@@ -35,10 +35,6 @@ nix shell github:meelgroup/approxmc#approxmc
 
 Then you will have `approxmc` binary available and ready to use.
 
-If this is somehow not what you want, you can also build it. See the [GitHub
-Action](https://github.com/meelgroup/approxmc/actions/workflows/build.yml) for the
-specific set of steps.
-
 ### Building statically
 
 To build a static binary, you first need to build GMP with position-independent code
@@ -55,19 +51,6 @@ cd gmp-6.3.0
 make -j8
 sudo make install
 cd ..
-```
-
-Then point CMake to the installed GMP static libraries (note: use `/usr/local/lib/`,
-not a custom build directory, as those may be compiled for the wrong architecture):
-
-```shell
-mkdir build && cd build
-cmake -DBUILD_SHARED_LIBS=OFF \
-    -DGMP_LIBRARY=/usr/local/lib/libgmp.a \
-    -DGMPXX_LIBRARY=/usr/local/lib/libgmpxx.a \
-    -DGMP_INCLUDE_DIR=/usr/local/include \
-    ..
-make -j8
 ```
 
 ## Providing a Projection Set
@@ -92,33 +75,57 @@ your sampling set only contains 7 variables, then the maximum number of
 solutions can only be at most 2^7 = 128. This is true even if your CNF has
 thousands of variables.
 
+The legacy directive `c ind 1 3 4 6 7 8 10 0` declares the same thing.
+ApproxMC accepts both forms but they cannot appear together in the same file;
+prefer `c p show` in new files.
+
 ## Running ApproxMC
 In our case, the maximum number of solutions could at most be 2^7=128, but our
 CNF should be restricting this. Let's see:
 
 ```plain
 $ approxmc --seed 5 myfile.cnf
-c ApproxMC version 3.0
+c o CMS SHA1: ...
+c o Arjun SHA1: ...
+c o ApproxMC SHA1: ...
+c o Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
 [...]
-c CryptoMiniSat SHA revision [...]
-c Using code from 'When Boolean Satisfiability Meets Gauss-E. in a Simplex Way'
+c o [arjun-simp] Removed set       : 0 new size: 7
+c o [arjun-simp] get-empties removed: 5 perc: 71.43 total empties now: 5 T: 0.00
 [...]
-[appmc] using seed: 5
-[appmc] Sampling set size: 7
-[appmc] Sampling set: 1, 3, 4, 6, 7, 8, 10,
-[appmc] Using start iteration 0
-[appmc] [    0.00 ] bounded_sol_count looking for   73 solutions -- hashes active: 0
-[appmc] [    0.01 ] bounded_sol_count looking for   73 solutions -- hashes active: 1
-[appmc] [    0.01 ] bounded_sol_count looking for   73 solutions -- hashes active: 0
+c o [appmc] Sampling set size: 2
+c o [appmc] Sampling set: 3 4 0
+c o [appmc] threshold set to 72 sparse: 0
+c o [appmc] [    0.00 ] bounded_sol_count looking for   73 solutions -- hashes active: 0
 [...]
-[appmc] FINISHED ApproxMC T: 0.04 s
-c [appmc] Number of solutions is: 48*2**1
+c o [appmc] Counted without XORs, i.e. we got exact count
+c o [appmc] ApproxMC T: 0.00 s
+c [appmc] Number of solutions is: 3*2**0*32
+s SATISFIABLE
 s mc 96
 ```
-ApproxMC reports that we have approximately `96 (=48*2)` solutions to the CNF's
-independent support. This is because for variables 3 and 4 we have banned the
-`false,false` solution, so out of their 4 possible settings, one is banned.
-Therefore, we have `2^5 * (4-1) = 96` solutions.
+ApproxMC reports `96` solutions on the final `s mc` line. The
+`Number of solutions is: 3*2**0*32` line above it is in the format
+`<cell>*2**<hash>*<mult>`, where `<mult>` is a multiplier produced by Arjun's
+preprocessing pass (enabled by default). In this run Arjun shrank the
+7-variable sampling set down to just `{3, 4}` — the only ones the clause
+constrains — so the 5 removed variables contribute `2^5 = 32` as the
+multiplier. The remaining two variables have one banned setting
+(`false, false`) out of four, hence `cell = 3`. The final count is
+`3 * 2^0 * 32 = 96`. Passing `--arjun 0` would skip this minimization.
+
+### Common command-line options
+
+Run `approxmc --help` for the full list. The most commonly used flags:
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-s, --seed <N>` | 1 | Random seed |
+| `-e, --epsilon <F>` | 0.8 | Tolerance: count is in `[exact/(1+e), exact*(1+e)]` |
+| `-d, --delta <F>` | 0.2 | Confidence: count is within tolerance with prob. `1-d` |
+| `-v, --verb <N>` | 1 | Verbosity (0 = quiet) |
+| `--sparse <0/1>` | 0 | Generate sparse XOR constraints (see below) |
+| `--version` |  | Print version info and exit |
 
 ## Guarantees
 ApproxMC provides so-called "PAC", or Probably Approximately Correct,
@@ -179,38 +186,52 @@ The system can be used as a library:
 
 ```c++
 #include <approxmc/approxmc.h>
-#include <vector>
+#include <arjun/arjun.h>
+#include <cryptominisat5/solvertypesmini.h>
 #include <cassert>
+#include <cmath>
+#include <memory>
+#include <vector>
 
 using std::vector;
 using namespace ApproxMC;
 using namespace CMSat;
 
 int main() {
-    AppMC appmc;
+    // AppMC takes a FieldGen used by the multiplier-weight machinery.
+    // For unweighted counting, use Arjun's mpq-backed generator.
+    std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
+    AppMC appmc(fg);
     appmc.new_vars(10);
 
     vector<Lit> clause;
 
     //add "-3 4 0"
-    clause.clear();
-    clause.push_back(Lit(2, true));
-    clause.push_back(Lit(3, false));
+    clause = {Lit(2, true), Lit(3, false)};
     appmc.add_clause(clause);
 
     //add "3 -4 0"
-    clause.clear();
-    clause.push_back(Lit(2, false));
-    clause.push_back(Lit(3, true));
+    clause = {Lit(2, false), Lit(3, true)};
     appmc.add_clause(clause);
 
+    // The sampling set must be set explicitly (no default).
+    // Here we count over all 10 variables.
+    vector<uint32_t> sampl;
+    for (uint32_t i = 0; i < 10; i++) sampl.push_back(i);
+    appmc.set_sampl_vars(sampl);
+
     SolCount c = appmc.count();
-    uint32_t cnt = std::pow(2, c.hashCount)*c.cellSolCount;
-    assert(cnt == std::pow(2, 9));
+    uint64_t cnt = (uint64_t)std::pow(2, c.hashCount) * c.cellSolCount;
+    assert(cnt == (uint64_t)std::pow(2, 9));
 
     return 0;
 }
 ```
+
+Link against `libapproxmc`, `libarjun`, and `libcryptominisat5`. The
+`<approxmc/approxmc.h>` header is the only public ApproxMC header you need;
+`<arjun/arjun.h>` is required for the `FGenMpq` field generator passed to the
+`AppMC` constructor.
 
 ## Sparse XOR Counting
 You can turn on the sparse XORs using the flag `--sparse 1` but beware as reported in
