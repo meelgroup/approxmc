@@ -2,29 +2,11 @@
   description = "Approximate model counter";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-<<<<<<< HEAD
-    # cadiback is not used by approxmc directly, but both cryptominisat and
-    # arjun pull it in (each with its own cadical). Declare it once here as
-    # the single anchor so the whole dependency tree shares one cadiback and
-    # one cadical instead of duplicating them many times in flake.lock.
-    cadiback = {
-      url = "github:meelgroup/cadiback/main";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    cryptominisat = {
-      url = "github:msoos/cryptominisat/master";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.cadiback.follows = "cadiback";
-    };
-    sbva = {
-      url = "github:meelgroup/sbva/master";
-=======
     # cadiback is not used by approxmc directly, but our deps (cryptominisat,
     # arjun) pull it in. Declare it here as a single anchor so the whole tree
     # shares one of each instead of duplicating them many times in flake.lock.
     cadiback = {
       url = "github:meelgroup/cadiback/main";
->>>>>>> develop
       inputs.nixpkgs.follows = "nixpkgs";
     };
     evalmaxsat = {
@@ -47,11 +29,6 @@
     arjun = {
       url = "github:meelgroup/arjun/master";
       inputs.nixpkgs.follows = "nixpkgs";
-<<<<<<< HEAD
-      # arjun re-declares every one of these shared deps; point them all at
-      # our copies so nothing is duplicated.
-=======
->>>>>>> develop
       inputs.cadiback.follows = "cadiback";
       inputs.cadical.follows = "cadiback/cadical";
       inputs.cryptominisat.follows = "cryptominisat";

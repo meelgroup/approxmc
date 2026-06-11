@@ -26,19 +26,11 @@
         ]
       },
       "locked": {
-<<<<<<< HEAD
-        "lastModified": 1779612649,
-        "narHash": "sha256-0q/KhnVwKixgX5bxK3tlx0lcEKSE7//IV/r5oWaI6Fk=",
-        "owner": "meelgroup",
-        "repo": "arjun",
-        "rev": "1553e6b3ebdd76ba3b66d3fece4cf8de4e2743ce",
-=======
         "lastModified": 1781202146,
         "narHash": "sha256-FhhwGfAQohHZUjxNtxqS0wcZmK+Xc9zfKdIxlLC8iEU=",
         "owner": "meelgroup",
         "repo": "arjun",
         "rev": "b13e4ceca1d2036b0977f45aac944013cc95f9e4",
->>>>>>> develop
         "type": "github"
       },
       "original": {
@@ -107,19 +99,11 @@
         ]
       },
       "locked": {
-<<<<<<< HEAD
-        "lastModified": 1779612320,
-        "narHash": "sha256-MRGFHhf1ZHKG/Oa51E7SLchtVDG931vMGPhrJ6+1zAA=",
-        "owner": "msoos",
-        "repo": "cryptominisat",
-        "rev": "b16b058fc5a2c5e64196a97b37950ecdf1f0ee26",
-=======
         "lastModified": 1780590784,
         "narHash": "sha256-vfPlrGJlhVW0cPF3mW7bdhP4pymTKGwLjOf4A8lSqbo=",
         "owner": "msoos",
         "repo": "cryptominisat",
         "rev": "78b3244c84ab9135ef22619f22f7da6f1fc72ad2",
->>>>>>> develop
         "type": "github"
       },
       "original": {
@@ -136,19 +120,11 @@
         ]
       },
       "locked": {
-<<<<<<< HEAD
-        "lastModified": 1775309014,
-        "narHash": "sha256-2/JJzN1F/aUyTM8SjsnqLm23/cigOkx04B+IWjkiuCI=",
-        "owner": "meelgroup",
-        "repo": "EvalMaxSAT",
-        "rev": "42903e519ee22ce51e6448f525874d9c6d1fc87a",
-=======
         "lastModified": 1772998809,
         "narHash": "sha256-w2y08390zGbOP5ishsBApIhlwhZ7gTQfkvcqhccHMAw=",
         "owner": "meelgroup",
         "repo": "EvalMaxSAT",
         "rev": "90f76d440552f45a7293111c22ff72572c7b1bb8",
->>>>>>> develop
         "type": "github"
       },
       "original": {
