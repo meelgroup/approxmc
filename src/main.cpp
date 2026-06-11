@@ -312,7 +312,6 @@ int main(int argc, char** argv)
     simp_conf.oracle_sparsify = false;
     simp_conf.iter1 = 2;
     simp_conf.iter2 = 0;
-    etof_conf.do_bce = false;
     etof_conf.do_extend_indep = false;
     parse_supported_options(argc, argv);
     if (verb) {
