@@ -336,6 +336,7 @@ int main(int argc, char** argv)
         const auto orig_sampl_vars = cnf.get_sampl_vars();
         const double my_time = cpu_time();
         ArjunNS::Arjun arjun;
+        ArjunNS::Arjun::InterpConf iconf;
         arjun.set_verb(verb);
         arjun.set_or_gate_based(arjun_gates);
         arjun.set_xor_gates_based(arjun_gates);
@@ -343,8 +344,8 @@ int main(int argc, char** argv)
         arjun.set_irreg_gate_based(arjun_gates);
         if (do_backbone)
             arjun.standalone_backbone(cnf);
-        arjun.standalone_minimize_indep(cnf, etof_conf.all_indep);
-        if (with_e) arjun.standalone_elim_to_file(cnf, etof_conf, simp_conf);
+        arjun.standalone_minimize_indep(cnf, iconf, etof_conf.all_indep);
+        if (with_e) arjun.standalone_elim_to_file(cnf, etof_conf, simp_conf, iconf);
         appmc->new_vars(cnf.nVars());
         appmc->set_sampl_vars(cnf.get_sampl_vars());
         for(const auto& c: cnf.get_clauses()) appmc->add_clause(c);
