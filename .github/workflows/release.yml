@@ -123,6 +123,16 @@ jobs:
         $EXE --help
         echo $?
 
+    - name: Check the binary is statically linked (Linux)
+      if: contains(matrix.os, 'ubuntu')
+      run: |
+        file ./project/build/approxmc
+        if ! file ./project/build/approxmc | grep -q "statically linked"; then
+          echo "ERROR: approxmc is not statically linked"
+          ldd ./project/build/approxmc || true
+          exit 1
+        fi
+
     - name: Package artifacts (non-Windows)
       if: "!contains(matrix.os, 'windows')"
       run: |
