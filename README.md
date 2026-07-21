@@ -11,12 +11,13 @@ possible before.
 This work is the culmination of work by a number of people. See publication list at the end of this README for more details.
 
 ApproxMC handles CNF formulas and performs approximate counting.
-1. If you are interested in exact model counting, visit our exact counter
+1. If you are interested in exact or weighted model counting, use our exact counter
    [Ganak](http://github.com/meelgroup/ganak)
-2. If you need to count a weighted CNF formula, you need to preprocess your CNF
-   using [our tool](https://github.com/meelgroup/weighted-to-unweighted) to
+2. If you need to count a weighted CNF formula, we *strongly* recommend [Ganak](http://github.com/meelgroup/ganak).
+   ApproxMC is rarely suitable for weighted model counting. If you nevertheless *want* to use ApproxMC,
+   you must preprocess your CNF using [our tool](https://github.com/meelgroup/weighted-to-unweighted) to
    convert it to an unweighted CNF formula. Then you can use ApproxMC to count it.
-3. If you are interested in DNF formulas, visit our approximate DNF
+4. If you are interested in counting DNF formulas, use our approximate DNF
    counter [Pepin](https://github.com/meelgroup/pepin).
 
 Notice that for some formula families, Ganak is faster than ApproxMC. It
