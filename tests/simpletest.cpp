@@ -105,6 +105,42 @@ TEST(normal_interface, example4)
     EXPECT_EQ(std::pow(2, 9), cnt);
 }
 
+// set_start_iter only seeds where the level search begins. Seeding it at or
+// above the level the search would find must give the same answer as seeding it
+// below, or not seeding it at all.
+TEST(normal_interface, start_iter)
+{
+    auto run = [](uint32_t start_iter) {
+        std::unique_ptr<FieldGen> fg = std::make_unique<ArjunNS::FGenMpq>();
+        AppMC s(fg);
+        s.set_seed(1);
+        s.set_epsilon(0.8);
+        s.set_delta(0.4); // one measurement, so a lost one leaves nothing
+        s.set_start_iter(start_iter);
+        s.new_vars(30);
+        s.add_clause(str_to_cl("1, 2"));
+        vector<uint32_t> sampl;
+        for(uint32_t i = 0; i < 30; i++) sampl.push_back(i);
+        s.set_sampl_vars(sampl);
+        return s.count();
+    };
+
+    const SolCount ref = run(0);
+    EXPECT_TRUE(ref.valid);
+    EXPECT_GT(ref.hashCount, 2U);
+
+    for(uint32_t offset = 0; offset <= 4; offset += 2) {
+        const SolCount c = run(ref.hashCount + offset);
+        EXPECT_TRUE(c.valid);
+        EXPECT_EQ(ref.hashCount, c.hashCount);
+        EXPECT_EQ(ref.cellSolCount, c.cellSolCount);
+    }
+    const SolCount below = run(ref.hashCount - 2);
+    EXPECT_TRUE(below.valid);
+    EXPECT_EQ(ref.hashCount, below.hashCount);
+    EXPECT_EQ(ref.cellSolCount, below.cellSolCount);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
