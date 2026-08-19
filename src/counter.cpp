@@ -576,8 +576,8 @@ void Counter::one_measurement_count(
     threshold_sols[total_max_xors] = 0;
     sols_for_hash[total_max_xors] = 1;
 
-    int64_t hash_cnt = prev_measure;
-    int64_t hash_prev = hash_cnt;
+    int64_t hash_cnt = prev_measure; // Initial guess
+    int64_t hash_prev = 0; // previously probed hash count. No hash count has been probed yet, so 0
 
     //We are doing a galloping search here (see our IJCAI-16 paper for more details).
     //lowerFib is referred to as loIndex and upperFib is referred to as hiIndex
@@ -706,7 +706,9 @@ void Counter::appmc7_one_measurement_count(
     sols_for_hash[upper_fib] = 0;
 
     int64_t hash_cnt = prev_measure;
-    int64_t hash_prev = hash_cnt;
+    //See the note in one_measurement_count: no hash count has been probed yet,
+    //so hash_prev must supply no lower bound.
+    int64_t hash_prev = 0;
 
     //We are doing a galloping search here (see our paper for more details).
     //lower_fib is referred to as loIndex and upper_fib is referred to as hiIndex
