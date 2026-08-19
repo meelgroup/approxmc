@@ -576,11 +576,8 @@ void Counter::one_measurement_count(
     threshold_sols[total_max_xors] = 0;
     sols_for_hash[total_max_xors] = 1;
 
-    int64_t hash_cnt = prev_measure;
-    //hash_prev is the previously *probed* hash count, and is only ever used to
-    //raise lower_fib. No hash count has been probed yet, so it must supply no
-    //lower bound -- prev_measure is a starting guess, not a measurement.
-    int64_t hash_prev = 0;
+    int64_t hash_cnt = prev_measure; // Initial guess
+    int64_t hash_prev = 0; // previously probed hash count. No hash count has been probed yet, so 0
 
     //We are doing a galloping search here (see our IJCAI-16 paper for more details).
     //lowerFib is referred to as loIndex and upperFib is referred to as hiIndex
