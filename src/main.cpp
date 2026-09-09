@@ -109,6 +109,8 @@ static double fc_double(const std::string& s) {
 
 void print_version() {
     cout << "c o CMS SHA1: " << CMSat::SATSolver::get_version_sha1() << endl;
+    cout << "c o CaDiCaL SHA1: " << CMSat::SATSolver::get_cadical_version_sha1() << endl;
+    cout << "c o CadiBack SHA1: " << CMSat::SATSolver::get_cadiback_version_sha1() << endl;
     cout << "c o Arjun SHA1: " << ArjunNS::Arjun ::get_version_sha1() << endl;
     cout << "c o Arjun SBVA SHA1: " << ArjunNS::Arjun::get_sbva_version_sha1() << endl;
     cout << "c o ApproxMC SHA1: " << ApproxMC::AppMC::get_version_sha1() << endl;
