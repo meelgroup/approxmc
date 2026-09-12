@@ -290,21 +290,9 @@ function(SetVersionNumber PREFIX VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
         PARENT_SCOPE)
 endfunction()
 
-find_program(GIT_EXECUTABLE git)
-if(GIT_EXECUTABLE AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-  execute_process(
-    COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    OUTPUT_VARIABLE GIT_SHA1
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    RESULT_VARIABLE GIT_SHA1_RESULT)
-  if(NOT GIT_SHA1_RESULT EQUAL 0)
-    set(GIT_SHA1 "GIT-hash-notfound")
-  endif()
-  message(STATUS "GIT hash found: ${GIT_SHA1}")
-else()
-  set(GIT_SHA1 "GIT-hash-notfound")
-endif()
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/GetGitSHA1.cmake")
+get_git_sha1(GIT_SHA1)
+message(STATUS "GIT hash found: ${GIT_SHA1}")
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml" PYPROJECT_TOML)
 string(REGEX MATCH "version = \"([0-9]+\\.[0-9]+\\.[0-9]+)\"" _ "${PYPROJECT_TOML}")
 set(APPROXMC_FULL_VERSION "${CMAKE_MATCH_1}")
