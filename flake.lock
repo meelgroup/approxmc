@@ -26,11 +26,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781356913,
-        "narHash": "sha256-Skvm1zvhfjbHucMFdJ7oXtVP6QB5X0QgB6jBa1En8PI=",
+        "lastModified": 1789248091,
+        "narHash": "sha256-qsWn8KrcBnBzhvjFwhAciKPsNiamkkU7whyGt+ONyJs=",
         "owner": "meelgroup",
         "repo": "arjun",
-        "rev": "1f064cba4636e516b13c75a899decc2957446c93",
+        "rev": "62da2ecca809dfa9232e5ce9650374a01eeaeeba",
         "type": "github"
       },
       "original": {
@@ -48,11 +48,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781356163,
-        "narHash": "sha256-pLGyzOpr5+j44ORtJr9GslySxHK/6n+x5lQM14JG+mE=",
+        "lastModified": 1789248055,
+        "narHash": "sha256-UIJhXYwTq3orU9hhR4KbMd2Jb7dp7n3ZX141xOBzolU=",
         "owner": "meelgroup",
         "repo": "cadiback",
-        "rev": "3b6a84062b1304433eb8960a4bff6b9a80de9c54",
+        "rev": "47a6d821085ef8cb033241659824beafeb798cff",
         "type": "github"
       },
       "original": {
@@ -70,11 +70,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781356108,
-        "narHash": "sha256-vOkBGnRWR1lT0Ik1WmoNjfIILM7Sk6ofSIbkiIdA68U=",
+        "lastModified": 1789247225,
+        "narHash": "sha256-Ff8iH6CqMPdcqOSN6gjVqbJ1qKuHlwqrl/vW/nCtGPU=",
         "owner": "meelgroup",
         "repo": "cadical",
-        "rev": "394c3f72858c2fe8cd35321f74f11f0f61c91123",
+        "rev": "818c9562f114b315a9246ced943b66b60b38e8fb",
         "type": "github"
       },
       "original": {
@@ -99,11 +99,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781356534,
-        "narHash": "sha256-tDCeZLBkEjyvLRTs46sgb6PGxYa5I3WIsZvej7VCugk=",
+        "lastModified": 1789248071,
+        "narHash": "sha256-Y0vYxAg+JiSYve0QTHYkP+a+WGfvQyBvmJffOkVCmnE=",
         "owner": "msoos",
         "repo": "cryptominisat",
-        "rev": "2c1f5a57684fd201771fbe20de3d41042e1cdac4",
+        "rev": "24b8c863befb80b32cc94b6430a0aa250c300ec6",
         "type": "github"
       },
       "original": {
@@ -168,11 +168,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1779612217,
-        "narHash": "sha256-7TchTyfk77lZgEfExy3LIv5DdtUkXh0oN1y9lzfhKQw=",
+        "lastModified": 1782152094,
+        "narHash": "sha256-M7mfsra8tuYb1xscYs/x9aAJsadAqqe0cpxwz0okpG0=",
         "owner": "meelgroup",
         "repo": "sbva",
-        "rev": "f1021c17dddee4fcd5d552969f459482907f9f84",
+        "rev": "a41a3044cdbad2c5a99c4830568c73600636fca0",
         "type": "github"
       },
       "original": {
