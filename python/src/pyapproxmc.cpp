@@ -385,7 +385,8 @@ static PyObject* count(Counter *self, PyObject *args, PyObject *kwds)
     ArjunNS::Arjun arjun;
     arjun.set_verb(self->verbosity);
     arjun.set_seed(self->seed);
-    arjun.standalone_minimize_indep(*self->cnf, false);
+    ArjunNS::Arjun::InterpConf iconf;
+    arjun.standalone_minimize_indep(*self->cnf, iconf, false);
 
     // Transfer simplified CNF to appmc
     const auto& final_sampl_vars = self->cnf->get_sampl_vars();
