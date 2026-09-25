@@ -40,6 +40,7 @@
 #include <gmp.h>
 
 #include "approxmc.h"
+#include "GitSHA1.h"
 #include "time_mem.h"
 #include <cryptominisat5/solvertypesmini.h>
 #include <cryptominisat5/dimacsparser.h>
@@ -121,14 +122,15 @@ void myopt2(const char* name1, const char* name2, T& var, const char* hhelp) {
 
 
 void print_version() {
+    cout << "c o ApproxMC SHA1: " << ApproxMC::AppMC::get_version_sha1() << endl;
+    cout << "c o Arjun SHA1: " << ArjunNS::Arjun::get_version_sha1() << endl;
+    cout << "c o SBVA SHA1: " << ArjunNS::Arjun::get_sbva_version_sha1() << endl;
     cout << "c o CMS SHA1: " << CMSat::SATSolver::get_version_sha1() << endl;
     cout << "c o CaDiCaL SHA1: " << CMSat::SATSolver::get_cadical_version_sha1() << endl;
     cout << "c o CadiBack SHA1: " << CMSat::SATSolver::get_cadiback_version_sha1() << endl;
-    cout << "c o Arjun SHA1: " << ArjunNS::Arjun ::get_version_sha1() << endl;
-    cout << "c o Arjun SBVA SHA1: " << ArjunNS::Arjun::get_sbva_version_sha1() << endl;
-    cout << "c o ApproxMC SHA1: " << ApproxMC::AppMC::get_version_sha1() << endl;
     cout << CMSat::SATSolver::get_thanks_info("c o ") << endl;
     cout << ArjunNS::Arjun::get_thanks_info("c o ") << endl;
+    cout << "c o ApproxMC compilation env " << AppMCInt::get_compilation_env() << endl;
 }
 
 void add_appmc_options()
@@ -152,7 +154,7 @@ void add_appmc_options()
             "(1-d) = probability the count is within range as per epsilon parameter. "
             "So d=0.2 means we are 80%% sure the count is within range as specified by epsilon. "
             "The lower, the higher confidence we have in the count.");
-    program.add_argument("-v", "--version") \
+    program.add_argument("--version") \
         .action([&](const auto&) {print_version(); exit(0);}) \
         .flag()
         .help("Print version and exit");

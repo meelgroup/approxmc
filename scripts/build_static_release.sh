@@ -29,3 +29,9 @@ cmake -DCMAKE_BUILD_TYPE=Release \
     ..
 make -j$(nproc)
 strip approxmc
+
+VERSION=$(./approxmc --version)
+sha() { echo "$VERSION" | grep "c o $1 SHA1:" | grep -oP '[0-9a-f]{40}' | cut -c1-8; }
+DEST="approxmc_$(sha ApproxMC)_$(sha Arjun)_$(sha SBVA)_$(sha CMS)_$(sha CaDiCaL)_$(sha CadiBack)"
+cp approxmc "$DEST"
+echo "Copied to $DEST"
