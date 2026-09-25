@@ -71,14 +71,18 @@ Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
     const string random_bits = gen_rnd_bits(conf.sampl_vars.size(), hash_index, sparse_data);
 
     vector<uint32_t> vars;
+    vector<uint32_t> idx;
     for (uint32_t j = 0; j < conf.sampl_vars.size(); j++) {
-        if (random_bits[j] == '1') vars.push_back(conf.sampl_vars[j]);
+        if (random_bits[j] == '1') {
+            vars.push_back(conf.sampl_vars[j]);
+            idx.push_back(j);
+        }
     }
 
     solver->new_var();
     const uint32_t act_var = solver->nVars()-1;
     const bool rhs = gen_rhs();
-    auto h = Hash(act_var, vars, rhs);
+    auto h = Hash(act_var, idx, rhs);
 
     vars.push_back(act_var);
     solver_add_xor_clause(vars, rhs);
@@ -87,12 +91,20 @@ Hash Counter::add_hash(uint32_t hash_index, SparseData& sparse_data)
     return h;
 }
 
-void Counter::ban_one(const uint32_t act_var, const vector<lbool>& model)
+void Counter::ban_one(const uint32_t act_var, const vector<lbool>& sampl_model)
 {
     vector<Lit> lits;
     lits.push_back(Lit(act_var, false));
-    for (const uint32_t var: conf.sampl_vars) lits.push_back(Lit(var, model[var] == l_True));
+    for (uint32_t i = 0; i < conf.sampl_vars.size(); i++)
+        lits.push_back(Lit(conf.sampl_vars[i], sampl_model[i] == l_True));
     solver_add_clause(lits);
+}
+
+vector<lbool> Counter::project_model(const vector<lbool>& model) const
+{
+    vector<lbool> ret(conf.sampl_vars.size());
+    for (uint32_t i = 0; i < conf.sampl_vars.size(); i++) ret[i] = model[conf.sampl_vars[i]];
+    return ret;
 }
 
 ///adding banning clauses for repeating solutions
@@ -211,7 +223,7 @@ SolNum Counter::bounded_sol_count(
     const uint64_t repeat = add_glob_banning_cls(hm, sol_ban_var, hash_cnt);
     uint64_t solutions = repeat;
     double last_found_time = cpu_time();
-    vector<vector<lbool>> models;
+    vector<vector<lbool>> sampl_models;
     while (solutions < max_solutions) {
         lbool ret = solver->solve(&new_assumps, !conf.force_sol_extension);
         assert(ret == l_False || ret == l_True);
@@ -238,9 +250,9 @@ SolNum Counter::bounded_sol_count(
 
         //Add solution to set
         solutions++;
-        const vector<lbool> model = solver->get_model();
+        const vector<lbool>& model = solver->get_model();
         check_model(model, hm, hash_cnt);
-        models.push_back(model);
+        if (hm && conf.reuse_models) sampl_models.push_back(project_model(model));
 
         //ban solution
         vector<Lit> lits;
@@ -257,9 +269,7 @@ SolNum Counter::bounded_sol_count(
 
     //Save global models
     if (hm && conf.reuse_models) {
-        for (const auto& model: models) {
-            hm->glob_model.emplace_back(SavedModel(model, hash_cnt));
-        }
+        for (auto& m: sampl_models) hm->glob_model.emplace_back(std::move(m), hash_cnt);
     }
 
     //Remove solution banning
@@ -912,22 +922,23 @@ void Counter::check_model(
 
     if (!hm) return;
 
+    const vector<lbool> sampl_model = project_model(model);
     for(const auto& h: hm->hashes) {
         //This hash is number: h.first
         //Only has to match hashes at & below
         //Notice that "h.first" is numbered from 0, so it's a "<" not "<="
         if (h.first < hash_cnt) {
             //cout << "Checking model against hash " << h.first << endl;
-            assert(check_model_against_hash(h.second, model));
+            assert(check_model_against_hash(h.second, sampl_model));
         }
     }
 }
 
-bool Counter::check_model_against_hash(const Hash& h, const vector<lbool>& model) {
+bool Counter::check_model_against_hash(const Hash& h, const vector<lbool>& sampl_model) {
     bool rhs = false;
-    for (auto const& var: h.hash_vars) {
-        assert(model[var] != l_Undef);
-        rhs ^= model[var] == l_True;
+    for (auto const& i: h.hash_idx) {
+        assert(sampl_model[i] != l_Undef);
+        rhs ^= sampl_model[i] == l_True;
     }
     return rhs == h.rhs;
 }

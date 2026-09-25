@@ -46,19 +46,20 @@ namespace AppMCInt {
 
 struct SavedModel
 {
-    SavedModel (const vector<lbool>& _model, uint32_t _hash_num):
-        model(_model), hash_num(_hash_num) {}
-    const vector<lbool> model;
+    SavedModel (vector<lbool>&& _model, uint32_t _hash_num):
+        model(std::move(_model)), hash_num(_hash_num) {}
+    // Projected onto sampl_vars: full models can be GBs on instances with millions of vars
+    vector<lbool> model;
     uint32_t hash_num;
 };
 
 struct Hash {
     Hash () = default;
-    Hash(const uint32_t _act_var, const vector<uint32_t>& _hash_vars, const bool _rhs):
-        act_var(_act_var), hash_vars(_hash_vars), rhs(_rhs) {}
+    Hash(const uint32_t _act_var, const vector<uint32_t>& _hash_idx, const bool _rhs):
+        act_var(_act_var), hash_idx(_hash_idx), rhs(_rhs) {}
 
     uint32_t act_var;
-    vector<uint32_t> hash_vars;
+    vector<uint32_t> hash_idx; // indices into sampl_vars
     bool rhs;
 };
 
@@ -152,7 +153,8 @@ private:
         const HashesModels* const hm,
         const uint32_t hash_count
     );
-    bool check_model_against_hash(const Hash& h, const vector<lbool>& model);
+    bool check_model_against_hash(const Hash& h, const vector<lbool>& sampl_model);
+    vector<lbool> project_model(const vector<lbool>& model) const;
     uint64_t add_glob_banning_cls(
         const HashesModels* glob_model = nullptr
         , const uint32_t act_var = std::numeric_limits<uint32_t>::max()
