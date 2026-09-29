@@ -135,6 +135,11 @@ DLL_PUBLIC void AppMC::set_simplify(uint32_t simplify)
     }
 }
 
+DLL_PUBLIC void AppMC::set_congruence(int congruence)
+{
+    data->conf.congruence = congruence;
+}
+
 DLL_PUBLIC void AppMC::set_var_elim_ratio(double var_elim_ratio)
 {
     data->conf.var_elim_ratio = var_elim_ratio;

@@ -48,6 +48,7 @@ public:
     unsigned verb_cls = 0;
     uint32_t seed = 1;
     int simplify = 1;
+    int congruence = 0;
     double var_elim_ratio = 1.6;
     int reuse_models = 1;
     std::string logfilename = "";

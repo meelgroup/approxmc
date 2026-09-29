@@ -65,6 +65,7 @@ double delta;
 uint32_t start_iter = 0;
 uint32_t verb_cls = 0;
 uint32_t simplify;
+int congruence = 0;
 double var_elim_ratio;
 uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
@@ -178,6 +179,7 @@ void add_appmc_options()
     /* misc_options.add_options() */
     myopt("--verbcls", verb_cls, "Print banning clause + xor clauses. Highly verbose.");
     myopt("--simplify", simplify, "Simplify aggressiveness");
+    myopt("--congruence", congruence, "Run CMS congruence closure once before counting");
     myopt("--velimratio", var_elim_ratio, "Variable elimination ratio for each simplify run");
     myopt("--dumpintercnf", dump_intermediary_cnf,
             "Dump intermediary CNFs during solving into files cnf_dump-X.cnf. If set to 1 only UNSAT is dumped, if set to 2, all are dumped");
@@ -257,6 +259,7 @@ void set_approxmc_options()
     appmc->set_start_iter(start_iter);
     appmc->set_verb_cls(verb_cls);
     appmc->set_simplify(simplify);
+    appmc->set_congruence(congruence);
     appmc->set_var_elim_ratio(var_elim_ratio);
     appmc->set_dump_intermediary_cnf(dump_intermediary_cnf);
     appmc->set_force_sol_extension(force_sol_extension);

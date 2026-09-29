@@ -128,6 +128,7 @@ private:
         SparseData& sparse_data
     );
     void simplify();
+    void print_round_times(uint32_t iter, bool appmc7);
 
     ////////////////
     //Helper functions
@@ -178,6 +179,8 @@ private:
     std::mt19937 rnd_engine;
     uint32_t orig_num_vars;
     double total_inter_simp_time = 0;
+    struct CallT { double sat = 0; double unsat = 0; };
+    std::map<uint32_t, CallT> round_call_t; // hash count -> solve time, current round
     uint32_t threshold; //precision, it's computed
     uint32_t cnf_dump_no = 0;
     vector<vector<Lit>> cls_in_solver; // needed for accurate dumping

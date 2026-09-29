@@ -225,8 +225,11 @@ SolNum Counter::bounded_sol_count(
     double last_found_time = cpu_time();
     vector<vector<lbool>> sampl_models;
     while (solutions < max_solutions) {
+        const double solve_start = cpu_time();
         lbool ret = solver->solve(&new_assumps, !conf.force_sol_extension);
         assert(ret == l_False || ret == l_True);
+        auto& ct = round_call_t[hash_cnt];
+        (ret == l_True ? ct.sat : ct.unsat) += cpu_time() - solve_start;
         if ((conf.dump_intermediary_cnf >= 2 && ret == l_True) ||
             (conf.dump_intermediary_cnf >= 1 && ret == l_False)) {
             dump_cnf_from_solver(new_assumps, iter, ret);
@@ -313,6 +316,27 @@ vector<Lit> Counter::set_num_hashes(
     assert(num_wanted == assumps.size());
 
     return assumps;
+}
+
+void Counter::print_round_times(uint32_t iter, bool appmc7)
+{
+    if (conf.verb < 1 || conf.sampl_vars.empty()) return;
+    // default search ends on m-1 (>= threshold) and m (< threshold), appmc7 on m (1 sol) and m+1 (none)
+    const int64_t hi = appmc7 ? (int64_t)num_hash_list.back() + 1 : (int64_t)num_hash_list.back();
+    const int64_t lo = hi - 1;
+    CallT bnd, other;
+    for (const auto& [h, t]: round_call_t) {
+        CallT& c = ((int64_t)h == lo || (int64_t)h == hi) ? bnd : other;
+        c.sat += t.sat;
+        c.unsat += t.unsat;
+    }
+    const double tot = bnd.sat + bnd.unsat + other.sat + other.unsat;
+    verb_print(1, "[appmc] round " << iter << " solve T: " << std::setprecision(2) << std::fixed << tot
+        << " -- boundary (hashes " << std::max<int64_t>(lo, 0) << "," << hi << ") T: " << bnd.sat + bnd.unsat
+        << " [sols " << bnd.sat << " unsat " << bnd.unsat << "] ("
+        << std::setprecision(0) << (tot > 0 ? 100.0*(bnd.sat + bnd.unsat)/tot : 0.0) << "%)"
+        << std::setprecision(2) << " -- other T: " << other.sat + other.unsat
+        << " [sols " << other.sat << " unsat " << other.unsat << "]");
 }
 
 void Counter::simplify()
@@ -439,6 +463,14 @@ ApproxMC::SolCount Counter::count()
     uint32_t measurements;
     set_up_probs_threshold_measurements(measurements, sparse_data);
 
+    // Congruence skips itself once Gauss matrices exist, so it must run before any XOR is added
+    if (conf.congruence) {
+        const std::string strategy("congruence,must-scc-vrepl");
+        const double my_time = cpu_time();
+        solver->simplify(nullptr, &strategy);
+        verb_print(1, "[appmc] congruence T: " << (cpu_time() - my_time));
+    }
+
     verb_print(1, "[appmc] Starting at hash count: " << hash_cnt);
 
     int64_t prev_measure = hash_cnt;
@@ -449,11 +481,13 @@ ApproxMC::SolCount Counter::count()
     //for Probabilistic Inference: From Linear to Logarithmic SAT Calls"
     //https://www.ijcai.org/Proceedings/16/Papers/503.pdf
     for (uint32_t j = 0; j < measurements; j++) {
+        round_call_t.clear();
         if (conf.epsilon < conf.appmc7_eps_cutoff) {
             one_measurement_count(prev_measure, j, sparse_data, &hm);
         } else {
             appmc7_one_measurement_count(prev_measure, j, sparse_data, &hm);
         }
+        print_round_times(j, conf.epsilon >= conf.appmc7_eps_cutoff);
         if (prev_measure == 0 && (conf.epsilon < conf.appmc7_eps_cutoff || num_count_list.back() == 0)) {
             // Exact count, no need to measure multiple times.
             verb_print(1, "[appmc] Counted without XORs, i.e. we got exact count");
