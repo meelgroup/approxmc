@@ -66,6 +66,7 @@ uint32_t start_iter = 0;
 uint32_t verb_cls = 0;
 uint32_t simplify;
 int congruence = 0;
+vector<string> cms_opts;
 double var_elim_ratio;
 uint32_t reuse_models = 1;
 uint32_t force_sol_extension = 0;
@@ -180,6 +181,10 @@ void add_appmc_options()
     myopt("--verbcls", verb_cls, "Print banning clause + xor clauses. Highly verbose.");
     myopt("--simplify", simplify, "Simplify aggressiveness");
     myopt("--congruence", congruence, "Run CMS congruence closure once before counting");
+    program.add_argument("--cmsopt")
+        .action([](const std::string& a) { cms_opts.push_back(a); })
+        .append()
+        .help("Pass NAME=VALUE to CryptoMiniSat's set_option(), e.g. --cmsopt xor=0. Repeatable");
     myopt("--velimratio", var_elim_ratio, "Variable elimination ratio for each simplify run");
     myopt("--dumpintercnf", dump_intermediary_cnf,
             "Dump intermediary CNFs during solving into files cnf_dump-X.cnf. If set to 1 only UNSAT is dumped, if set to 2, all are dumped");
@@ -260,6 +265,19 @@ void set_approxmc_options()
     appmc->set_verb_cls(verb_cls);
     appmc->set_simplify(simplify);
     appmc->set_congruence(congruence);
+    for (const auto& o: cms_opts) {
+        const auto eq = o.find('=');
+        if (eq == string::npos) {
+            cout << "ERROR: --cmsopt needs NAME=VALUE, got: " << o << endl;
+            exit(-1);
+        }
+        try {
+            appmc->set_cms_option(o.substr(0, eq), o.substr(eq + 1));
+        } catch (const std::exception& e) {
+            cout << "ERROR: --cmsopt " << o << ": " << e.what() << endl;
+            exit(-1);
+        }
+    }
     appmc->set_var_elim_ratio(var_elim_ratio);
     appmc->set_dump_intermediary_cnf(dump_intermediary_cnf);
     appmc->set_force_sol_extension(force_sol_extension);

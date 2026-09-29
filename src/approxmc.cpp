@@ -135,6 +135,11 @@ DLL_PUBLIC void AppMC::set_simplify(uint32_t simplify)
     }
 }
 
+DLL_PUBLIC void AppMC::set_cms_option(const std::string& name, const std::string& value)
+{
+    data->counter.solver->set_option(name, value);
+}
+
 DLL_PUBLIC void AppMC::set_congruence(int congruence)
 {
     data->conf.congruence = congruence;
