@@ -49,6 +49,12 @@ The library wraps CryptoMiniSat as the underlying SAT solver and uses Arjun for
 sampling set determination. The counting algorithm adds random XOR constraints
 and uses binary search over hash counts to estimate the model count.
 
+## Rules
+
+- NEVER disable CryptoMiniSat's XOR recovery (`xor=0`) by default, even if
+  benchmarks show a speedup. Many users count problems with XORs in the CNF
+  that only ApproxMC can count (Ganak cannot), and those rely on it.
+
 ## Python Bindings
 
 ```bash
